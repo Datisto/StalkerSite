@@ -56,7 +56,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       const { data: admins, error } = await supabase
         .from('admins')
         .select('id, username, password_hash, role, permissions, is_active')
-        .eq('username', username)
+        .eq('username', username.trim())
         .eq('is_active', true)
         .maybeSingle();
 
@@ -64,7 +64,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: 'Невірний логін або пароль' };
       }
 
-      const passwordMatch = password === admins.password_hash;
+      const passwordMatch = password.trim() === admins.password_hash.trim();
 
       if (!passwordMatch) {
         return { success: false, error: 'Невірний логін або пароль' };
