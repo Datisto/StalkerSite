@@ -1,67 +1,181 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { ChevronRight, ChevronLeft, Save, Send } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Save, Send, Copy } from 'lucide-react';
+import {
+  FACTIONS,
+  FACE_MODELS,
+  HAIR_COLORS,
+  EYE_COLORS,
+  BEARD_STYLES,
+  BODY_TYPES,
+  MILITARY_EXPERIENCE,
+  CHARACTER_TRAITS,
+  generateHeightOptions,
+  generateWeightOptions,
+  generateAgeOptions,
+} from '../data/characterConstants';
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 interface CharacterData {
+  steam_id: string;
+  discord_id: string;
   name: string;
   surname: string;
   nickname: string;
-  age: number;
   gender: 'male' | 'female';
-  origin_country: string;
-  citizenship: string;
+  age: number;
+  face_model: string;
+  hair_color: string;
+  eye_color: string;
+  beard_style: string;
+  special_features: string;
+  height: number;
+  weight: number;
+  body_type: string;
+  physical_features: string;
+  character_traits: string[];
+  phobias: string;
+  values: string;
   faction: string;
-  biography: string;
-  appearance: string;
-  psychological_portrait: string;
+  education: string;
+  scientific_profile: string;
+  research_motivation: string;
+  military_experience: string;
+  military_rank: string;
+  military_join_reason: string;
+  backstory: string;
+  zone_motivation: string;
+  character_goals: string;
 }
-
-const FACTIONS = [
-  'Вільний сталкер',
-  'Свобода',
-  'Duty',
-  'Торгівці',
-  'Бандити',
-  'Найманці',
-  'Вчені',
-  'Монолітівці'
-];
 
 export default function CharacterCreate() {
   const { user } = useAuth();
   const [step, setStep] = useState<Step>(1);
   const [saving, setSaving] = useState(false);
+  const [hasExistingCharacter, setHasExistingCharacter] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<CharacterData>({
+    steam_id: '',
+    discord_id: '',
     name: '',
     surname: '',
     nickname: '',
-    age: 25,
     gender: 'male',
-    origin_country: 'Україна',
-    citizenship: 'Україна',
+    age: 25,
+    face_model: '',
+    hair_color: '',
+    eye_color: '',
+    beard_style: '',
+    special_features: '',
+    height: 175,
+    weight: 75,
+    body_type: '',
+    physical_features: '',
+    character_traits: [],
+    phobias: '',
+    values: '',
     faction: '',
-    biography: '',
-    appearance: '',
-    psychological_portrait: ''
+    education: '',
+    scientific_profile: '',
+    research_motivation: '',
+    military_experience: '',
+    military_rank: '',
+    military_join_reason: '',
+    backstory: '',
+    zone_motivation: '',
+    character_goals: '',
   });
 
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({ ...prev, steam_id: user.steam_id || user.id }));
+      checkExistingCharacter();
+    }
+  }, [user]);
+
+  async function checkExistingCharacter() {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('characters')
+        .select('id, status')
+        .eq('user_id', user.id)
+        .in('status', ['pending', 'approved', 'active'])
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) {
+        setHasExistingCharacter(true);
+      }
+    } catch (error) {
+      console.error('Error checking character:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const updateField = (field: keyof CharacterData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const toggleTrait = (trait: string) => {
+    setFormData((prev) => {
+      const traits = prev.character_traits;
+      if (traits.includes(trait)) {
+        return { ...prev, character_traits: traits.filter((t) => t !== trait) };
+      } else if (traits.length < 5) {
+        return { ...prev, character_traits: [...traits, trait] };
+      }
+      return prev;
+    });
   };
 
   const canProceed = () => {
     switch (step) {
       case 1:
-        return formData.name && formData.surname && formData.age >= 18 && formData.age <= 80;
+        return (
+          formData.steam_id &&
+          formData.discord_id &&
+          formData.name &&
+          formData.surname &&
+          formData.nickname &&
+          formData.gender &&
+          formData.age >= 16 &&
+          formData.age <= 70
+        );
       case 2:
-        return formData.origin_country && formData.citizenship && formData.faction;
+        return (
+          formData.face_model &&
+          formData.hair_color &&
+          formData.eye_color &&
+          formData.beard_style
+        );
       case 3:
-        return formData.biography.length >= 300 && formData.biography.length <= 1500;
+        return formData.height && formData.weight && formData.body_type;
       case 4:
-        return formData.appearance && formData.psychological_portrait;
+        return formData.character_traits.length >= 3 && formData.values;
+      case 5:
+        if (formData.faction === 'Учений') {
+          return (
+            formData.faction &&
+            formData.education &&
+            formData.scientific_profile &&
+            formData.research_motivation
+          );
+        } else if (formData.faction === 'Військовий') {
+          return (
+            formData.faction &&
+            formData.military_experience &&
+            formData.military_join_reason
+          );
+        }
+        return formData.faction;
+      case 6:
+        return formData.backstory.length >= 500 && formData.zone_motivation;
+      case 7:
+        return true;
       default:
         return false;
     }
@@ -75,17 +189,46 @@ export default function CharacterCreate() {
       const characterData = {
         user_id: user.id,
         status,
-        ...formData,
-        submitted_at: status === 'pending' ? new Date().toISOString() : null
+        discord_id: formData.discord_id,
+        name: formData.name,
+        surname: formData.surname,
+        nickname: formData.nickname,
+        gender: formData.gender,
+        age: formData.age,
+        face_model: formData.face_model,
+        hair_color: formData.hair_color,
+        eye_color: formData.eye_color,
+        beard_style: formData.beard_style,
+        special_features: formData.special_features,
+        height: formData.height,
+        weight: formData.weight,
+        body_type: formData.body_type,
+        physical_features: formData.physical_features,
+        character_traits: formData.character_traits,
+        phobias: formData.phobias,
+        values: formData.values,
+        faction: formData.faction,
+        education: formData.education || null,
+        scientific_profile: formData.scientific_profile || null,
+        research_motivation: formData.research_motivation || null,
+        military_experience: formData.military_experience || null,
+        military_rank: formData.military_rank || null,
+        military_join_reason: formData.military_join_reason || null,
+        backstory: formData.backstory,
+        zone_motivation: formData.zone_motivation,
+        character_goals: formData.character_goals,
+        submitted_at: status === 'pending' ? new Date().toISOString() : null,
       };
 
-      const { error } = await supabase
-        .from('characters')
-        .insert(characterData);
+      const { error } = await supabase.from('characters').insert(characterData);
 
       if (error) throw error;
 
-      alert(status === 'draft' ? 'Персонаж збережено як чернетку' : 'Персонаж відправлено на розгляд');
+      alert(
+        status === 'draft'
+          ? 'Персонаж збережено як чернетку'
+          : 'Персонаж відправлено на розгляд'
+      );
       window.location.href = '/cabinet';
     } catch (error) {
       console.error('Error saving character:', error);
@@ -95,12 +238,20 @@ export default function CharacterCreate() {
     }
   };
 
+  const copySteamId = () => {
+    navigator.clipboard.writeText(formData.steam_id);
+    alert('Steam ID скопійовано!');
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-300 mb-4">Будь ласка, увійдіть через Steam</p>
-          <a href="/" className="bg-red-600 hover:bg-red-500 px-6 py-2 rounded font-semibold transition">
+          <a
+            href="/"
+            className="bg-red-600 hover:bg-red-500 px-6 py-2 rounded font-semibold transition"
+          >
             На головну
           </a>
         </div>
@@ -108,28 +259,69 @@ export default function CharacterCreate() {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <p className="text-gray-300">Завантаження...</p>
+      </div>
+    );
+  }
+
+  if (hasExistingCharacter) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center bg-gray-800 p-8 rounded-lg border border-gray-700 max-w-md">
+          <h2 className="text-2xl font-bold mb-4 text-red-500">Обмеження створення</h2>
+          <p className="text-gray-300 mb-6">
+            У Вас вже є активний персонаж. Зверніться до адміністрації для його видалення.
+          </p>
+          <a
+            href="/cabinet"
+            className="bg-red-600 hover:bg-red-500 px-6 py-2 rounded font-semibold transition"
+          >
+            До кабінету
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  const allTraits = [
+    ...CHARACTER_TRAITS.temperament,
+    ...CHARACTER_TRAITS.social,
+    ...CHARACTER_TRAITS.moral,
+    ...CHARACTER_TRAITS.intellect,
+    ...CHARACTER_TRAITS.emotional,
+    ...CHARACTER_TRAITS.lifeRules,
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100">
       <header className="border-b border-gray-700 bg-black bg-opacity-60 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <a href="/" className="text-xl font-bold">STALKER RP</a>
-            <a href="/cabinet" className="text-sm text-gray-400 hover:text-white transition">
+            <a href="/" className="text-xl font-bold">
+              STALKER RP
+            </a>
+            <a
+              href="/cabinet"
+              className="text-sm text-gray-400 hover:text-white transition"
+            >
               Назад до кабінету
             </a>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Створення персонажа</h1>
-          <p className="text-gray-400">Крок {step} з 4</p>
+          <p className="text-gray-400">Крок {step} з 7</p>
         </div>
 
         <div className="mb-8">
           <div className="flex gap-2">
-            {[1, 2, 3, 4].map((s) => (
+            {[1, 2, 3, 4, 5, 6, 7].map((s) => (
               <div
                 key={s}
                 className={`flex-1 h-2 rounded ${
@@ -143,63 +335,109 @@ export default function CharacterCreate() {
         <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700">
           {step === 1 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold mb-4">Основна інформація</h2>
+              <h2 className="text-2xl font-semibold mb-4">Основні дані персонажа</h2>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Ім'я *</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => updateField('name', e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                  placeholder="Олександр"
-                />
+                <label className="block text-sm font-medium mb-2">СтімID64 *</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={formData.steam_id}
+                    disabled
+                    className="flex-1 bg-gray-700 border border-gray-600 rounded px-4 py-2 text-gray-400 cursor-not-allowed"
+                  />
+                  <button
+                    onClick={copySteamId}
+                    className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition"
+                  >
+                    <Copy className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Прізвище *</label>
+                <label className="block text-sm font-medium mb-2">
+                  Discord ID *
+                  <span className="text-xs text-gray-400 block mt-1">
+                    Ваш унікальний логін у Discord (не розробницькі цифри). Відображається під
+                    нікнеймом.
+                  </span>
+                </label>
                 <input
                   type="text"
-                  value={formData.surname}
-                  onChange={(e) => updateField('surname', e.target.value)}
+                  value={formData.discord_id}
+                  onChange={(e) => updateField('discord_id', e.target.value)}
                   className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                  placeholder="Коваленко"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Позивний (необов'язково)</label>
-                <input
-                  type="text"
-                  value={formData.nickname}
-                  onChange={(e) => updateField('nickname', e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                  placeholder="Сірий"
+                  placeholder="username"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Вік (18-80) *</label>
+                  <label className="block text-sm font-medium mb-2">Ім'я *</label>
                   <input
-                    type="number"
-                    min="18"
-                    max="80"
-                    value={formData.age}
-                    onChange={(e) => updateField('age', parseInt(e.target.value))}
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => updateField('name', e.target.value)}
                     className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                    placeholder="Олександр"
                   />
                 </div>
 
                 <div>
+                  <label className="block text-sm font-medium mb-2">Прізвище *</label>
+                  <input
+                    type="text"
+                    value={formData.surname}
+                    onChange={(e) => updateField('surname', e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                    placeholder="Коваленко"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Псевдонім / Кличка *
+                  <span className="text-xs text-gray-400 block mt-1">
+                    Має бути унікальним, латиницею, без додаткових знаків. Приклад: "Holod" або
+                    "MykolaHolod"
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.nickname}
+                  onChange={(e) => updateField('nickname', e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                  placeholder="Holod"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <label className="block text-sm font-medium mb-2">Стать *</label>
                   <select
                     value={formData.gender}
-                    onChange={(e) => updateField('gender', e.target.value)}
+                    onChange={(e) => updateField('gender', e.target.value as 'male' | 'female')}
                     className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                   >
-                    <option value="male">Чоловік</option>
-                    <option value="female">Жінка</option>
+                    <option value="male">Чоловіча</option>
+                    <option value="female">Жіноча</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Вік (16-70) *</label>
+                  <select
+                    value={formData.age}
+                    onChange={(e) => updateField('age', parseInt(e.target.value))}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                  >
+                    {generateAgeOptions().map((age) => (
+                      <option key={age} value={age}>
+                        {age}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -208,27 +446,222 @@ export default function CharacterCreate() {
 
           {step === 2 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold mb-4">Походження та фракція</h2>
+              <h2 className="text-2xl font-semibold mb-4">Зовнішність</h2>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Країна походження *</label>
-                <input
-                  type="text"
-                  value={formData.origin_country}
-                  onChange={(e) => updateField('origin_country', e.target.value)}
+                <label className="block text-sm font-medium mb-2">Модель обличчя *</label>
+                <select
+                  value={formData.face_model}
+                  onChange={(e) => updateField('face_model', e.target.value)}
                   className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                >
+                  <option value="">Оберіть модель</option>
+                  {FACE_MODELS.map((model) => (
+                    <option key={model} value={model}>
+                      {model}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Колір волосся *</label>
+                  <select
+                    value={formData.hair_color}
+                    onChange={(e) => updateField('hair_color', e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                  >
+                    <option value="">Оберіть колір</option>
+                    {HAIR_COLORS.map((color) => (
+                      <option key={color} value={color}>
+                        {color}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Колір очей *</label>
+                  <select
+                    value={formData.eye_color}
+                    onChange={(e) => updateField('eye_color', e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                  >
+                    <option value="">Оберіть колір</option>
+                    {EYE_COLORS.map((color) => (
+                      <option key={color} value={color}>
+                        {color}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Борода / Вуса *</label>
+                <select
+                  value={formData.beard_style}
+                  onChange={(e) => updateField('beard_style', e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                >
+                  <option value="">Оберіть стиль</option>
+                  {BEARD_STYLES.map((style) => (
+                    <option key={style} value={style}>
+                      {style}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Додаткові особливості
+                  <span className="text-xs text-gray-400 block mt-1">
+                    Шрами, татуювання, пошкодження тощо
+                  </span>
+                </label>
+                <textarea
+                  value={formData.special_features}
+                  onChange={(e) => updateField('special_features', e.target.value)}
+                  rows={3}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
+                  placeholder="Опишіть особливі прикмети..."
+                />
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-semibold mb-4">Фізичні параметри</h2>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Зріст (см) *</label>
+                  <select
+                    value={formData.height}
+                    onChange={(e) => updateField('height', parseInt(e.target.value))}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                  >
+                    {generateHeightOptions().map((height) => (
+                      <option key={height} value={height}>
+                        {height} см
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Вага (кг) *</label>
+                  <select
+                    value={formData.weight}
+                    onChange={(e) => updateField('weight', parseInt(e.target.value))}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                  >
+                    {generateWeightOptions().map((weight) => (
+                      <option key={weight} value={weight}>
+                        {weight} кг
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Статура *</label>
+                <select
+                  value={formData.body_type}
+                  onChange={(e) => updateField('body_type', e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                >
+                  <option value="">Оберіть статуру</option>
+                  {BODY_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Особливі фізичні прикмети
+                </label>
+                <textarea
+                  value={formData.physical_features}
+                  onChange={(e) => updateField('physical_features', e.target.value)}
+                  rows={3}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
+                  placeholder="Додаткові фізичні характеристики..."
+                />
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-semibold mb-4">Характер і поведінка</h2>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Основні риси характеру (оберіть 3-5) *
+                  <span className="text-xs text-gray-400 block mt-1">
+                    Обрано: {formData.character_traits.length}/5
+                  </span>
+                </label>
+                <div className="bg-gray-900 border border-gray-700 rounded p-4 max-h-96 overflow-y-auto">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {allTraits.map((trait) => (
+                      <button
+                        key={trait}
+                        onClick={() => toggleTrait(trait)}
+                        className={`text-left px-3 py-2 rounded text-sm transition ${
+                          formData.character_traits.includes(trait)
+                            ? 'bg-red-600 text-white'
+                            : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                        }`}
+                        disabled={
+                          !formData.character_traits.includes(trait) &&
+                          formData.character_traits.length >= 5
+                        }
+                      >
+                        {trait}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Фобії / Слабкості</label>
+                <textarea
+                  value={formData.phobias}
+                  onChange={(e) => updateField('phobias', e.target.value)}
+                  rows={3}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
+                  placeholder="Страхи та слабкості персонажа..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Громадянство *</label>
-                <input
-                  type="text"
-                  value={formData.citizenship}
-                  onChange={(e) => updateField('citizenship', e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                <label className="block text-sm font-medium mb-2">
+                  Життєві цінності / Переконання *
+                </label>
+                <textarea
+                  value={formData.values}
+                  onChange={(e) => updateField('values', e.target.value)}
+                  rows={4}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
+                  placeholder="У що вірить персонаж, що для нього важливо..."
                 />
               </div>
+            </div>
+          )}
+
+          {step === 5 && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-semibold mb-4">Фракційна приналежність</h2>
 
               <div>
                 <label className="block text-sm font-medium mb-2">Фракція *</label>
@@ -245,60 +678,200 @@ export default function CharacterCreate() {
                   ))}
                 </select>
               </div>
+
+              {formData.faction === 'Учений' && (
+                <div className="space-y-4 bg-gray-900 p-4 rounded border border-gray-700">
+                  <p className="text-sm text-yellow-400">
+                    Доступ після схвалення квенти адміністратором
+                  </p>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Освіта / спеціальність *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.education}
+                      onChange={(e) => updateField('education', e.target.value)}
+                      className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                      placeholder="Наприклад: Біологія, Фізика..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Науковий профіль / напрямок *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.scientific_profile}
+                      onChange={(e) => updateField('scientific_profile', e.target.value)}
+                      className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                      placeholder="Напрямок наукової діяльності..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Мотивація дослідження Зони *
+                    </label>
+                    <textarea
+                      value={formData.research_motivation}
+                      onChange={(e) => updateField('research_motivation', e.target.value)}
+                      rows={4}
+                      className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
+                      placeholder="Чому хочете досліджувати Зону..."
+                    />
+                  </div>
+                </div>
+              )}
+
+              {formData.faction === 'Військовий' && (
+                <div className="space-y-4 bg-gray-900 p-4 rounded border border-gray-700">
+                  <p className="text-sm text-yellow-400">
+                    Доступ після перевірки анкети адміністратором
+                  </p>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Попередній військовий досвід *
+                    </label>
+                    <select
+                      value={formData.military_experience}
+                      onChange={(e) => updateField('military_experience', e.target.value)}
+                      className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                    >
+                      <option value="">Оберіть...</option>
+                      {MILITARY_EXPERIENCE.map((exp) => (
+                        <option key={exp} value={exp}>
+                          {exp}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Звання (якщо було)</label>
+                    <input
+                      type="text"
+                      value={formData.military_rank}
+                      onChange={(e) => updateField('military_rank', e.target.value)}
+                      className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                      placeholder="Наприклад: Капітан, Сержант..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Причина вступу до військових сил у Зоні *
+                    </label>
+                    <textarea
+                      value={formData.military_join_reason}
+                      onChange={(e) => updateField('military_join_reason', e.target.value)}
+                      rows={4}
+                      className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
+                      placeholder="Чому хочете служити у Зоні..."
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {step === 3 && (
+          {step === 6 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold mb-4">Біографія</h2>
+              <h2 className="text-2xl font-semibold mb-4">Квента (Біографія)</h2>
 
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Біографія персонажа (300-1500 символів) *
+                  Передісторія *
+                  <span className="text-xs text-gray-400 block mt-1">
+                    Мінімум 500 символів
+                  </span>
                 </label>
                 <textarea
-                  value={formData.biography}
-                  onChange={(e) => updateField('biography', e.target.value)}
+                  value={formData.backstory}
+                  onChange={(e) => updateField('backstory', e.target.value)}
                   rows={12}
                   className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-                  placeholder="Розкажіть історію вашого персонажа: звідки він, чому потрапив до Зони, що шукає..."
+                  placeholder="Розкажіть історію вашого персонажа: звідки він, яке його минуле, як він виріс, що пережив..."
                 />
                 <p className="text-sm text-gray-400 mt-2">
-                  Символів: {formData.biography.length} / 1500
-                  {formData.biography.length < 300 && (
-                    <span className="text-yellow-500 ml-2">
-                      (мінімум 300)
-                    </span>
+                  Символів: {formData.backstory.length}
+                  {formData.backstory.length < 500 && (
+                    <span className="text-yellow-500 ml-2">(потрібно мінімум 500)</span>
                   )}
                 </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Мотивація приходу в Зону *
+                </label>
+                <textarea
+                  value={formData.zone_motivation}
+                  onChange={(e) => updateField('zone_motivation', e.target.value)}
+                  rows={5}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
+                  placeholder="Чому ваш персонаж прийшов до Зони? Що він шукає?"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Цілі персонажа</label>
+                <textarea
+                  value={formData.character_goals}
+                  onChange={(e) => updateField('character_goals', e.target.value)}
+                  rows={4}
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
+                  placeholder="Які цілі має персонаж у Зоні?"
+                />
               </div>
             </div>
           )}
 
-          {step === 4 && (
+          {step === 7 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold mb-4">Зовнішність та характер</h2>
+              <h2 className="text-2xl font-semibold mb-4">Перевірка та підтвердження</h2>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Зовнішність *</label>
-                <textarea
-                  value={formData.appearance}
-                  onChange={(e) => updateField('appearance', e.target.value)}
-                  rows={6}
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-                  placeholder="Опишіть зовнішність: зріст, статура, колір волосся та очей, особливі прикмети..."
-                />
+              <div className="bg-gray-900 p-4 rounded border border-gray-700">
+                <h3 className="font-semibold mb-3">Перевірте ваші дані:</h3>
+                <div className="space-y-2 text-sm">
+                  <p>
+                    <strong>Ім'я:</strong> {formData.name} {formData.surname}
+                  </p>
+                  <p>
+                    <strong>Кличка:</strong> {formData.nickname}
+                  </p>
+                  <p>
+                    <strong>Discord ID:</strong> {formData.discord_id}
+                  </p>
+                  <p>
+                    <strong>Вік:</strong> {formData.age} років
+                  </p>
+                  <p>
+                    <strong>Стать:</strong> {formData.gender === 'male' ? 'Чоловік' : 'Жінка'}
+                  </p>
+                  <p>
+                    <strong>Зріст/Вага:</strong> {formData.height} см / {formData.weight} кг
+                  </p>
+                  <p>
+                    <strong>Фракція:</strong> {formData.faction}
+                  </p>
+                  <p>
+                    <strong>Риси характеру:</strong> {formData.character_traits.join(', ')}
+                  </p>
+                  <p>
+                    <strong>Біографія:</strong> {formData.backstory.length} символів
+                  </p>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Психологічний портрет *</label>
-                <textarea
-                  value={formData.psychological_portrait}
-                  onChange={(e) => updateField('psychological_portrait', e.target.value)}
-                  rows={6}
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-                  placeholder="Опишіть характер, звички, переконання, страхи та мрії персонажа..."
-                />
+              <div className="bg-yellow-900 bg-opacity-30 border border-yellow-700 p-4 rounded">
+                <p className="text-sm text-yellow-300">
+                  Після відправки анкета буде заблокована для редагування та відправлена на
+                  розгляд адміністрації. Переконайтесь, що всі дані заповнені правильно.
+                </p>
               </div>
             </div>
           )}
@@ -317,16 +890,18 @@ export default function CharacterCreate() {
             </div>
 
             <div className="flex gap-2">
-              <button
-                onClick={() => saveCharacter('draft')}
-                disabled={saving}
-                className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition disabled:opacity-50"
-              >
-                <Save className="w-5 h-5" />
-                Зберегти
-              </button>
+              {step < 7 && (
+                <button
+                  onClick={() => saveCharacter('draft')}
+                  disabled={saving}
+                  className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition disabled:opacity-50"
+                >
+                  <Save className="w-5 h-5" />
+                  Зберегти
+                </button>
+              )}
 
-              {step < 4 ? (
+              {step < 7 ? (
                 <button
                   onClick={() => setStep((step + 1) as Step)}
                   disabled={!canProceed()}
