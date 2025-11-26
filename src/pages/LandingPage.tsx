@@ -38,6 +38,7 @@ export default function LandingPage() {
                 <a href="#about" className="text-gray-300 hover:text-white transition">Про сервер</a>
                 <a href="#rules" className="text-gray-300 hover:text-white transition">Правила</a>
                 <a href="#factions" className="text-gray-300 hover:text-white transition">Фракції</a>
+                <a href="/rules-test" className="text-gray-300 hover:text-white transition">Здача правил</a>
                 <a href="#discord" className="text-gray-300 hover:text-white transition">Discord</a>
               </nav>
 
@@ -219,6 +220,10 @@ export default function LandingPage() {
 
         <footer className="py-8 px-4 border-t border-gray-700 bg-black bg-opacity-60">
           <div className="container mx-auto text-center text-gray-400 text-sm">
+            <div className="mb-4 flex justify-center gap-6">
+              <a href="/rules-test" className="hover:text-white transition">Здача правил</a>
+              <a href="/admin/login" className="hover:text-white transition">Адмін-панель</a>
+            </div>
             <p>&copy; 2025 STALKER RP. Усі права захищені.</p>
             <p className="mt-2">
               DayZ Standalone Roleplay Server. Не афілійований з GSC Game World або Bohemia Interactive.

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Plus, User, Edit, Trash2, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Plus, User, Edit, Trash2, CheckCircle, XCircle, Clock, BookOpen } from 'lucide-react';
 
 interface Character {
   id: string;
@@ -101,6 +101,13 @@ export default function PlayerCabinet() {
           <div className="flex items-center justify-between">
             <a href="/" className="text-xl font-bold">STALKER RP</a>
             <div className="flex items-center gap-4">
+              <a
+                href="/rules-test"
+                className="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-white transition"
+              >
+                <BookOpen className="w-4 h-4" />
+                Здача правил
+              </a>
               <span className="text-sm text-gray-300">{user.steam_nickname}</span>
               <button
                 onClick={signOut}
