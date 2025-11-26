@@ -4,6 +4,8 @@ import { AdminAuthProvider } from './contexts/AdminAuthContext';
 import LandingPage from './pages/LandingPage';
 import PlayerCabinet from './pages/PlayerCabinet';
 import CharacterCreate from './pages/CharacterCreate';
+import CharacterView from './pages/CharacterView';
+import EditCharacterStory from './pages/EditCharacterStory';
 import AdminPanel from './pages/AdminPanel';
 import AdminLogin from './pages/AdminLogin';
 import RulesTest from './pages/RulesTest';
@@ -18,7 +20,8 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/cabinet" element={<PlayerCabinet />} />
             <Route path="/character/new" element={<CharacterCreate />} />
-            <Route path="/character/edit/:id" element={<CharacterCreate />} />
+            <Route path="/character/:id" element={<CharacterView />} />
+            <Route path="/character/edit-story/:id" element={<EditCharacterStory />} />
             <Route path="/rules-test" element={<RulesTest />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route

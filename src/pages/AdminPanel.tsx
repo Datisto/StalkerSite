@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
 import { supabase } from '../lib/supabase';
+import QuestionsManager from '../components/QuestionsManager';
 import {
   Shield,
   Users,
@@ -370,8 +371,7 @@ export default function AdminPanel() {
 
         {activeTab === 'questions' && (
           <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700">
-            <h2 className="text-2xl font-bold mb-4">Банк питань</h2>
-            <p className="text-gray-400">Управління питаннями для тесту правил буде тут...</p>
+            <QuestionsManager />
           </div>
         )}
 
