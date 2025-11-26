@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { AdminAuthProvider } from './contexts/AdminAuthContext';
 import LandingPage from './pages/LandingPage';
+import SteamAuth from './pages/SteamAuth';
 import PlayerCabinet from './pages/PlayerCabinet';
 import CharacterCreate from './pages/CharacterCreate';
 import CharacterView from './pages/CharacterView';
@@ -18,6 +19,7 @@ function App() {
         <AdminAuthProvider>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/steam-callback" element={<SteamAuth />} />
             <Route path="/cabinet" element={<PlayerCabinet />} />
             <Route path="/character/new" element={<CharacterCreate />} />
             <Route path="/character/:id" element={<CharacterView />} />

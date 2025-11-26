@@ -38,16 +38,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function checkUser() {
     try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const mockUserId = localStorage.getItem('mock_user_id');
+      const mockSteamId = localStorage.getItem('mock_steam_id');
 
-      if (authUser) {
+      if (mockUserId && mockSteamId) {
         const { data: userData } = await supabase
           .from('users')
           .select('*')
-          .eq('id', authUser.id)
+          .eq('id', mockUserId)
           .maybeSingle();
 
-        setUser(userData);
+        if (userData) {
+          setUser(userData);
+        } else {
+          setUser(null);
+          localStorage.removeItem('mock_user_id');
+          localStorage.removeItem('mock_steam_id');
+        }
       } else {
         setUser(null);
       }
@@ -60,6 +67,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
+    localStorage.removeItem('mock_user_id');
+    localStorage.removeItem('mock_steam_id');
     await supabase.auth.signOut();
     setUser(null);
   }

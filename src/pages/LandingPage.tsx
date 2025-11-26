@@ -5,7 +5,9 @@ export default function LandingPage() {
   const { user } = useAuth();
 
   const handleSteamLogin = () => {
-    console.log('Steam login');
+    const mockSteamId = '76561198123456789';
+    const mockSteamName = 'TestPlayer';
+    window.location.href = `/steam-callback?steamid=${mockSteamId}&steamname=${encodeURIComponent(mockSteamName)}`;
   };
 
   return (
