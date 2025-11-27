@@ -17,6 +17,7 @@ import {
   Save,
   X,
   Trash2,
+  Skull,
 } from 'lucide-react';
 
 interface Character {
@@ -59,7 +60,7 @@ export default function AdminPanel() {
   const { admin, logout } = useAdminAuth();
   const [activeTab, setActiveTab] = useState<'characters' | 'questions' | 'rules' | 'tests' | 'users'>('characters');
   const [characters, setCharacters] = useState<Character[]>([]);
-  const [filter, setFilter] = useState<'all' | 'draft' | 'pending' | 'approved' | 'rejected'>('pending');
+  const [filter, setFilter] = useState<'all' | 'draft' | 'pending' | 'approved' | 'rejected' | 'dead'>('pending');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
@@ -476,6 +477,18 @@ export default function AdminPanel() {
               <div className="bg-gray-800 bg-opacity-60 p-4 rounded-lg border border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
+                    <p className="text-sm text-gray-400">Мертві</p>
+                    <p className="text-2xl font-bold text-gray-400">
+                      {characters.filter((c) => c.status === 'dead').length}
+                    </p>
+                  </div>
+                  <Skull className="w-8 h-8 text-gray-400" />
+                </div>
+              </div>
+
+              <div className="bg-gray-800 bg-opacity-60 p-4 rounded-lg border border-gray-700">
+                <div className="flex items-center justify-between">
+                  <div>
                     <p className="text-sm text-gray-400">Всього</p>
                     <p className="text-2xl font-bold text-blue-500">
                       {new Set(characters.map((c) => c.user_id)).size}
@@ -500,7 +513,7 @@ export default function AdminPanel() {
                 </div>
 
                 <div className="flex gap-2 flex-wrap">
-                  {(['all', 'draft', 'pending', 'approved', 'rejected'] as const).map((f) => (
+                  {(['all', 'draft', 'pending', 'approved', 'rejected', 'dead'] as const).map((f) => (
                     <button
                       key={f}
                       onClick={() => setFilter(f)}
@@ -515,6 +528,7 @@ export default function AdminPanel() {
                       {f === 'pending' && 'На розгляді'}
                       {f === 'approved' && 'Схвалені'}
                       {f === 'rejected' && 'Відхилені'}
+                      {f === 'dead' && 'Мертві'}
                     </button>
                   ))}
                 </div>
@@ -588,6 +602,19 @@ export default function AdminPanel() {
                                 Відхилити
                               </button>
                             </>
+                          )}
+                          {(character.status === 'approved' || character.status === 'active') && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`Позначити персонажа "${character.nickname}" як мертвого? Це дозволить гравцю створити нового персонажа та зробить позивник доступним.`)) {
+                                  updateCharacterStatus(character.id, 'dead');
+                                }
+                              }}
+                              className="inline-flex items-center gap-2 bg-black hover:bg-gray-900 border border-gray-600 px-4 py-2 rounded transition"
+                            >
+                              <Skull className="w-4 h-4" />
+                              Позначити мертвим
+                            </button>
                           )}
                         </div>
                       </div>

@@ -10,7 +10,7 @@ interface Character {
   nickname: string | null;
   age: number;
   faction: string;
-  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'active' | 'archived';
+  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'active' | 'archived' | 'dead';
   created_at: string;
   rejection_reason: string | null;
 }
@@ -57,7 +57,8 @@ export default function PlayerCabinet() {
       approved: { text: 'Схвалено', class: 'bg-green-600', icon: CheckCircle },
       rejected: { text: 'Відхилено', class: 'bg-red-600', icon: XCircle },
       active: { text: 'Активний', class: 'bg-blue-600', icon: User },
-      archived: { text: 'Архівовано', class: 'bg-gray-700', icon: User }
+      archived: { text: 'Архівовано', class: 'bg-gray-700', icon: User },
+      dead: { text: 'Мертвий', class: 'bg-black border border-gray-600', icon: XCircle }
     };
 
     const badge = badges[status as keyof typeof badges];
@@ -119,7 +120,7 @@ export default function PlayerCabinet() {
 
         <div className="mb-6 flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Мої персонажі</h2>
-          {!characters.some(c => c.status === 'pending' || c.status === 'approved') ? (
+          {!characters.some(c => c.status === 'pending' || c.status === 'approved' || c.status === 'active') ? (
             <a
               href="/character/new"
               className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 px-4 py-2 rounded font-semibold transition"
@@ -130,7 +131,7 @@ export default function PlayerCabinet() {
           ) : (
             <div className="text-sm text-gray-400">
               {characters.some(c => c.status === 'pending') && 'Персонаж на розгляді'}
-              {characters.some(c => c.status === 'approved') && 'У вас є схвалений персонаж'}
+              {characters.some(c => c.status === 'approved' || c.status === 'active') && 'У вас є активний персонаж'}
             </div>
           )}
         </div>
