@@ -167,7 +167,9 @@ export default function AdminPanel() {
 
       const reviewNote = notes || `Правильно: ${correctCount}/${totalCount}`;
 
-      const { error } = await supabase
+      console.log('Saving test review:', { testId, approved, reviewNote, questionGrades });
+
+      const { data, error } = await supabase
         .from('rules_test_submissions')
         .update({
           approved,
@@ -177,14 +179,20 @@ export default function AdminPanel() {
         })
         .eq('id', testId);
 
-      if (error) throw error;
+      console.log('Update result:', { data, error });
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
       alert(approved ? 'Тест схвалено!' : 'Тест відхилено');
       await loadTests();
       setSelectedTest(null);
       setQuestionGrades([]);
     } catch (error) {
       console.error('Error saving test review:', error);
-      alert('Помилка при збереженні');
+      alert(`Помилка при збереженні: ${error instanceof Error ? error.message : 'Невідома помилка'}`);
     }
   }
 
