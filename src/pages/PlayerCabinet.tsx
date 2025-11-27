@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Plus, User, Edit, Trash2, CheckCircle, XCircle, Clock, BookOpen } from 'lucide-react';
+import { Plus, User, Edit, CheckCircle, XCircle, Clock, BookOpen } from 'lucide-react';
 
 interface Character {
   id: string;
@@ -43,22 +43,6 @@ export default function PlayerCabinet() {
     }
   }
 
-  async function deleteCharacter(id: string) {
-    if (!confirm('Ви впевнені, що хочете видалити цього персонажа?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('characters')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      await loadCharacters();
-    } catch (error) {
-      console.error('Error deleting character:', error);
-      alert('Помилка при видаленні персонажа');
-    }
-  }
 
   const getStatusBadge = (status: string) => {
     const badges = {
@@ -193,22 +177,13 @@ export default function PlayerCabinet() {
 
                 <div className="flex gap-2">
                   {(character.status === 'draft' || character.status === 'rejected') && (
-                    <>
-                      <a
-                        href={`/character/edit/${character.id}`}
-                        className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition text-sm"
-                      >
-                        <Edit className="w-4 h-4" />
-                        Редагувати
-                      </a>
-                      <button
-                        onClick={() => deleteCharacter(character.id)}
-                        className="inline-flex items-center gap-2 bg-red-900 hover:bg-red-800 px-4 py-2 rounded transition text-sm"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Видалити
-                      </button>
-                    </>
+                    <a
+                      href={`/character/edit/${character.id}`}
+                      className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition text-sm"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Редагувати
+                    </a>
                   )}
                   <a
                     href={`/character/${character.id}`}

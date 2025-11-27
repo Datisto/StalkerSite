@@ -194,14 +194,13 @@ export default function CharacterCreate() {
     if (!user) return;
     try {
       const { data, error } = await supabase
-        .from('rules_test_submissions')
-        .select('approved')
-        .eq('user_id', user.id)
-        .eq('approved', true)
+        .from('users')
+        .select('rules_passed')
+        .eq('id', user.id)
         .maybeSingle();
 
       if (error) throw error;
-      setHasApprovedTest(!!data);
+      setHasApprovedTest(!!data?.rules_passed);
     } catch (error) {
       console.error('Error checking test approval:', error);
     }
