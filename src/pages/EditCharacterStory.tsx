@@ -31,6 +31,8 @@ export default function EditCharacterStory() {
   async function loadCharacter() {
     try {
       console.log('EditCharacterStory: Loading character with id:', id);
+      console.log('EditCharacterStory: Current user steam_id:', user?.steam_id);
+
       const { data, error } = await supabase
         .from('characters')
         .select('steam_id, status, backstory, zone_motivation, character_goals')
@@ -49,7 +51,15 @@ export default function EditCharacterStory() {
         return;
       }
 
-      console.log('EditCharacterStory: Character loaded, status:', data.status);
+      console.log('EditCharacterStory: Character steam_id:', data.steam_id);
+
+      if (user && data.steam_id !== user.steam_id) {
+        console.warn('EditCharacterStory: Steam ID mismatch!');
+        console.warn('Expected:', user.steam_id, 'Got:', data.steam_id);
+        alert('Ви не маєте доступу до цього персонажа');
+        navigate('/cabinet');
+        return;
+      }
 
       if (data.status !== 'approved') {
         alert('Редагувати можна тільки схвалених персонажів');

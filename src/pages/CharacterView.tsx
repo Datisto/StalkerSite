@@ -58,6 +58,8 @@ export default function CharacterView() {
   async function loadCharacter() {
     try {
       console.log('CharacterView: Loading character with id:', id);
+      console.log('CharacterView: Current user steam_id:', user?.steam_id);
+
       const { data, error } = await supabase
         .from('characters')
         .select('*')
@@ -76,8 +78,18 @@ export default function CharacterView() {
         return;
       }
 
-      console.log('CharacterView: Character loaded successfully');
+      console.log('CharacterView: Character steam_id:', data.steam_id);
+      console.log('CharacterView: Is admin:', isAdmin);
 
+      if (!isAdmin && user && data.steam_id !== user.steam_id) {
+        console.warn('CharacterView: Steam ID mismatch!');
+        console.warn('Expected:', user.steam_id, 'Got:', data.steam_id);
+        alert('Ви не маєте доступу до цього персонажа');
+        navigate('/cabinet');
+        return;
+      }
+
+      console.log('CharacterView: Access granted');
       setCharacter(data);
     } catch (error) {
       console.error('Error loading character:', error);
