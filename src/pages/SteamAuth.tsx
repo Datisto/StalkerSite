@@ -15,18 +15,27 @@ export default function SteamAuth() {
     try {
       const urlParams = new URLSearchParams(window.location.search);
 
-      const verifyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/steam-auth?mode=verify&${urlParams.toString()}`;
+      let steamId: string | null = null;
+      let personaname: string | null = null;
 
-      const response = await fetch(verifyUrl);
-      const data = await response.json();
+      if (urlParams.has('steamid') && urlParams.has('steamname')) {
+        steamId = urlParams.get('steamid');
+        personaname = urlParams.get('steamname');
+      } else if (urlParams.has('openid.claimed_id')) {
+        const verifyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/steam-auth?mode=verify&${urlParams.toString()}`;
 
-      if (!response.ok || data.error) {
-        setError(data.error || 'Помилка верифікації Steam');
-        setLoading(false);
-        return;
+        const response = await fetch(verifyUrl);
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+          setError(data.error || 'Помилка верифікації Steam');
+          setLoading(false);
+          return;
+        }
+
+        steamId = data.steamId;
+        personaname = data.personaname;
       }
-
-      const { steamId, personaname } = data;
 
       if (!steamId) {
         setError('Не вдалося отримати Steam ID');
