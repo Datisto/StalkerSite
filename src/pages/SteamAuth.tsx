@@ -14,11 +14,22 @@ export default function SteamAuth() {
   async function handleSteamCallback() {
     try {
       const urlParams = new URLSearchParams(window.location.search);
-      const steamId = urlParams.get('steamid');
-      const steamName = urlParams.get('steamname');
 
-      if (!steamId || !steamName) {
-        setError('Помилка авторизації Steam');
+      const verifyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/steam-auth?mode=verify&${urlParams.toString()}`;
+
+      const response = await fetch(verifyUrl);
+      const data = await response.json();
+
+      if (!response.ok || data.error) {
+        setError(data.error || 'Помилка верифікації Steam');
+        setLoading(false);
+        return;
+      }
+
+      const { steamId, personaname } = data;
+
+      if (!steamId) {
+        setError('Не вдалося отримати Steam ID');
         setLoading(false);
         return;
       }
@@ -46,7 +57,7 @@ export default function SteamAuth() {
           .from('users')
           .insert({
             steam_id: steamId,
-            steam_nickname: steamName,
+            steam_nickname: personaname,
             is_banned: false,
           })
           .select()
@@ -54,6 +65,11 @@ export default function SteamAuth() {
 
         if (insertError) throw insertError;
         userId = newUser.id;
+      } else {
+        await supabase
+          .from('users')
+          .update({ last_login: new Date().toISOString() })
+          .eq('steam_id', steamId);
       }
 
       const { error: authError } = await supabase.auth.signInAnonymously();

@@ -5,9 +5,9 @@ export default function LandingPage() {
   const { user } = useAuth();
 
   const handleSteamLogin = () => {
-    const mockSteamId = '76561198123456789';
-    const mockSteamName = 'TestPlayer';
-    window.location.href = `/steam-callback?steamid=${mockSteamId}&steamname=${encodeURIComponent(mockSteamName)}`;
+    const returnUrl = `${window.location.origin}/steam-callback`;
+    const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/steam-auth`;
+    window.location.href = `${functionUrl}?mode=login&return_url=${encodeURIComponent(returnUrl)}`;
   };
 
   return (
