@@ -30,21 +30,34 @@ export default function EditCharacterStory() {
 
   async function loadCharacter() {
     try {
+      console.log('EditCharacterStory: Loading character with id:', id);
       const { data, error } = await supabase
         .from('characters')
         .select('user_id, status, backstory, zone_motivation, character_goals')
         .eq('id', id)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('EditCharacterStory: Error from Supabase:', error);
+        throw error;
+      }
 
       if (!data) {
+        console.log('EditCharacterStory: Character not found');
         alert('Персонаж не знайдено');
         navigate('/cabinet');
         return;
       }
 
+      console.log('EditCharacterStory: Character loaded:', {
+        character_user_id: data.user_id,
+        current_user_id: user?.id,
+        match: data.user_id === user?.id,
+        status: data.status
+      });
+
       if (data.user_id !== user?.id) {
+        console.warn('EditCharacterStory: Access denied - user_id mismatch');
         alert('Ви не маєте доступу до цього персонажа');
         navigate('/cabinet');
         return;
