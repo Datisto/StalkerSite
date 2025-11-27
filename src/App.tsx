@@ -22,6 +22,7 @@ function App() {
             <Route path="/steam-callback" element={<SteamAuth />} />
             <Route path="/cabinet" element={<PlayerCabinet />} />
             <Route path="/character/new" element={<CharacterCreate />} />
+            <Route path="/character/edit/:id" element={<CharacterCreate />} />
             <Route path="/character/:id" element={<CharacterView />} />
             <Route path="/character/edit-story/:id" element={<EditCharacterStory />} />
             <Route path="/rules-test" element={<RulesTest />} />

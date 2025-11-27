@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ChevronRight, ChevronLeft, Save, Send, Copy } from 'lucide-react';
 import {
@@ -52,11 +53,14 @@ interface CharacterData {
 
 export default function CharacterCreate() {
   const { user } = useAuth();
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [step, setStep] = useState<Step>(1);
   const [saving, setSaving] = useState(false);
   const [hasExistingCharacter, setHasExistingCharacter] = useState(false);
   const [hasApprovedTest, setHasApprovedTest] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [formData, setFormData] = useState<CharacterData>({
     steam_id: '',
     discord_id: '',
@@ -92,10 +96,79 @@ export default function CharacterCreate() {
   useEffect(() => {
     if (user) {
       setFormData((prev) => ({ ...prev, steam_id: user.steam_id || user.id }));
-      checkExistingCharacter();
-      checkApprovedTest();
+      if (id) {
+        setIsEditMode(true);
+        loadExistingCharacter();
+      } else {
+        checkExistingCharacter();
+        checkApprovedTest();
+      }
     }
-  }, [user]);
+  }, [user, id]);
+
+  async function loadExistingCharacter() {
+    if (!user || !id) return;
+    try {
+      const { data, error } = await supabase
+        .from('characters')
+        .select('*')
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!data) {
+        alert('Персонаж не знайдено');
+        navigate('/cabinet');
+        return;
+      }
+
+      if (data.status !== 'draft' && data.status !== 'rejected') {
+        alert('Цей персонаж не може бути відредагований');
+        navigate('/cabinet');
+        return;
+      }
+
+      setFormData({
+        steam_id: data.steam_id || user.steam_id || user.id,
+        discord_id: data.discord_id || '',
+        name: data.name || '',
+        surname: data.surname || '',
+        nickname: data.nickname || '',
+        gender: data.gender || 'male',
+        age: data.age || 25,
+        face_model: data.face_model || '',
+        hair_color: data.hair_color || '',
+        eye_color: data.eye_color || '',
+        beard_style: data.beard_style || '',
+        special_features: data.special_features || '',
+        height: data.height || 175,
+        weight: data.weight || 75,
+        body_type: data.body_type || '',
+        physical_features: data.physical_features || '',
+        character_traits: data.character_traits || [],
+        phobias: data.phobias || '',
+        values: data.values || '',
+        faction: data.faction || '',
+        education: data.education || '',
+        scientific_profile: data.scientific_profile || '',
+        research_motivation: data.research_motivation || '',
+        military_experience: data.military_experience || '',
+        military_rank: data.military_rank || '',
+        military_join_reason: data.military_join_reason || '',
+        backstory: data.backstory || '',
+        zone_motivation: data.zone_motivation || '',
+        character_goals: data.character_goals || '',
+      });
+    } catch (error) {
+      console.error('Error loading character:', error);
+      alert('Помилка завантаження персонажа');
+      navigate('/cabinet');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function checkExistingCharacter() {
     if (!user) return;
@@ -238,16 +311,31 @@ export default function CharacterCreate() {
         submitted_at: status === 'pending' ? new Date().toISOString() : null,
       };
 
-      const { error } = await supabase.from('characters').insert(characterData);
+      let error;
+
+      if (isEditMode && id) {
+        const result = await supabase
+          .from('characters')
+          .update(characterData)
+          .eq('id', id);
+        error = result.error;
+      } else {
+        const result = await supabase
+          .from('characters')
+          .insert(characterData);
+        error = result.error;
+      }
 
       if (error) throw error;
 
       alert(
-        status === 'draft'
+        isEditMode
+          ? 'Зміни збережено'
+          : status === 'draft'
           ? 'Персонаж збережено як чернетку'
           : 'Персонаж відправлено на розгляд'
       );
-      window.location.href = '/cabinet';
+      navigate('/cabinet');
     } catch (error) {
       console.error('Error saving character:', error);
       alert('Помилка при збереженні персонажа');
@@ -360,7 +448,7 @@ export default function CharacterCreate() {
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Створення персонажа</h1>
+          <h1 className="text-3xl font-bold mb-2">{isEditMode ? 'Редагування персонажа' : 'Створення персонажа'}</h1>
           <p className="text-gray-400">Крок {step} з 7</p>
         </div>
 

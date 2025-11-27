@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { ArrowLeft, User, MapPin, Heart, Brain, Sword, Edit2 } from 'lucide-react';
+import { ArrowLeft, User, MapPin, Heart, Brain, Sword, Edit2, Send, Edit } from 'lucide-react';
 
 interface Character {
   id: string;
@@ -85,6 +85,32 @@ export default function CharacterView() {
     }
   }
 
+  async function submitForReview() {
+    if (!character) return;
+
+    if (!confirm('Подати персонажа на розгляд? Після цього ви не зможете редагувати персонажа до рішення адміністрації.')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('characters')
+        .update({
+          status: 'pending',
+          submitted_at: new Date().toISOString()
+        })
+        .eq('id', character.id);
+
+      if (error) throw error;
+
+      alert('Персонажа відправлено на розгляд!');
+      navigate('/cabinet');
+    } catch (error) {
+      console.error('Error submitting character:', error);
+      alert('Помилка при відправці персонажа');
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -109,6 +135,33 @@ export default function CharacterView() {
               <ArrowLeft className="w-5 h-5" />
               Назад до кабінету
             </button>
+            {character?.status === 'draft' && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => navigate(`/character/edit/${character.id}`)}
+                  className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition text-sm"
+                >
+                  <Edit className="w-4 h-4" />
+                  Редагувати
+                </button>
+                <button
+                  onClick={submitForReview}
+                  className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 px-4 py-2 rounded transition text-sm font-semibold"
+                >
+                  <Send className="w-4 h-4" />
+                  Подати на розгляд
+                </button>
+              </div>
+            )}
+            {character?.status === 'rejected' && (
+              <button
+                onClick={() => navigate(`/character/edit/${character.id}`)}
+                className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition text-sm"
+              >
+                <Edit className="w-4 h-4" />
+                Редагувати
+              </button>
+            )}
           </div>
         </div>
       </header>

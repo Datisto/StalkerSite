@@ -128,13 +128,20 @@ export default function PlayerCabinet() {
 
         <div className="mb-6 flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Мої персонажі</h2>
-          <a
-            href="/character/new"
-            className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 px-4 py-2 rounded font-semibold transition"
-          >
-            <Plus className="w-5 h-5" />
-            Створити персонажа
-          </a>
+          {!characters.some(c => c.status === 'pending' || c.status === 'approved') ? (
+            <a
+              href="/character/new"
+              className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 px-4 py-2 rounded font-semibold transition"
+            >
+              <Plus className="w-5 h-5" />
+              Створити персонажа
+            </a>
+          ) : (
+            <div className="text-sm text-gray-400">
+              {characters.some(c => c.status === 'pending') && 'Персонаж на розгляді'}
+              {characters.some(c => c.status === 'approved') && 'У вас є схвалений персонаж'}
+            </div>
+          )}
         </div>
 
         {loading ? (
