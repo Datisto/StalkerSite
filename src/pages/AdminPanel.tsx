@@ -85,6 +85,7 @@ export default function AdminPanel() {
   async function loadCharacters() {
     setLoading(true);
     try {
+      console.log('AdminPanel: Loading characters with filter:', filter);
       let query = supabase
         .from('characters')
         .select('*')
@@ -96,7 +97,11 @@ export default function AdminPanel() {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('AdminPanel: Error from Supabase:', error);
+        throw error;
+      }
+      console.log('AdminPanel: Loaded characters:', data);
       setCharacters(data || []);
     } catch (error) {
       console.error('Error loading characters:', error);

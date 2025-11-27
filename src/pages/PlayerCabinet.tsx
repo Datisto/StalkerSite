@@ -28,13 +28,18 @@ export default function PlayerCabinet() {
 
   async function loadCharacters() {
     try {
+      console.log('Loading characters for user_id:', user!.id);
       const { data, error } = await supabase
         .from('characters')
         .select('id, name, surname, nickname, age, faction, status, created_at, rejection_reason')
         .eq('user_id', user!.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error from Supabase:', error);
+        throw error;
+      }
+      console.log('Loaded characters:', data);
       setCharacters(data || []);
     } catch (error) {
       console.error('Error loading characters:', error);
