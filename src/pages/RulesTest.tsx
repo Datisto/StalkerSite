@@ -34,6 +34,19 @@ export default function RulesTest() {
 
     setLoading(true);
     try {
+      const { data: pendingSubmissions, error: pendingError } = await supabase
+        .from('rules_test_submissions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('reviewed', false);
+
+      if (pendingError) throw pendingError;
+
+      if (pendingSubmissions && pendingSubmissions.length > 0) {
+        alert('У вас вже є здача правил на розгляді. Дочекайтесь результату перед новою спробою.');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('rules_questions')
         .select('id, question_text')
@@ -41,12 +54,12 @@ export default function RulesTest() {
 
       if (error) throw error;
 
-      if (!data || data.length < 10) {
+      if (!data || data.length < 15) {
         alert('Недостатньо питань для проходження тесту. Зверніться до адміністрації.');
         return;
       }
 
-      const shuffled = data.sort(() => Math.random() - 0.5).slice(0, 10);
+      const shuffled = data.sort(() => Math.random() - 0.5).slice(0, 15);
       setQuestions(shuffled);
       setTestStarted(true);
     } catch (error) {

@@ -54,6 +54,7 @@ export default function AdminPanel() {
   const [editData, setEditData] = useState<Partial<Character>>({});
   const [tests, setTests] = useState<any[]>([]);
   const [selectedTest, setSelectedTest] = useState<any>(null);
+  const [questionGrades, setQuestionGrades] = useState<boolean[]>([]);
 
   useEffect(() => {
     loadCharacters();
@@ -159,37 +160,46 @@ export default function AdminPanel() {
     }
   }
 
-  async function approveTest(testId: string) {
+  async function saveTestReview(testId: string, approved: boolean, notes?: string) {
     try {
+      const correctCount = questionGrades.filter(g => g === true).length;
+      const totalCount = questionGrades.length;
+
+      const reviewNote = notes || `Правильно: ${correctCount}/${totalCount}`;
+
       const { error } = await supabase
         .from('rules_test_submissions')
-        .update({ approved: true, reviewed: true })
+        .update({
+          approved,
+          reviewed: true,
+          question_grades: questionGrades,
+          review_notes: reviewNote
+        })
         .eq('id', testId);
 
       if (error) throw error;
-      alert('Тест схвалено!');
+      alert(approved ? 'Тест схвалено!' : 'Тест відхилено');
       await loadTests();
       setSelectedTest(null);
+      setQuestionGrades([]);
     } catch (error) {
-      console.error('Error approving test:', error);
-      alert('Помилка при схваленні');
+      console.error('Error saving test review:', error);
+      alert('Помилка при збереженні');
     }
   }
 
-  async function rejectTest(testId: string, notes: string) {
-    try {
-      const { error } = await supabase
-        .from('rules_test_submissions')
-        .update({ approved: false, reviewed: true, review_notes: notes })
-        .eq('id', testId);
+  function toggleQuestionGrade(index: number) {
+    const newGrades = [...questionGrades];
+    newGrades[index] = !newGrades[index];
+    setQuestionGrades(newGrades);
+  }
 
-      if (error) throw error;
-      alert('Тест відхилено');
-      await loadTests();
-      setSelectedTest(null);
-    } catch (error) {
-      console.error('Error rejecting test:', error);
-      alert('Помилка при відхиленні');
+  function openTestReview(test: any) {
+    setSelectedTest(test);
+    if (test.question_grades && test.question_grades.length > 0) {
+      setQuestionGrades(test.question_grades);
+    } else {
+      setQuestionGrades(new Array(test.questions?.length || 15).fill(false));
     }
   }
 
@@ -458,7 +468,7 @@ export default function AdminPanel() {
                   <div
                     key={test.id}
                     className="bg-gray-900 bg-opacity-60 p-4 rounded border border-gray-700 hover:border-gray-600 transition cursor-pointer"
-                    onClick={() => setSelectedTest(test)}
+                    onClick={() => openTestReview(test)}
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -723,10 +733,43 @@ export default function AdminPanel() {
                 </button>
               </div>
 
-              <div className="space-y-6">
+              {!selectedTest.reviewed && (
+                <div className="mb-6 bg-blue-900 bg-opacity-30 border border-blue-700 p-4 rounded">
+                  <p className="text-blue-200 font-semibold mb-2">
+                    Правильно: {questionGrades.filter(g => g === true).length}/{questionGrades.length}
+                  </p>
+                  <p className="text-blue-300 text-sm">
+                    Натисніть на питання щоб позначити його як правильне/неправильне
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-4">
                 {selectedTest.questions && selectedTest.questions.map((question: string, index: number) => (
-                  <div key={index} className="bg-gray-900 bg-opacity-60 p-4 rounded border border-gray-700">
-                    <p className="font-semibold mb-2">Питання {index + 1}:</p>
+                  <div
+                    key={index}
+                    onClick={() => !selectedTest.reviewed && toggleQuestionGrade(index)}
+                    className={`p-4 rounded border transition ${
+                      selectedTest.reviewed
+                        ? 'bg-gray-900 bg-opacity-60 border-gray-700'
+                        : questionGrades[index]
+                        ? 'bg-green-900 bg-opacity-30 border-green-600 cursor-pointer hover:bg-green-900 hover:bg-opacity-40'
+                        : 'bg-red-900 bg-opacity-30 border-red-600 cursor-pointer hover:bg-red-900 hover:bg-opacity-40'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <p className="font-semibold">Питання {index + 1}:</p>
+                      {!selectedTest.reviewed && (
+                        <span className={`text-lg font-bold ${questionGrades[index] ? 'text-green-400' : 'text-red-400'}`}>
+                          {questionGrades[index] ? '✓' : '✗'}
+                        </span>
+                      )}
+                      {selectedTest.reviewed && selectedTest.question_grades && (
+                        <span className={`text-lg font-bold ${selectedTest.question_grades[index] ? 'text-green-400' : 'text-red-400'}`}>
+                          {selectedTest.question_grades[index] ? '✓' : '✗'}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-gray-300 mb-4">{question}</p>
                     <p className="text-sm text-gray-400 mb-2">Відповідь:</p>
                     <div className="bg-black bg-opacity-30 p-3 rounded">
@@ -739,7 +782,7 @@ export default function AdminPanel() {
               {!selectedTest.reviewed && (
                 <div className="flex gap-4 pt-6 mt-6 border-t border-gray-700">
                   <button
-                    onClick={() => approveTest(selectedTest.id)}
+                    onClick={() => saveTestReview(selectedTest.id, true)}
                     className="flex-1 bg-green-600 hover:bg-green-500 py-3 rounded font-semibold transition"
                   >
                     Схвалити
@@ -747,7 +790,7 @@ export default function AdminPanel() {
                   <button
                     onClick={() => {
                       const notes = prompt('Примітки (необов\'язково):');
-                      rejectTest(selectedTest.id, notes || '');
+                      saveTestReview(selectedTest.id, false, notes || undefined);
                     }}
                     className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded font-semibold transition"
                   >
