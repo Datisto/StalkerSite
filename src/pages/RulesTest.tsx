@@ -34,6 +34,20 @@ export default function RulesTest() {
 
     setLoading(true);
     try {
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('rules_passed')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (userError) throw userError;
+
+      if (userData?.rules_passed) {
+        alert('Ви вже здали тест правил!');
+        navigate('/cabinet');
+        return;
+      }
+
       const { data: pendingSubmissions, error: pendingError } = await supabase
         .from('rules_test_submissions')
         .select('id')

@@ -16,6 +16,7 @@ import {
   Settings,
   Save,
   X,
+  Trash2,
 } from 'lucide-react';
 
 interface Character {
@@ -42,9 +43,21 @@ interface Character {
   beard_style: string;
 }
 
+interface User {
+  id: string;
+  steam_id: string;
+  steam_nickname: string;
+  discord_id: string | null;
+  discord_username: string | null;
+  rules_passed: boolean;
+  is_banned: boolean;
+  created_at: string;
+  last_login: string;
+}
+
 export default function AdminPanel() {
   const { admin, logout } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState<'characters' | 'questions' | 'rules' | 'tests'>('characters');
+  const [activeTab, setActiveTab] = useState<'characters' | 'questions' | 'rules' | 'tests' | 'users'>('characters');
   const [characters, setCharacters] = useState<Character[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,6 +68,7 @@ export default function AdminPanel() {
   const [tests, setTests] = useState<any[]>([]);
   const [selectedTest, setSelectedTest] = useState<any>(null);
   const [questionGrades, setQuestionGrades] = useState<boolean[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
     loadCharacters();
@@ -63,6 +77,8 @@ export default function AdminPanel() {
   useEffect(() => {
     if (activeTab === 'tests') {
       loadTests();
+    } else if (activeTab === 'users') {
+      loadUsers();
     }
   }, [activeTab]);
 
@@ -186,6 +202,17 @@ export default function AdminPanel() {
         throw error;
       }
 
+      if (approved && selectedTest?.user_id) {
+        const { error: userError } = await supabase
+          .from('users')
+          .update({ rules_passed: true })
+          .eq('id', selectedTest.user_id);
+
+        if (userError) {
+          console.error('Error updating user rules_passed:', userError);
+        }
+      }
+
       alert(approved ? 'Тест схвалено!' : 'Тест відхилено');
       await loadTests();
       setSelectedTest(null);
@@ -208,6 +235,66 @@ export default function AdminPanel() {
       setQuestionGrades(test.question_grades);
     } else {
       setQuestionGrades(new Array(test.questions?.length || 15).fill(false));
+    }
+  }
+
+  async function deleteTestSubmission(testId: string) {
+    if (!confirm('Ви впевнені, що хочете видалити цю здачу правил?')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('rules_test_submissions')
+        .delete()
+        .eq('id', testId);
+
+      if (error) throw error;
+
+      alert('Здачу правил видалено');
+      await loadTests();
+      setSelectedTest(null);
+    } catch (error) {
+      console.error('Error deleting test submission:', error);
+      alert('Помилка при видаленні');
+    }
+  }
+
+  async function loadUsers() {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (error) {
+      console.error('Error loading users:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function resetUserRules(userId: string) {
+    if (!confirm('Ви впевнені, що хочете скинути здачу правил для цього користувача? Він повинен буде здати правила заново.')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ rules_passed: false })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      alert('Здачу правил скинуто. Користувач має здати правила заново.');
+      await loadUsers();
+    } catch (error) {
+      console.error('Error resetting user rules:', error);
+      alert('Помилка при скиданні правил');
     }
   }
 
@@ -293,6 +380,17 @@ export default function AdminPanel() {
           >
             <BookOpen className="w-5 h-5" />
             Правила
+          </button>
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded transition ${
+              activeTab === 'users'
+                ? 'bg-red-600 text-white'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            <Users className="w-5 h-5" />
+            Користувачі
           </button>
         </div>
 
@@ -512,6 +610,77 @@ export default function AdminPanel() {
           <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700">
             <h2 className="text-2xl font-bold mb-4">Редагування правил</h2>
             <p className="text-gray-400">WYSIWYG редактор правил буде тут...</p>
+          </div>
+        )}
+
+        {activeTab === 'users' && (
+          <div className="bg-gray-800 bg-opacity-60 rounded-lg border border-gray-700 overflow-hidden">
+            <div className="p-6">
+              <h2 className="text-2xl font-bold mb-6">Користувачі</h2>
+
+              {loading ? (
+                <p className="text-gray-400 text-center py-8">Завантаження...</p>
+              ) : users.length === 0 ? (
+                <p className="text-gray-400 text-center py-8">Користувачі відсутні</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-700">
+                        <th className="text-left py-3 px-4">Steam Nickname</th>
+                        <th className="text-left py-3 px-4">Steam ID</th>
+                        <th className="text-left py-3 px-4">Discord</th>
+                        <th className="text-left py-3 px-4">Правила</th>
+                        <th className="text-left py-3 px-4">Дата реєстрації</th>
+                        <th className="text-left py-3 px-4">Дії</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((user) => (
+                        <tr key={user.id} className="border-b border-gray-700 hover:bg-gray-700 hover:bg-opacity-30">
+                          <td className="py-3 px-4">{user.steam_nickname}</td>
+                          <td className="py-3 px-4 font-mono text-sm">{user.steam_id}</td>
+                          <td className="py-3 px-4 text-sm">
+                            {user.discord_username ? (
+                              <span>{user.discord_username}</span>
+                            ) : (
+                              <span className="text-gray-500">Не вказано</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4">
+                            {user.rules_passed ? (
+                              <span className="inline-flex items-center gap-1 text-green-400 font-semibold">
+                                <CheckCircle className="w-4 h-4" />
+                                Здано
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-red-400">
+                                <XCircle className="w-4 h-4" />
+                                Не здано
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-gray-400">
+                            {new Date(user.created_at).toLocaleDateString('uk-UA')}
+                          </td>
+                          <td className="py-3 px-4">
+                            {user.rules_passed && (
+                              <button
+                                onClick={() => resetUserRules(user.id)}
+                                className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-500 px-3 py-1 rounded text-sm transition"
+                              >
+                                <BookOpen className="w-4 h-4" />
+                                На перездачу
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -809,13 +978,20 @@ export default function AdminPanel() {
 
               {selectedTest.reviewed && (
                 <div className="pt-6 mt-6 border-t border-gray-700">
-                  <p className="text-center">
+                  <p className="text-center mb-4">
                     {selectedTest.approved ? (
                       <span className="text-green-400 font-semibold">✓ Тест схвалено</span>
                     ) : (
                       <span className="text-red-400 font-semibold">✗ Тест відхилено</span>
                     )}
                   </p>
+                  <button
+                    onClick={() => deleteTestSubmission(selectedTest.id)}
+                    className="w-full bg-red-900 hover:bg-red-800 py-3 rounded font-semibold transition flex items-center justify-center gap-2"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                    Видалити здачу
+                  </button>
                   {selectedTest.review_notes && (
                     <p className="text-gray-400 text-sm text-center mt-2">
                       Примітки: {selectedTest.review_notes}
