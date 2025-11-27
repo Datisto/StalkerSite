@@ -12,6 +12,7 @@ import {
   BODY_TYPES,
   MILITARY_EXPERIENCE,
   CHARACTER_TRAITS,
+  TRAIT_CATEGORIES,
   generateHeightOptions,
   generateWeightOptions,
   generateAgeOptions,
@@ -419,14 +420,6 @@ export default function CharacterCreate() {
     );
   }
 
-  const allTraits = [
-    ...CHARACTER_TRAITS.temperament,
-    ...CHARACTER_TRAITS.social,
-    ...CHARACTER_TRAITS.moral,
-    ...CHARACTER_TRAITS.intellect,
-    ...CHARACTER_TRAITS.emotional,
-    ...CHARACTER_TRAITS.lifeRules,
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100">
@@ -743,26 +736,33 @@ export default function CharacterCreate() {
                     Обрано: {formData.character_traits.length}/5
                   </span>
                 </label>
-                <div className="bg-gray-900 border border-gray-700 rounded p-4 max-h-96 overflow-y-auto">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {allTraits.map((trait) => (
-                      <button
-                        key={trait}
-                        onClick={() => toggleTrait(trait)}
-                        className={`text-left px-3 py-2 rounded text-sm transition ${
-                          formData.character_traits.includes(trait)
-                            ? 'bg-red-600 text-white'
-                            : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                        }`}
-                        disabled={
-                          !formData.character_traits.includes(trait) &&
-                          formData.character_traits.length >= 5
-                        }
-                      >
-                        {trait}
-                      </button>
-                    ))}
-                  </div>
+                <div className="bg-gray-900 border border-gray-700 rounded p-4 max-h-96 overflow-y-auto space-y-4">
+                  {(Object.keys(CHARACTER_TRAITS) as Array<keyof typeof CHARACTER_TRAITS>).map((category) => (
+                    <div key={category}>
+                      <h3 className="text-sm font-semibold text-red-400 mb-2 uppercase tracking-wide">
+                        {TRAIT_CATEGORIES[category]}
+                      </h3>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {CHARACTER_TRAITS[category].map((trait) => (
+                          <button
+                            key={trait}
+                            onClick={() => toggleTrait(trait)}
+                            className={`text-left px-3 py-2 rounded text-sm transition ${
+                              formData.character_traits.includes(trait)
+                                ? 'bg-red-600 text-white'
+                                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                            }`}
+                            disabled={
+                              !formData.character_traits.includes(trait) &&
+                              formData.character_traits.length >= 5
+                            }
+                          >
+                            {trait}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 

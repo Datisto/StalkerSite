@@ -155,7 +155,7 @@ export const CHARACTER_TRAITS = {
     'Реаліст',
     'Апатичний',
   ],
-  lifeRules: [
+  survival: [
     'Сміливий',
     'Обачний',
     'Обережний',
@@ -172,6 +172,15 @@ export const CHARACTER_TRAITS = {
     'Агресивно-захисний',
     'Самодостатній',
   ],
+} as const;
+
+export const TRAIT_CATEGORIES = {
+  temperament: 'Темперамент',
+  social: 'Соціальні якості',
+  moral: 'Моральні якості',
+  intellect: 'Інтелект та робота',
+  emotional: 'Емоційність',
+  survival: 'Виживання',
 } as const;
 
 export function generateHeightOptions(): number[] {
