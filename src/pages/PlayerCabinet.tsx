@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Plus, User, Edit, CheckCircle, XCircle, Clock, BookOpen } from 'lucide-react';
+import { Plus, User, Edit, CheckCircle, XCircle, Clock, BookOpen, RefreshCw } from 'lucide-react';
 
 interface Character {
   id: string;
@@ -120,20 +120,38 @@ export default function PlayerCabinet() {
 
         <div className="mb-6 flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Мої персонажі</h2>
-          {!characters.some(c => c.status === 'pending' || c.status === 'approved' || c.status === 'active') ? (
-            <a
-              href="/character/new"
-              className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 px-4 py-2 rounded font-semibold transition"
+          <div className="flex gap-2">
+            <button
+              onClick={loadCharacters}
+              className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded font-semibold transition"
             >
-              <Plus className="w-5 h-5" />
-              Створити персонажа
-            </a>
-          ) : (
-            <div className="text-sm text-gray-400">
-              {characters.some(c => c.status === 'pending') && 'Персонаж на розгляді'}
-              {characters.some(c => c.status === 'approved' || c.status === 'active') && 'У вас є активний персонаж'}
-            </div>
-          )}
+              <RefreshCw className="w-5 h-5" />
+              Оновити
+            </button>
+            {(() => {
+              const hasPending = characters.some(c => c.status === 'pending');
+              const hasActive = characters.some(c => c.status === 'approved' || c.status === 'active');
+              const canCreate = !hasPending && !hasActive;
+
+              console.log('Character statuses:', characters.map(c => ({ nickname: c.nickname, status: c.status })));
+              console.log('Can create:', canCreate, '| Has pending:', hasPending, '| Has active:', hasActive);
+
+              return canCreate ? (
+                <a
+                  href="/character/new"
+                  className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 px-4 py-2 rounded font-semibold transition"
+                >
+                  <Plus className="w-5 h-5" />
+                  Створити персонажа
+                </a>
+              ) : (
+                <div className="text-sm text-gray-400 flex items-center">
+                  {hasPending && 'Персонаж на розгляді'}
+                  {hasActive && 'У вас є активний персонаж'}
+                </div>
+              );
+            })()}
+          </div>
         </div>
 
         {loading ? (
