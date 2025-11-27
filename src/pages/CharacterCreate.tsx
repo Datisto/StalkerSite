@@ -177,11 +177,11 @@ export default function CharacterCreate() {
       const { data, error } = await supabase
         .from('characters')
         .select('id, status')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        .eq('steam_id', user.steam_id)
+        .in('status', ['pending', 'approved', 'active']);
 
       if (error) throw error;
-      if (data) {
+      if (data && data.length > 0) {
         setHasExistingCharacter(true);
       }
     } catch (error) {
