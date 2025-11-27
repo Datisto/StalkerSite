@@ -69,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signOut() {
     localStorage.removeItem('mock_user_id');
     localStorage.removeItem('mock_steam_id');
+    localStorage.removeItem('mock_steam_nickname');
     await supabase.auth.signOut();
     setUser(null);
   }

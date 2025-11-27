@@ -90,16 +90,9 @@ export default function SteamAuth() {
           .eq('steam_id', steamId);
       }
 
-      const { error: authError } = await supabase.auth.signInAnonymously();
-      if (authError) {
-        console.error('Auth error:', authError);
-        setError(`Помилка аутентифікації: ${authError.message}`);
-        setLoading(false);
-        return;
-      }
-
       localStorage.setItem('mock_user_id', userId);
       localStorage.setItem('mock_steam_id', steamId);
+      localStorage.setItem('mock_steam_nickname', personaname || 'Unknown');
 
       navigate('/cabinet');
     } catch (error: any) {
