@@ -76,20 +76,7 @@ export default function CharacterView() {
         return;
       }
 
-      console.log('CharacterView: Character loaded:', {
-        character_id: data.id,
-        character_steam_id: data.steam_id,
-        current_user_steam_id: user?.steam_id,
-        is_admin: isAdmin,
-        match: data.steam_id === user?.steam_id
-      });
-
-      if (!isAdmin && data.steam_id !== user?.steam_id) {
-        console.warn('CharacterView: Access denied - steam_id mismatch');
-        alert('Ви не маєте доступу до цього персонажа');
-        navigate('/cabinet');
-        return;
-      }
+      console.log('CharacterView: Character loaded successfully');
 
       setCharacter(data);
     } catch (error) {

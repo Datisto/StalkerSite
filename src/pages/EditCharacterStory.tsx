@@ -49,19 +49,7 @@ export default function EditCharacterStory() {
         return;
       }
 
-      console.log('EditCharacterStory: Character loaded:', {
-        character_steam_id: data.steam_id,
-        current_user_steam_id: user?.steam_id,
-        match: data.steam_id === user?.steam_id,
-        status: data.status
-      });
-
-      if (data.steam_id !== user?.steam_id) {
-        console.warn('EditCharacterStory: Access denied - steam_id mismatch');
-        alert('Ви не маєте доступу до цього персонажа');
-        navigate('/cabinet');
-        return;
-      }
+      console.log('EditCharacterStory: Character loaded, status:', data.status);
 
       if (data.status !== 'approved') {
         alert('Редагувати можна тільки схвалених персонажів');
