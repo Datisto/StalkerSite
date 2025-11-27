@@ -55,6 +55,7 @@ export default function CharacterCreate() {
   const [step, setStep] = useState<Step>(1);
   const [saving, setSaving] = useState(false);
   const [hasExistingCharacter, setHasExistingCharacter] = useState(false);
+  const [hasApprovedTest, setHasApprovedTest] = useState(false);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<CharacterData>({
     steam_id: '',
@@ -92,6 +93,7 @@ export default function CharacterCreate() {
     if (user) {
       setFormData((prev) => ({ ...prev, steam_id: user.steam_id || user.id }));
       checkExistingCharacter();
+      checkApprovedTest();
     }
   }, [user]);
 
@@ -113,6 +115,23 @@ export default function CharacterCreate() {
       console.error('Error checking character:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function checkApprovedTest() {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('rules_test_submissions')
+        .select('approved')
+        .eq('user_id', user.id)
+        .eq('approved', true)
+        .maybeSingle();
+
+      if (error) throw error;
+      setHasApprovedTest(!!data);
+    } catch (error) {
+      console.error('Error checking test approval:', error);
     }
   }
 
@@ -263,6 +282,33 @@ export default function CharacterCreate() {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <p className="text-gray-300">Завантаження...</p>
+      </div>
+    );
+  }
+
+  if (!hasApprovedTest) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center bg-gray-800 p-8 rounded-lg border border-gray-700 max-w-md">
+          <h2 className="text-2xl font-bold mb-4 text-red-500">Потрібна здача правил</h2>
+          <p className="text-gray-300 mb-6">
+            Перед створенням персонажа необхідно здати тест на знання правил сервера. Після схвалення адміністрацією ви зможете створити персонажа.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <a
+              href="/rules-test"
+              className="bg-red-600 hover:bg-red-500 px-6 py-2 rounded font-semibold transition"
+            >
+              Здати правила
+            </a>
+            <a
+              href="/cabinet"
+              className="bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded font-semibold transition"
+            >
+              До кабінету
+            </a>
+          </div>
+        </div>
       </div>
     );
   }

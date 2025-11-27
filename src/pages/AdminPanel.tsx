@@ -44,7 +44,7 @@ interface Character {
 
 export default function AdminPanel() {
   const { admin, logout } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState<'characters' | 'questions' | 'rules'>('characters');
+  const [activeTab, setActiveTab] = useState<'characters' | 'questions' | 'rules' | 'tests'>('characters');
   const [characters, setCharacters] = useState<Character[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,10 +52,18 @@ export default function AdminPanel() {
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState<Partial<Character>>({});
+  const [tests, setTests] = useState<any[]>([]);
+  const [selectedTest, setSelectedTest] = useState<any>(null);
 
   useEffect(() => {
     loadCharacters();
   }, [filter]);
+
+  useEffect(() => {
+    if (activeTab === 'tests') {
+      loadTests();
+    }
+  }, [activeTab]);
 
   async function loadCharacters() {
     setLoading(true);
@@ -134,6 +142,57 @@ export default function AdminPanel() {
     setEditData({ ...character });
   }
 
+  async function loadTests() {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('rules_test_submissions')
+        .select('*, users(steam_nickname)')
+        .order('submitted_at', { ascending: false });
+
+      if (error) throw error;
+      setTests(data || []);
+    } catch (error) {
+      console.error('Error loading tests:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function approveTest(testId: string) {
+    try {
+      const { error } = await supabase
+        .from('rules_test_submissions')
+        .update({ approved: true, reviewed: true })
+        .eq('id', testId);
+
+      if (error) throw error;
+      alert('Тест схвалено!');
+      await loadTests();
+      setSelectedTest(null);
+    } catch (error) {
+      console.error('Error approving test:', error);
+      alert('Помилка при схваленні');
+    }
+  }
+
+  async function rejectTest(testId: string, notes: string) {
+    try {
+      const { error } = await supabase
+        .from('rules_test_submissions')
+        .update({ approved: false, reviewed: true, review_notes: notes })
+        .eq('id', testId);
+
+      if (error) throw error;
+      alert('Тест відхилено');
+      await loadTests();
+      setSelectedTest(null);
+    } catch (error) {
+      console.error('Error rejecting test:', error);
+      alert('Помилка при відхиленні');
+    }
+  }
+
   const filteredCharacters = characters.filter(
     (char) =>
       char.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -194,6 +253,17 @@ export default function AdminPanel() {
           >
             <FileText className="w-5 h-5" />
             Банк питань
+          </button>
+          <button
+            onClick={() => setActiveTab('tests')}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded transition ${
+              activeTab === 'tests'
+                ? 'bg-red-600 text-white'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            <BookOpen className="w-5 h-5" />
+            Здача правил
           </button>
           <button
             onClick={() => setActiveTab('rules')}
@@ -372,6 +442,51 @@ export default function AdminPanel() {
         {activeTab === 'questions' && (
           <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700">
             <QuestionsManager />
+          </div>
+        )}
+
+        {activeTab === 'tests' && (
+          <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700">
+            <h2 className="text-2xl font-bold mb-6">Здача правил</h2>
+            {loading ? (
+              <p className="text-gray-400">Завантаження...</p>
+            ) : tests.length === 0 ? (
+              <p className="text-gray-400">Немає жодної здачі</p>
+            ) : (
+              <div className="space-y-4">
+                {tests.map((test) => (
+                  <div
+                    key={test.id}
+                    className="bg-gray-900 bg-opacity-60 p-4 rounded border border-gray-700 hover:border-gray-600 transition cursor-pointer"
+                    onClick={() => setSelectedTest(test)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold">
+                          {test.users?.steam_nickname || 'Невідомий користувач'}
+                        </p>
+                        <p className="text-sm text-gray-400">Steam ID: {test.steam_id}</p>
+                        <p className="text-sm text-gray-400">Discord ID: {test.discord_id}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(test.submitted_at).toLocaleString('uk-UA')}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        {test.reviewed ? (
+                          test.approved ? (
+                            <span className="px-3 py-1 bg-green-600 rounded text-sm">Схвалено</span>
+                          ) : (
+                            <span className="px-3 py-1 bg-red-600 rounded text-sm">Відхилено</span>
+                          )
+                        ) : (
+                          <span className="px-3 py-1 bg-yellow-600 rounded text-sm">На розгляді</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -579,6 +694,81 @@ export default function AdminPanel() {
                         Відхилити персонажа
                       </button>
                     </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedTest && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">Здача правил</h2>
+                  <p className="text-gray-400">Steam ID: {selectedTest.steam_id}</p>
+                  <p className="text-gray-400">Discord ID: {selectedTest.discord_id}</p>
+                  <p className="text-sm text-gray-500">
+                    Відправлено: {new Date(selectedTest.submitted_at).toLocaleString('uk-UA')}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedTest(null)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {selectedTest.questions && selectedTest.questions.map((question: string, index: number) => (
+                  <div key={index} className="bg-gray-900 bg-opacity-60 p-4 rounded border border-gray-700">
+                    <p className="font-semibold mb-2">Питання {index + 1}:</p>
+                    <p className="text-gray-300 mb-4">{question}</p>
+                    <p className="text-sm text-gray-400 mb-2">Відповідь:</p>
+                    <div className="bg-black bg-opacity-30 p-3 rounded">
+                      <p className="whitespace-pre-wrap">{selectedTest.answers?.[index] || 'Немає відповіді'}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {!selectedTest.reviewed && (
+                <div className="flex gap-4 pt-6 mt-6 border-t border-gray-700">
+                  <button
+                    onClick={() => approveTest(selectedTest.id)}
+                    className="flex-1 bg-green-600 hover:bg-green-500 py-3 rounded font-semibold transition"
+                  >
+                    Схвалити
+                  </button>
+                  <button
+                    onClick={() => {
+                      const notes = prompt('Примітки (необов\'язково):');
+                      rejectTest(selectedTest.id, notes || '');
+                    }}
+                    className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded font-semibold transition"
+                  >
+                    Відхилити
+                  </button>
+                </div>
+              )}
+
+              {selectedTest.reviewed && (
+                <div className="pt-6 mt-6 border-t border-gray-700">
+                  <p className="text-center">
+                    {selectedTest.approved ? (
+                      <span className="text-green-400 font-semibold">✓ Тест схвалено</span>
+                    ) : (
+                      <span className="text-red-400 font-semibold">✗ Тест відхилено</span>
+                    )}
+                  </p>
+                  {selectedTest.review_notes && (
+                    <p className="text-gray-400 text-sm text-center mt-2">
+                      Примітки: {selectedTest.review_notes}
+                    </p>
                   )}
                 </div>
               )}
