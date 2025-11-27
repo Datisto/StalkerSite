@@ -278,6 +278,7 @@ export default function CharacterCreate() {
     try {
       const characterData = {
         user_id: user.id,
+        steam_id: user.steam_id,
         status,
         discord_id: formData.discord_id,
         name: formData.name,

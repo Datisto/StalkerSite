@@ -7,6 +7,7 @@ import { ArrowLeft, User, MapPin, Heart, Brain, Sword, Edit2, Send, Edit } from 
 interface Character {
   id: string;
   user_id: string;
+  steam_id: string;
   name: string;
   surname: string;
   nickname: string;
@@ -46,6 +47,7 @@ export default function CharacterView() {
   const { user } = useAuth();
   const [character, setCharacter] = useState<Character | null>(null);
   const [loading, setLoading] = useState(true);
+  const isAdmin = localStorage.getItem('admin_logged_in') === 'true';
 
   useEffect(() => {
     if (id) {
@@ -74,22 +76,15 @@ export default function CharacterView() {
         return;
       }
 
-      const { data: characterOwner, error: ownerError } = await supabase
-        .from('users')
-        .select('steam_id')
-        .eq('id', data.user_id)
-        .maybeSingle();
-
-      if (ownerError) throw ownerError;
-
       console.log('CharacterView: Character loaded:', {
         character_id: data.id,
-        character_owner_steam_id: characterOwner?.steam_id,
+        character_steam_id: data.steam_id,
         current_user_steam_id: user?.steam_id,
-        match: characterOwner?.steam_id === user?.steam_id
+        is_admin: isAdmin,
+        match: data.steam_id === user?.steam_id
       });
 
-      if (!characterOwner || characterOwner.steam_id !== user?.steam_id) {
+      if (!isAdmin && data.steam_id !== user?.steam_id) {
         console.warn('CharacterView: Access denied - steam_id mismatch');
         alert('Ви не маєте доступу до цього персонажа');
         navigate('/cabinet');
@@ -277,6 +272,12 @@ export default function CharacterView() {
                   <p className="text-sm text-gray-400">Discord ID</p>
                   <p className="font-semibold">{character.discord_id || 'Не вказано'}</p>
                 </div>
+                {isAdmin && (
+                  <div>
+                    <p className="text-sm text-gray-400">Steam ID (тільки для адмінів)</p>
+                    <p className="font-semibold text-yellow-400">{character.steam_id}</p>
+                  </div>
+                )}
               </div>
               {character.special_features && (
                 <div className="mt-4 bg-gray-900 p-4 rounded">

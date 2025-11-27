@@ -48,6 +48,7 @@ export interface Database {
         Row: {
           id: string
           user_id: string
+          steam_id: string
           status: 'draft' | 'pending' | 'approved' | 'rejected' | 'active' | 'archived'
           name: string
           surname: string
@@ -72,6 +73,7 @@ export interface Database {
         Insert: {
           id?: string
           user_id: string
+          steam_id: string
           status?: 'draft' | 'pending' | 'approved' | 'rejected' | 'active' | 'archived'
           name: string
           surname: string

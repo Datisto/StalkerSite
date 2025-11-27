@@ -33,7 +33,7 @@ export default function EditCharacterStory() {
       console.log('EditCharacterStory: Loading character with id:', id);
       const { data, error } = await supabase
         .from('characters')
-        .select('user_id, status, backstory, zone_motivation, character_goals')
+        .select('steam_id, status, backstory, zone_motivation, character_goals')
         .eq('id', id)
         .maybeSingle();
 
@@ -49,22 +49,14 @@ export default function EditCharacterStory() {
         return;
       }
 
-      const { data: characterOwner, error: ownerError } = await supabase
-        .from('users')
-        .select('steam_id')
-        .eq('id', data.user_id)
-        .maybeSingle();
-
-      if (ownerError) throw ownerError;
-
       console.log('EditCharacterStory: Character loaded:', {
-        character_owner_steam_id: characterOwner?.steam_id,
+        character_steam_id: data.steam_id,
         current_user_steam_id: user?.steam_id,
-        match: characterOwner?.steam_id === user?.steam_id,
+        match: data.steam_id === user?.steam_id,
         status: data.status
       });
 
-      if (!characterOwner || characterOwner.steam_id !== user?.steam_id) {
+      if (data.steam_id !== user?.steam_id) {
         console.warn('EditCharacterStory: Access denied - steam_id mismatch');
         alert('Ви не маєте доступу до цього персонажа');
         navigate('/cabinet');

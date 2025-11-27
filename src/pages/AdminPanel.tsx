@@ -550,6 +550,9 @@ export default function AdminPanel() {
                           <p className="text-xs text-gray-500 mt-1">
                             Discord: {character.discord_id || 'не вказано'}
                           </p>
+                          <p className="text-xs text-yellow-400 mt-1">
+                            Steam ID: {character.steam_id || 'не вказано'}
+                          </p>
                         </div>
 
                         <div className="flex gap-2">

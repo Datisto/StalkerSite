@@ -30,23 +30,10 @@ export default function PlayerCabinet() {
     try {
       console.log('Loading characters for steam_id:', user!.steam_id);
 
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('steam_id', user!.steam_id)
-        .maybeSingle();
-
-      if (userError) throw userError;
-      if (!userData) {
-        console.error('User not found for steam_id:', user!.steam_id);
-        setCharacters([]);
-        return;
-      }
-
       const { data, error } = await supabase
         .from('characters')
-        .select('id, name, surname, nickname, age, faction, status, created_at, rejection_reason')
-        .eq('user_id', userData.id)
+        .select('id, name, surname, nickname, age, faction, status, created_at, rejection_reason, steam_id')
+        .eq('steam_id', user!.steam_id)
         .order('created_at', { ascending: false });
 
       if (error) {
