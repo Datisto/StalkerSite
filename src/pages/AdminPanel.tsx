@@ -59,7 +59,7 @@ export default function AdminPanel() {
   const { admin, logout } = useAdminAuth();
   const [activeTab, setActiveTab] = useState<'characters' | 'questions' | 'rules' | 'tests' | 'users'>('characters');
   const [characters, setCharacters] = useState<Character[]>([]);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
+  const [filter, setFilter] = useState<'all' | 'draft' | 'pending' | 'approved' | 'rejected'>('pending');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
@@ -298,6 +298,29 @@ export default function AdminPanel() {
     }
   }
 
+  async function deleteCharacter(characterId: string) {
+    if (!confirm('Ви впевнені, що хочете видалити цього персонажа? Цю дію неможливо скасувати.')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('characters')
+        .delete()
+        .eq('id', characterId);
+
+      if (error) throw error;
+
+      alert('Персонажа видалено');
+      await loadCharacters();
+      setSelectedCharacter(null);
+      setEditMode(false);
+    } catch (error) {
+      console.error('Error deleting character:', error);
+      alert('Помилка при видаленні персонажа');
+    }
+  }
+
   const filteredCharacters = characters.filter(
     (char) =>
       char.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -396,7 +419,19 @@ export default function AdminPanel() {
 
         {activeTab === 'characters' && (
           <>
-            <div className="grid md:grid-cols-4 gap-4 mb-8">
+            <div className="grid md:grid-cols-5 gap-4 mb-8">
+              <div className="bg-gray-800 bg-opacity-60 p-4 rounded-lg border border-gray-700">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-400">Чернетки</p>
+                    <p className="text-2xl font-bold text-gray-400">
+                      {characters.filter((c) => c.status === 'draft').length}
+                    </p>
+                  </div>
+                  <Edit className="w-8 h-8 text-gray-400" />
+                </div>
+              </div>
+
               <div className="bg-gray-800 bg-opacity-60 p-4 rounded-lg border border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
@@ -459,8 +494,8 @@ export default function AdminPanel() {
                   />
                 </div>
 
-                <div className="flex gap-2">
-                  {(['all', 'pending', 'approved', 'rejected'] as const).map((f) => (
+                <div className="flex gap-2 flex-wrap">
+                  {(['all', 'draft', 'pending', 'approved', 'rejected'] as const).map((f) => (
                     <button
                       key={f}
                       onClick={() => setFilter(f)}
@@ -471,6 +506,7 @@ export default function AdminPanel() {
                       }`}
                     >
                       {f === 'all' && 'Всі'}
+                      {f === 'draft' && 'Чернетки'}
                       {f === 'pending' && 'На розгляді'}
                       {f === 'approved' && 'Схвалені'}
                       {f === 'rejected' && 'Відхилені'}
@@ -700,13 +736,22 @@ export default function AdminPanel() {
                 </div>
                 <div className="flex gap-2">
                   {!editMode && (
-                    <button
-                      onClick={() => startEdit(selectedCharacter)}
-                      className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded transition"
-                    >
-                      <Edit className="w-4 h-4" />
-                      Редагувати
-                    </button>
+                    <>
+                      <button
+                        onClick={() => startEdit(selectedCharacter)}
+                        className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded transition"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Редагувати
+                      </button>
+                      <button
+                        onClick={() => deleteCharacter(selectedCharacter.id)}
+                        className="inline-flex items-center gap-2 bg-red-900 hover:bg-red-800 px-4 py-2 rounded transition"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Видалити
+                      </button>
+                    </>
                   )}
                   <button
                     onClick={() => {
