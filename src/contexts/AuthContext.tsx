@@ -38,18 +38,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function checkUser() {
     try {
-      const mockUserId = localStorage.getItem('mock_user_id');
       const mockSteamId = localStorage.getItem('mock_steam_id');
 
-      if (mockUserId && mockSteamId) {
+      if (mockSteamId) {
         const { data: userData } = await supabase
           .from('users')
           .select('*')
-          .eq('id', mockUserId)
+          .eq('steam_id', mockSteamId)
           .maybeSingle();
 
         if (userData) {
           setUser(userData);
+          localStorage.setItem('mock_user_id', userData.id);
         } else {
           setUser(null);
           localStorage.removeItem('mock_user_id');
