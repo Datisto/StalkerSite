@@ -21,6 +21,7 @@ export default function SteamAuth() {
       if (urlParams.has('steamid') && urlParams.has('steamname')) {
         steamId = urlParams.get('steamid');
         personaname = urlParams.get('steamname');
+        console.log('Manual login:', { steamId, personaname });
       } else if (urlParams.has('openid.claimed_id')) {
         const verifyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/steam-auth?mode=verify&${urlParams.toString()}`;
 
@@ -50,7 +51,10 @@ export default function SteamAuth() {
         .maybeSingle();
 
       if (fetchError && fetchError.code !== 'PGRST116') {
-        throw fetchError;
+        console.error('Fetch user error:', fetchError);
+        setError(`Помилка отримання користувача: ${fetchError.message}`);
+        setLoading(false);
+        return;
       }
 
       if (existingUser?.is_banned) {
@@ -66,13 +70,18 @@ export default function SteamAuth() {
           .from('users')
           .insert({
             steam_id: steamId,
-            steam_nickname: personaname,
+            steam_nickname: personaname || 'Unknown',
             is_banned: false,
           })
           .select()
           .single();
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('Insert user error:', insertError);
+          setError(`Помилка створення користувача: ${insertError.message}`);
+          setLoading(false);
+          return;
+        }
         userId = newUser.id;
       } else {
         await supabase
@@ -82,15 +91,20 @@ export default function SteamAuth() {
       }
 
       const { error: authError } = await supabase.auth.signInAnonymously();
-      if (authError) throw authError;
+      if (authError) {
+        console.error('Auth error:', authError);
+        setError(`Помилка аутентифікації: ${authError.message}`);
+        setLoading(false);
+        return;
+      }
 
       localStorage.setItem('mock_user_id', userId);
       localStorage.setItem('mock_steam_id', steamId);
 
       navigate('/cabinet');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Steam auth error:', error);
-      setError('Помилка авторизації');
+      setError(`Помилка авторизації: ${error?.message || 'Невідома помилка'}`);
       setLoading(false);
     }
   }
