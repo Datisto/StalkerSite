@@ -5,10 +5,7 @@ import { Plus, Edit, Trash2, Save, X, ToggleLeft, ToggleRight } from 'lucide-rea
 interface Question {
   id: string;
   question_text: string;
-  correct_answer: string;
-  incorrect_answers: string[];
   category: string;
-  difficulty: 'easy' | 'medium' | 'hard';
   is_active: boolean;
   created_at: string;
 }
@@ -20,10 +17,7 @@ export default function QuestionsManager() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState<Partial<Question>>({
     question_text: '',
-    correct_answer: '',
-    incorrect_answers: ['', '', ''],
     category: '',
-    difficulty: 'medium',
     is_active: true,
   });
 
@@ -51,19 +45,14 @@ export default function QuestionsManager() {
 
   async function saveQuestion() {
     try {
-      const incorrectAnswers = (formData.incorrect_answers || []).filter((a) => a.trim() !== '');
-
-      if (!formData.question_text || !formData.correct_answer || incorrectAnswers.length === 0) {
-        alert('Заповніть всі обов\'язкові поля');
+      if (!formData.question_text) {
+        alert('Введіть текст питання');
         return;
       }
 
       const questionData = {
         question_text: formData.question_text,
-        correct_answer: formData.correct_answer,
-        incorrect_answers: incorrectAnswers,
         category: formData.category || 'Загальні',
-        difficulty: formData.difficulty || 'medium',
         is_active: formData.is_active !== false,
       };
 
@@ -124,10 +113,7 @@ export default function QuestionsManager() {
     setEditingQuestion(question);
     setFormData({
       question_text: question.question_text,
-      correct_answer: question.correct_answer,
-      incorrect_answers: question.incorrect_answers,
       category: question.category,
-      difficulty: question.difficulty,
       is_active: question.is_active,
     });
     setShowAddForm(true);
@@ -136,21 +122,13 @@ export default function QuestionsManager() {
   function resetForm() {
     setFormData({
       question_text: '',
-      correct_answer: '',
-      incorrect_answers: ['', '', ''],
       category: '',
-      difficulty: 'medium',
       is_active: true,
     });
     setEditingQuestion(null);
     setShowAddForm(false);
   }
 
-  function updateIncorrectAnswer(index: number, value: string) {
-    const newAnswers = [...(formData.incorrect_answers || ['', '', ''])];
-    newAnswers[index] = value;
-    setFormData({ ...formData, incorrect_answers: newAnswers });
-  }
 
   if (loading) {
     return (
@@ -200,59 +178,20 @@ export default function QuestionsManager() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Правильна відповідь *</label>
+              <label className="block text-sm font-medium mb-2">Категорія</label>
               <input
                 type="text"
-                value={formData.correct_answer || ''}
-                onChange={(e) => setFormData({ ...formData, correct_answer: e.target.value })}
+                value={formData.category || ''}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                placeholder="Правильна відповідь"
+                placeholder="Наприклад: Основні правила"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Неправильні варіанти *</label>
-              {[0, 1, 2].map((i) => (
-                <input
-                  key={i}
-                  type="text"
-                  value={(formData.incorrect_answers || [])[i] || ''}
-                  onChange={(e) => updateIncorrectAnswer(i, e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 mb-2 focus:outline-none focus:border-red-500"
-                  placeholder={`Варіант ${i + 1}`}
-                />
-              ))}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Категорія</label>
-                <input
-                  type="text"
-                  value={formData.category || ''}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                  placeholder="Наприклад: Основні правила"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Складність</label>
-                <select
-                  value={formData.difficulty || 'medium'}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      difficulty: e.target.value as 'easy' | 'medium' | 'hard',
-                    })
-                  }
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                >
-                  <option value="easy">Легко</option>
-                  <option value="medium">Середньо</option>
-                  <option value="hard">Важко</option>
-                </select>
-              </div>
+            <div className="bg-blue-900 bg-opacity-30 border border-blue-700 p-3 rounded">
+              <p className="text-blue-200 text-sm">
+                <strong>Увага:</strong> Це питання з відкритою відповіддю. Гравець напише свою відповідь, а адміністрація перевірить її вручну.
+              </p>
             </div>
 
             <div className="flex items-center gap-2">
@@ -303,31 +242,9 @@ export default function QuestionsManager() {
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1">
                   <p className="font-semibold mb-2">{question.question_text}</p>
-                  <div className="text-sm space-y-1">
-                    <p className="text-green-400">✓ {question.correct_answer}</p>
-                    {question.incorrect_answers.map((ans, i) => (
-                      <p key={i} className="text-red-400">
-                        ✗ {ans}
-                      </p>
-                    ))}
-                  </div>
                   <div className="flex gap-2 mt-2 text-xs">
                     <span className="bg-gray-800 px-2 py-1 rounded">{question.category}</span>
-                    <span
-                      className={`px-2 py-1 rounded ${
-                        question.difficulty === 'easy'
-                          ? 'bg-green-800'
-                          : question.difficulty === 'hard'
-                          ? 'bg-red-800'
-                          : 'bg-yellow-800'
-                      }`}
-                    >
-                      {question.difficulty === 'easy'
-                        ? 'Легко'
-                        : question.difficulty === 'hard'
-                        ? 'Важко'
-                        : 'Середньо'}
-                    </span>
+                    <span className="bg-blue-800 px-2 py-1 rounded">Відкрита відповідь</span>
                   </div>
                 </div>
 
