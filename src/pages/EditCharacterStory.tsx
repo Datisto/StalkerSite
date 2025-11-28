@@ -61,8 +61,8 @@ export default function EditCharacterStory() {
         return;
       }
 
-      if (data.status !== 'approved') {
-        alert('Редагувати можна тільки схвалених персонажів');
+      if (data.status === 'approved') {
+        alert('Редагування квенти заблоковано після затвердження адміністрацією');
         navigate('/cabinet');
         return;
       }

@@ -873,6 +873,14 @@ export default function AdminPanel() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
+                      <p className="text-sm text-gray-400">Discord ID</p>
+                      <p className="font-semibold">{selectedCharacter.discord_id || 'Не вказано'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400">Steam ID</p>
+                      <p className="font-semibold font-mono text-sm">{selectedCharacter.steam_id}</p>
+                    </div>
+                    <div>
                       <p className="text-sm text-gray-400">Вік</p>
                       <p className="font-semibold">{selectedCharacter.age} років</p>
                     </div>
@@ -883,6 +891,18 @@ export default function AdminPanel() {
                       </p>
                     </div>
                     <div>
+                      <p className="text-sm text-gray-400">Зріст</p>
+                      <p className="font-semibold">{selectedCharacter.height || 'Не вказано'} см</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400">Вага</p>
+                      <p className="font-semibold">{selectedCharacter.weight || 'Не вказано'} кг</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400">Тип тіла</p>
+                      <p className="font-semibold">{selectedCharacter.body_type || 'Не вказано'}</p>
+                    </div>
+                    <div>
                       <p className="text-sm text-gray-400">Фракція</p>
                       <p className="font-semibold">{selectedCharacter.faction}</p>
                     </div>
@@ -890,19 +910,41 @@ export default function AdminPanel() {
                       <p className="text-sm text-gray-400">Статус</p>
                       <p className="font-semibold">{selectedCharacter.status}</p>
                     </div>
-                    {selectedCharacter.height && (
-                      <div>
-                        <p className="text-sm text-gray-400">Зріст</p>
-                        <p className="font-semibold">{selectedCharacter.height} см</p>
-                      </div>
-                    )}
-                    {selectedCharacter.weight && (
-                      <div>
-                        <p className="text-sm text-gray-400">Вага</p>
-                        <p className="font-semibold">{selectedCharacter.weight} кг</p>
-                      </div>
-                    )}
+                    <div>
+                      <p className="text-sm text-gray-400">Модель обличчя</p>
+                      <p className="font-semibold">{selectedCharacter.face_model || 'Не вказано'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400">Колір волосся</p>
+                      <p className="font-semibold">{selectedCharacter.hair_color || 'Не вказано'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400">Колір очей</p>
+                      <p className="font-semibold">{selectedCharacter.eye_color || 'Не вказано'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400">Борода</p>
+                      <p className="font-semibold">{selectedCharacter.beard_style || 'Не вказано'}</p>
+                    </div>
                   </div>
+
+                  {selectedCharacter.special_features && (
+                    <div>
+                      <p className="text-sm text-gray-400 mb-2">Особливості обличчя</p>
+                      <div className="bg-gray-900 p-3 rounded border border-gray-700">
+                        <p>{selectedCharacter.special_features}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedCharacter.physical_features && (
+                    <div>
+                      <p className="text-sm text-gray-400 mb-2">Фізичні прикмети</p>
+                      <div className="bg-gray-900 p-3 rounded border border-gray-700">
+                        <p>{selectedCharacter.physical_features}</p>
+                      </div>
+                    </div>
+                  )}
 
                   {selectedCharacter.character_traits &&
                     selectedCharacter.character_traits.length > 0 && (
@@ -921,9 +963,85 @@ export default function AdminPanel() {
                       </div>
                     )}
 
+                  {selectedCharacter.phobias && (
+                    <div>
+                      <p className="text-sm text-gray-400 mb-2">Фобії / Слабкості</p>
+                      <div className="bg-gray-900 p-3 rounded border border-gray-700">
+                        <p>{selectedCharacter.phobias}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedCharacter.values && (
+                    <div>
+                      <p className="text-sm text-gray-400 mb-2">Життєві цінності</p>
+                      <div className="bg-gray-900 p-3 rounded border border-gray-700">
+                        <p>{selectedCharacter.values}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedCharacter.faction === 'Учений' && (
+                    <>
+                      {selectedCharacter.education && (
+                        <div>
+                          <p className="text-sm text-gray-400 mb-2">Освіта</p>
+                          <div className="bg-gray-900 p-3 rounded border border-gray-700">
+                            <p>{selectedCharacter.education}</p>
+                          </div>
+                        </div>
+                      )}
+                      {selectedCharacter.scientific_profile && (
+                        <div>
+                          <p className="text-sm text-gray-400 mb-2">Науковий профіль</p>
+                          <div className="bg-gray-900 p-3 rounded border border-gray-700">
+                            <p>{selectedCharacter.scientific_profile}</p>
+                          </div>
+                        </div>
+                      )}
+                      {selectedCharacter.research_motivation && (
+                        <div>
+                          <p className="text-sm text-gray-400 mb-2">Мотивація досліджень</p>
+                          <div className="bg-gray-900 p-3 rounded border border-gray-700">
+                            <p>{selectedCharacter.research_motivation}</p>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {selectedCharacter.faction === 'Військовий' && (
+                    <>
+                      {selectedCharacter.military_experience && (
+                        <div>
+                          <p className="text-sm text-gray-400 mb-2">Військовий досвід</p>
+                          <div className="bg-gray-900 p-3 rounded border border-gray-700">
+                            <p>{selectedCharacter.military_experience}</p>
+                          </div>
+                        </div>
+                      )}
+                      {selectedCharacter.military_rank && (
+                        <div>
+                          <p className="text-sm text-gray-400 mb-2">Військове звання</p>
+                          <div className="bg-gray-900 p-3 rounded border border-gray-700">
+                            <p>{selectedCharacter.military_rank}</p>
+                          </div>
+                        </div>
+                      )}
+                      {selectedCharacter.military_join_reason && (
+                        <div>
+                          <p className="text-sm text-gray-400 mb-2">Причина вступу до військових</p>
+                          <div className="bg-gray-900 p-3 rounded border border-gray-700">
+                            <p>{selectedCharacter.military_join_reason}</p>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+
                   {selectedCharacter.backstory && (
                     <div>
-                      <p className="text-sm text-gray-400 mb-2">Біографія</p>
+                      <p className="text-sm text-gray-400 mb-2">Біографія ({selectedCharacter.backstory.length} символів)</p>
                       <div className="bg-gray-900 p-4 rounded border border-gray-700">
                         <p className="whitespace-pre-wrap">{selectedCharacter.backstory}</p>
                       </div>
@@ -935,6 +1053,15 @@ export default function AdminPanel() {
                       <p className="text-sm text-gray-400 mb-2">Мотивація приходу в Зону</p>
                       <div className="bg-gray-900 p-4 rounded border border-gray-700">
                         <p className="whitespace-pre-wrap">{selectedCharacter.zone_motivation}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedCharacter.character_goals && (
+                    <div>
+                      <p className="text-sm text-gray-400 mb-2">Цілі персонажа</p>
+                      <div className="bg-gray-900 p-4 rounded border border-gray-700">
+                        <p className="whitespace-pre-wrap">{selectedCharacter.character_goals}</p>
                       </div>
                     </div>
                   )}

@@ -62,6 +62,7 @@ export default function CharacterCreate() {
   const [hasApprovedTest, setHasApprovedTest] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [questType, setQuestType] = useState<'short' | 'full'>('short');
   const [formData, setFormData] = useState<CharacterData>({
     steam_id: '',
     discord_id: '',
@@ -264,7 +265,11 @@ export default function CharacterCreate() {
         }
         return formData.faction;
       case 6:
-        return formData.backstory.length >= 500 && formData.zone_motivation;
+        if (questType === 'short') {
+          return formData.backstory.length > 0 && formData.backstory.length <= 500 && formData.zone_motivation;
+        } else {
+          return formData.backstory.length >= 500 && formData.zone_motivation;
+        }
       case 7:
         return true;
       default:
@@ -915,23 +920,63 @@ export default function CharacterCreate() {
             <div className="space-y-6">
               <h2 className="text-2xl font-semibold mb-4">Квента (Біографія)</h2>
 
+              <div className="bg-gray-900 p-4 rounded border border-gray-700">
+                <label className="block text-sm font-medium mb-3">Оберіть тип анкети *</label>
+                <div className="space-y-2">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="questType"
+                      checked={questType === 'short'}
+                      onChange={() => setQuestType('short')}
+                      className="mt-1"
+                    />
+                    <div>
+                      <div className="font-medium">Коротка анкета (до 500 символів)</div>
+                      <div className="text-xs text-gray-400">
+                        Основні відомості про персонажа без детальної історії
+                      </div>
+                    </div>
+                  </label>
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="questType"
+                      checked={questType === 'full'}
+                      onChange={() => setQuestType('full')}
+                      className="mt-1"
+                    />
+                    <div>
+                      <div className="font-medium">Повна квента (більше 500 символів)</div>
+                      <div className="text-xs text-gray-400">
+                        Детальна біографія та історія персонажа
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium mb-2">
                   Передісторія *
                   <span className="text-xs text-gray-400 block mt-1">
-                    Мінімум 500 символів
+                    {questType === 'short' ? 'Максимум 500 символів' : 'Мінімум 500 символів'}
                   </span>
                 </label>
                 <textarea
                   value={formData.backstory}
                   onChange={(e) => updateField('backstory', e.target.value)}
                   rows={12}
+                  maxLength={questType === 'short' ? 500 : undefined}
                   className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
                   placeholder="Розкажіть історію вашого персонажа: звідки він, яке його минуле, як він виріс, що пережив..."
                 />
                 <p className="text-sm text-gray-400 mt-2">
                   Символів: {formData.backstory.length}
-                  {formData.backstory.length < 500 && (
+                  {questType === 'short' && formData.backstory.length > 500 && (
+                    <span className="text-red-500 ml-2">(перевищено ліміт 500)</span>
+                  )}
+                  {questType === 'full' && formData.backstory.length < 500 && (
                     <span className="text-yellow-500 ml-2">(потрібно мінімум 500)</span>
                   )}
                 </p>
