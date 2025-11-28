@@ -64,7 +64,10 @@ export default function RulesManager() {
       })
       .eq('id', category.id);
 
-    if (!error) {
+    if (error) {
+      console.error('Error saving category:', error);
+      alert('Помилка збереження: ' + error.message);
+    } else {
       setEditingCategory(null);
       loadCategories();
     }
@@ -101,7 +104,10 @@ export default function RulesManager() {
       })
       .eq('id', rule.id);
 
-    if (!error) {
+    if (error) {
+      console.error('Error saving rule:', error);
+      alert('Помилка збереження: ' + error.message);
+    } else {
       setEditingRule(null);
       loadRules();
     }
