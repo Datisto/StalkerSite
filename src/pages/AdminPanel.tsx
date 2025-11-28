@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
 import { supabase } from '../lib/supabase';
 import QuestionsManager from '../components/QuestionsManager';
+import RulesManager from '../components/RulesManager';
 import {
   Shield,
   Users,
@@ -679,8 +680,7 @@ export default function AdminPanel() {
 
         {activeTab === 'rules' && (
           <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700">
-            <h2 className="text-2xl font-bold mb-4">Редагування правил</h2>
-            <p className="text-gray-400">WYSIWYG редактор правил буде тут...</p>
+            <RulesManager />
           </div>
         )}
 

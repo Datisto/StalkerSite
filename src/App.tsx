@@ -10,6 +10,7 @@ import EditCharacterStory from './pages/EditCharacterStory';
 import AdminPanel from './pages/AdminPanel';
 import AdminLogin from './pages/AdminLogin';
 import RulesTest from './pages/RulesTest';
+import Rules from './pages/Rules';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 
 function App() {
@@ -26,6 +27,9 @@ function App() {
             <Route path="/character/:id" element={<CharacterView />} />
             <Route path="/character/edit-story/:id" element={<EditCharacterStory />} />
             <Route path="/rules-test" element={<RulesTest />} />
+            <Route path="/rules" element={<Rules />} />
+            <Route path="/rules/category/:slug" element={<Rules />} />
+            <Route path="/rules/rule/:ruleNumber" element={<Rules />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route
               path="/admin"
