@@ -306,7 +306,7 @@ export default function LandingPage() {
 
         <section id="factions" className="py-16 px-4 bg-gray-900 bg-opacity-80">
           <div className="container mx-auto">
-            <h3 className="text-3xl font-bold mb-12 text-center">Фракції Зони</h3>
+            <h3 className="text-3xl font-bold mb-12 text-center">Медіа</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700 hover:border-green-500 transition">
                 <h4 className="text-xl font-semibold mb-2 text-green-400">Вільні сталкери</h4>
