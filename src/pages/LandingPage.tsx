@@ -51,7 +51,7 @@ export default function LandingPage() {
               <nav className="hidden md:flex items-center gap-6">
                 <a href="#about" className="text-gray-300 hover:text-white transition">Про сервер</a>
                 <a href="#rules" className="text-gray-300 hover:text-white transition">Правила</a>
-                <a href="#factions" className="text-gray-300 hover:text-white transition">Фракції</a>
+                <a href="#factions" className="text-gray-300 hover:text-white transition">Медіа</a>
                 <Link to="/rules-test" className="text-gray-300 hover:text-white transition">Здача правил</Link>
                 <a href="#discord" className="text-gray-300 hover:text-white transition">Discord</a>
               </nav>
