@@ -37,7 +37,7 @@ export default function LandingPage() {
       />
 
       <div className="relative">
-        <header className="border-b border-gray-700 bg-black backdrop-blur-sm">
+        <header className="border-b border-gray-700 bg-black bg-opacity-01 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
