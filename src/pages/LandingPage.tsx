@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Skull, Users, Shield, BookOpen } from 'lucide-react';
+import { Skull, Users, Shield, BookOpen, play } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function LandingPage() {
@@ -125,7 +125,7 @@ export default function LandingPage() {
             <div className="grid md:grid-cols-3 gap-8">
 
               <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700 hover:border-red-500 transition">
-                <BookOpen className="w-12 h-12 text-red-500 mb-4" />
+                <play className="w-12 h-12 text-red-500 mb-4" />
                 <h4 className="text-xl font-semibold mb-3">Як почати грати</h4>
                 <p className="text-gray-400">
                   Щоб одразу стати частиною нашого ком’юніті та розпочати гру, потрібно виконати кілька простих кроків:<br />
