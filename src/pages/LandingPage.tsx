@@ -238,7 +238,7 @@ export default function LandingPage() {
               </div>
 
               <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700 hover:border-red-500 transition">
-                <Map-pin-pen className="w-12 h-12 text-red-500 mb-4" />
+                <MapPinPen className="w-12 h-12 text-red-500 mb-4" />
                 <h4 className="text-xl font-semibold mb-3">Свій власний ЛОР, що формується гравцями</h4>
                 <p className="text-gray-400">
                   Лор сервера розвивається з моменту його відкриття у 2023 році<br /> та безпосередньо базується на діях гравців.<br /><br />
