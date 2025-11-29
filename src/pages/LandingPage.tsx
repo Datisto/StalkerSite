@@ -362,7 +362,7 @@ export default function LandingPage() {
             </div>
             <p>&copy; 2025 Eternal ZONE. Усі права захищені.</p>
             <p className="mt-2">
-              DayZ Standalone Roleplay Server. Не афілійований з GSC Game World або Bohemia Interactive.
+              DayZ Standalone S.T.A.L.K.E.R. Roleplay Server. Не афілійований з GSC Game World або Bohemia Interactive.
             </p>
           </div>
         </footer>
