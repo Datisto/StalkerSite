@@ -147,7 +147,7 @@ export default function LandingPage() {
 
               <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700 hover:border-red-500 transition">
                 <Users className="w-12 h-12 text-red-500 mb-4" />
-                <h4 className="text-xl font-semibold mb-3">Якісна модерація</h4>
+                <h4 className="text-xl font-semibold mb-3">Унікальні моди, створені вручну</h4>
                 <p className="text-gray-400">
                   Цей проєкт створений людьми, які жили сталкерською атмосферою задовго до появи DayZ.<br />
 Наша команда — це старі фанати серії S.T.A.L.K.E.R., які перенесли у Зону:<br />
