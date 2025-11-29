@@ -124,7 +124,7 @@ export default function LandingPage() {
             <h3 className="text-3xl font-bold mb-12 text-center">Чому варто приєднатись?</h3>
             <div className="grid md:grid-cols-3 gap-8">
               <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700 hover:border-red-500 transition">
-                <Users className="w-12 h-12 text-red-500 mb-4" />
+                <Shield className="w-12 h-12 text-red-500 mb-4" />
                 <h4 className="text-xl font-semibold mb-3">Унікальні моди, створені вручну</h4>
                 <p className="text-gray-400">
                   Усі ключові модифікації — це наша власна робота, наш стиль і бачення Зони.
@@ -146,7 +146,7 @@ export default function LandingPage() {
               </div>
 
               <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700 hover:border-red-500 transition">
-                <Shield className="w-12 h-12 text-red-500 mb-4" />
+                <Users className="w-12 h-12 text-red-500 mb-4" />
                 <h4 className="text-xl font-semibold mb-3">Якісна модерація</h4>
                 <p className="text-gray-400">
                   Цей проєкт створений людьми, які жили сталкерською атмосферою задовго до появи DayZ.<br />
