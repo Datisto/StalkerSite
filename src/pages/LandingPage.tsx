@@ -94,12 +94,21 @@ export default function LandingPage() {
               Унікальний roleplay сервер по всесвіту S.T.A.L.K.E.R. на платформі DayZ Standalone
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={handleSteamLogin}
-                className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 px-8 py-3 rounded-lg text-lg font-semibold transition shadow-xl"
-              >
-                Розпочати подорож
-              </button>
+              {!user ? (
+                <button
+                  onClick={handleSteamLogin}
+                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 px-8 py-3 rounded-lg text-lg font-semibold transition shadow-xl"
+                >
+                  Розпочати подорож
+                </button>
+              ) : (
+                <Link
+                  to="/cabinet"
+                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 px-8 py-3 rounded-lg text-lg font-semibold transition shadow-xl"
+                >
+                  Кабінет гравця
+                </Link>
+              )}
               <a
                 href="#about"
                 className="bg-gray-700 hover:bg-gray-600 px-8 py-3 rounded-lg text-lg font-semibold transition"
