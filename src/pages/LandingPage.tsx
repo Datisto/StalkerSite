@@ -44,7 +44,7 @@ export default function LandingPage() {
                 <img src={logoIcon} alt="Eternal ZONE" className="w-16 h-16 object-contain" />
                 <div>
                   <h1 className="text-2xl font-bold tracking-wider font-stalker">Eternal ZONE</h1>
-                  <p className="text-xs text-gray-400">DayZ Standalone</p>
+                  <p className="text-xs text-gray-400">s.t.a.l.k.e.r. RP</p>
                 </div>
               </div>
 
