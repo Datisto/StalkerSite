@@ -114,7 +114,7 @@ export default function Rules() {
       }} />
 
       <div className="relative">
-        <header className="border-b border-gray-700 bg-black bg-opacity-60 backdrop-blur-sm sticky top-0 z-10">
+        <header className="border-b border-gray-700 bg-black bg-opacity-98 backdrop-blur-sm sticky top-0 z-10">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <Link to="/" className="inline-flex items-center gap-3 hover:opacity-80 transition">
