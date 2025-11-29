@@ -43,8 +43,8 @@ export default function LandingPage() {
               <div className="flex items-center gap-3">
                 <img src={logoIcon} alt="STALKER RP" className="w-16 h-16 object-contain" />
                 <div>
-                  <h1 className="text-2xl font-bold tracking-wider">STALKER RP</h1>
-                  <p className="text-xs text-gray-400">DayZ Standalone</p>
+                  <h1 className="text-2xl font-bold tracking-wider">Eternal ZONE</h1>
+                  <p className="text-xs text-gray-400">STALKER RP</p>
                 </div>
               </div>
 
