@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
-import { Shield, Lock, User } from 'lucide-react';
+import { Lock, User } from 'lucide-react';
+import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -32,10 +33,10 @@ export default function AdminLogin() {
       <div className="w-full max-w-md px-4">
         <div className="bg-gray-800 bg-opacity-60 p-8 rounded-lg border border-gray-700">
           <div className="flex items-center justify-center mb-8">
-            <Shield className="w-12 h-12 text-red-500 mr-3" />
+            <img src={logoIcon} alt="Eternal ZONE" className="w-12 h-12 object-contain mr-3" />
             <div>
-              <h1 className="text-2xl font-bold">Адмін-панель</h1>
-              <p className="text-sm text-gray-400">STALKER RP Management</p>
+              <h1 className="text-2xl font-bold font-stalker">Адмін-панель</h1>
+              <p className="text-sm text-gray-400">Eternal ZONE Management</p>
             </div>
           </div>
 

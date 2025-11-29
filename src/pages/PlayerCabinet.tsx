@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Plus, User, Edit, CheckCircle, XCircle, Clock, BookOpen, RefreshCw } from 'lucide-react';
+import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 
 interface Character {
   id: string;
@@ -90,7 +91,10 @@ export default function PlayerCabinet() {
       <header className="border-b border-gray-700 bg-black bg-opacity-60 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <a href="/" className="text-xl font-bold">STALKER RP</a>
+            <a href="/" className="inline-flex items-center gap-3 hover:opacity-80 transition">
+              <img src={logoIcon} alt="Eternal ZONE" className="w-10 h-10 object-contain" />
+              <span className="text-xl font-bold font-stalker">Eternal ZONE</span>
+            </a>
             <div className="flex items-center gap-4">
               <a
                 href="/rules-test"

@@ -4,7 +4,6 @@ import { supabase } from '../lib/supabase';
 import QuestionsManager from '../components/QuestionsManager';
 import RulesManager from '../components/RulesManager';
 import {
-  Shield,
   Users,
   FileText,
   Search,
@@ -20,6 +19,7 @@ import {
   Trash2,
   Skull,
 } from 'lucide-react';
+import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 
 interface Character {
   id: string;
@@ -341,9 +341,9 @@ export default function AdminPanel() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Shield className="w-8 h-8 text-red-500" />
+              <img src={logoIcon} alt="Eternal ZONE" className="w-10 h-10 object-contain" />
               <div>
-                <h1 className="text-xl font-bold">Адмін-панель</h1>
+                <h1 className="text-xl font-bold font-stalker">Адмін-панель</h1>
                 <p className="text-xs text-gray-400">
                   {admin?.username} ({admin?.role})
                 </p>

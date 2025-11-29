@@ -41,10 +41,10 @@ export default function LandingPage() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <img src={logoIcon} alt="STALKER RP" className="w-16 h-16 object-contain" />
+                <img src={logoIcon} alt="Eternal ZONE" className="w-16 h-16 object-contain" />
                 <div>
-                  <h1 className="text-2xl font-bold tracking-wider">Eternal ZONE</h1>
-                  <p className="text-xs text-gray-400">STALKER RP</p>
+                  <h1 className="text-2xl font-bold tracking-wider font-stalker">Eternal ZONE</h1>
+                  <p className="text-xs text-gray-400">DayZ Standalone</p>
                 </div>
               </div>
 
@@ -360,7 +360,7 @@ export default function LandingPage() {
               <Link to="/rules-test" className="hover:text-white transition">Здача правил</Link>
               <Link to="/admin/login" className="hover:text-white transition">Адмін-панель</Link>
             </div>
-            <p>&copy; 2025 STALKER RP. Усі права захищені.</p>
+            <p>&copy; 2025 Eternal ZONE. Усі права захищені.</p>
             <p className="mt-2">
               DayZ Standalone Roleplay Server. Не афілійований з GSC Game World або Bohemia Interactive.
             </p>

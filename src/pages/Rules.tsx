@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ChevronDown, ChevronUp, BookOpen, Home, Link as LinkIcon } from 'lucide-react';
+import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 
 interface RuleCategory {
   id: string;
@@ -116,9 +117,9 @@ export default function Rules() {
         <header className="border-b border-gray-700 bg-black bg-opacity-60 backdrop-blur-sm sticky top-0 z-10">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
-              <Link to="/" className="inline-flex items-center gap-2 text-xl font-bold hover:text-gray-300 transition">
-                <Home className="w-6 h-6" />
-                STALKER RP
+              <Link to="/" className="inline-flex items-center gap-3 hover:opacity-80 transition">
+                <img src={logoIcon} alt="Eternal ZONE" className="w-10 h-10 object-contain" />
+                <span className="text-xl font-bold font-stalker">Eternal ZONE</span>
               </Link>
               <div className="flex gap-2">
                 <button
