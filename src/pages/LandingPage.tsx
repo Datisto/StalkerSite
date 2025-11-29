@@ -189,7 +189,7 @@ export default function LandingPage() {
               
               <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700 hover:border-red-500 transition">
                 <BookOpen className="w-12 h-12 text-red-500 mb-4" />
-                <h4 className="text-xl font-semibold mb-3">Атмосфера Того самого Салкеру</h4>
+                <h4 className="text-xl font-semibold mb-3">На сервері можна пограти навіть без здачі правил</h4>
                 <p className="text-gray-400">
                   У нас своя мала зона — місце, куди потрапляють усі хто хоче спробувати складне виживання в сталкер рп без заморочок.<br /><br />
 Ті, хто:<br />
