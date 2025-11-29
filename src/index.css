@@ -3,8 +3,9 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: 'STALKER1';
+  font-family: 'AmazStalker';
+  src: url('https://dl.dafont.com/dl/?f=amazstalker') format('truetype');
+  font-weight: normal;
   font-style: normal;
-  font-weight: 400;
-  src: local('STALKER2'), url('https://fonts.cdnfonts.com/s/4672/stalker2.woff') format('woff');
 }
+
