@@ -31,7 +31,7 @@ export default function AdminLogin() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100 flex items-center justify-center">
       <div className="w-full max-w-md px-4">
-        <div className="bg-gray-800 bg-opacity-60 p-8 rounded-lg border border-gray-700">
+        <div className="bg-gray-800 bg-opacity-98 p-8 rounded-lg border border-gray-700">
           <div className="flex items-center justify-center mb-8">
             <img src={logoIcon} alt="Eternal ZONE" className="w-12 h-12 object-contain mr-3" />
             <div>
