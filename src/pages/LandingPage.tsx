@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, Shield, BookOpen } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 
 export default function LandingPage() {
   const { user } = useAuth();
