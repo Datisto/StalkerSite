@@ -41,7 +41,7 @@ export default function LandingPage() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <img src={logoIcon} alt="Eternal ZONE" className="w-16 h-16 object-contain" />
+                <img src={logoIcon} alt="Eternal ZONE" className="w-26 h-26 object-contain" />
                 <div>
                   <h1 className="text-2xl font-bold tracking-wider font-stalker">Eternal ZONE</h1>
                   <p className="text-xs text-gray-400">DayZ Standalone</p>
