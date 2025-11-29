@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Skull, Users, Shield, BookOpen, Play, Map, Kanban } from 'lucide-react';
+import { Users, Shield, BookOpen } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 
 export default function LandingPage() {
   const { user } = useAuth();
@@ -40,7 +41,7 @@ export default function LandingPage() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Skull className="w-8 h-8 text-red-500" />
+                <img src={logoIcon} alt="STALKER RP" className="w-12 h-12 object-contain" />
                 <div>
                   <h1 className="text-2xl font-bold tracking-wider">STALKER RP</h1>
                   <p className="text-xs text-gray-400">DayZ Standalone</p>
