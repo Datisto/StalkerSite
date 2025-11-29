@@ -4,8 +4,9 @@
 
 @font-face {
   font-family: 'AmazStalker';
-  src: url('https://dl.dafont.com/dl/?f=amazstalker') format('truetype');
+  src: url('/fonts/AmazStalker.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
+
 
