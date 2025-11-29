@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        'stalker': ['"AmazStalker"', 'cursive'],
+        'stalker': ['AmazStalker', 'cursive'],
       },
     },
   },
