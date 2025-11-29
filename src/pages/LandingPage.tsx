@@ -41,7 +41,7 @@ export default function LandingPage() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <img src={logoIcon} alt="STALKER RP" className="w-12 h-12 object-contain" />
+                <img src={logoIcon} alt="STALKER RP" className="w-16 h-16 object-contain" />
                 <div>
                   <h1 className="text-2xl font-bold tracking-wider">STALKER RP</h1>
                   <p className="text-xs text-gray-400">DayZ Standalone</p>
