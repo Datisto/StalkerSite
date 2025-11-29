@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+  font-family: 'STALKER1';
+  font-style: normal;
+  font-weight: 400;
+  src: local('STALKER1'), url('https://fonts.cdnfonts.com/s/4672/stalker1.woff') format('woff');
+}

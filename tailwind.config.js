@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        'stalker': ['"Stalinist One"', 'cursive'],
+        'stalker': ['"STALKER1"', 'cursive'],
       },
     },
   },
