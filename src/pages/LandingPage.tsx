@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Skull, Users, Shield, BookOpen, Play, Map, map-pin-pen } from 'lucide-react';
+import { Skull, Users, Shield, BookOpen, Play, Map, Map-pin-pen } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function LandingPage() {
