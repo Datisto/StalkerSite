@@ -429,7 +429,7 @@ export default function CharacterCreate() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100">
-      <header className="border-b border-gray-700 bg-black bg-opacity-60 backdrop-blur-sm">
+      <header className="border-b border-gray-700 bg-black bg-opacity-98 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <a href="/" className="inline-flex items-center gap-3 hover:opacity-80 transition">
