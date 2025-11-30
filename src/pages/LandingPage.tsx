@@ -342,7 +342,7 @@ export default function LandingPage() {
                 <li className="flex gap-3">
                   <span className="text-red-500 font-bold">5.</span>
                   <div>
-                    <strong>Повага до інших.</strong> Токсична поведінка та образи неприпустимі.
+                    <strong>Повага до інших.</strong> Токсична поведінка та образи гравців неприпустимі.
                   </div>
                 </li>
               </ol>
