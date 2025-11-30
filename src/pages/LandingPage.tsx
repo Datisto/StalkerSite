@@ -423,7 +423,7 @@ export default function LandingPage() {
               Наш Discord сервер - це місце, де ти можеш знайти напарників, дізнатись останні новини та отримати підтримку.
             </p>
             <a
-              href="#"
+              href="https://discord.gg/stalkerua"
               className="inline-block bg-indigo-600 hover:bg-indigo-500 px-8 py-3 rounded-lg text-lg font-semibold transition shadow-xl"
             >
               Приєднатись до Discord
