@@ -760,7 +760,7 @@ export default function AdminPanel() {
                             <button
                               onClick={async () => {
                                 const confirmed = await showConfirm(
-                                  `Позначити персонажа "${character.nickname}" як мертвого? Це дозволить гравцю створити нового персонажа та зробить позивник доступним.`,
+                                  `Позначити персонажа "${character.nickname}" як мертвого? Це дозволить гравцю створити нового персонажа та зробить позивний доступним.`,
                                   'Підтвердження смерті персонажа',
                                   { type: 'warning', confirmText: 'Позначити мертвим', cancelText: 'Скасувати' }
                                 );
