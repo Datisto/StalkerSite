@@ -336,7 +336,7 @@ export default function LandingPage() {
                 <li className="flex gap-3">
                   <span className="text-red-500 font-bold">4.</span>
                   <div>
-                    <strong>Метагейминг заборонено.</strong> Використання інформації поза грою - порушення.
+                    <strong>Метагейминг заборонено.</strong> Використання інформації отриманої поза грою - порушення.
                   </div>
                 </li>
                 <li className="flex gap-3">
