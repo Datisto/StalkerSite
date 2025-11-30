@@ -348,7 +348,7 @@ export default function LandingPage() {
               </ol>
               <div className="mt-8 text-center">
                 <a
-                  Link to="/rules-test"
+                  href="/rules"
                   className="inline-block bg-red-600 hover:bg-red-500 px-6 py-2 rounded font-semibold transition"
                 >
                   Повні правила
