@@ -96,7 +96,7 @@ export default function PlayerCabinet() {
       draft: { text: 'Чернетка', class: 'bg-gray-600', icon: Edit },
       pending: { text: 'На розгляді', class: 'bg-yellow-600', icon: Clock },
       approved: { text: 'Схвалено', class: 'bg-green-600', icon: CheckCircle },
-      rejected: { text: 'Відхилено', class: 'bg-red-600', icon: XCircle },
+      rejected: { text: 'Відхилений', class: 'bg-red-600', icon: XCircle },
       active: { text: 'Активний', class: 'bg-blue-600', icon: User },
       archived: { text: 'Архівовано', class: 'bg-gray-700', icon: User },
       dead: { text: 'Мертвий', class: 'bg-black border border-gray-600', icon: XCircle }
