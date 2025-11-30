@@ -20,6 +20,46 @@ export default function PlayerCabinet() {
   const { user, signOut } = useAuth();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
+  const [timeUntilEmission, setTimeUntilEmission] = useState('');
+
+  useEffect(() => {
+    const updateTimer = () => {
+      const now = new Date();
+      const kyivTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Kiev' }));
+      const hours = kyivTime.getHours();
+      const minutes = kyivTime.getMinutes();
+      const seconds = kyivTime.getSeconds();
+
+      const emissionHours = [1, 5, 9, 13, 17, 21];
+      let nextEmissionHour = emissionHours.find(h => h > hours);
+
+      if (nextEmissionHour === undefined) {
+        nextEmissionHour = emissionHours[0];
+      }
+
+      const currentTotalMinutes = hours * 60 + minutes;
+      const nextEmissionTotalMinutes = nextEmissionHour * 60;
+
+      let minutesUntilEmission = nextEmissionTotalMinutes - currentTotalMinutes;
+      if (minutesUntilEmission <= 0) {
+        minutesUntilEmission += 24 * 60;
+      }
+
+      const secondsUntilEmission = minutesUntilEmission * 60 - seconds;
+      const hoursLeft = Math.floor(secondsUntilEmission / 3600);
+      const minutesLeft = Math.floor((secondsUntilEmission % 3600) / 60);
+      const secondsLeft = secondsUntilEmission % 60;
+
+      setTimeUntilEmission(
+        `${String(hoursLeft).padStart(2, '0')}:${String(minutesLeft).padStart(2, '0')}:${String(secondsLeft).padStart(2, '0')}`
+      );
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -95,7 +135,12 @@ export default function PlayerCabinet() {
               <img src={logoIcon} alt="Eternal ZONE" className="w-10 h-10 object-contain" />
               <span className="text-xl font-bold font-stalker">Eternal ZONE</span>
             </a>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2 text-sm bg-gray-800 bg-opacity-60 px-4 py-2 rounded border border-red-600">
+                <RefreshCw className="w-4 h-4 text-red-500" />
+                <span className="text-gray-300">До білого викиду:</span>
+                <span className="font-mono text-red-500 font-semibold">{timeUntilEmission}</span>
+              </div>
               <a
                 href="/rules-test"
                 className="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-white transition"
