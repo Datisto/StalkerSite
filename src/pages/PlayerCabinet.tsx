@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Plus, User, Edit, CheckCircle, XCircle, Clock, BookOpen, RefreshCw } from 'lucide-react';
+import { Plus, User, Edit, CheckCircle, XCircle, Clock, BookOpen, RefreshCw, Ban } from 'lucide-react';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 
 interface Character {
@@ -18,8 +19,11 @@ interface Character {
 
 export default function PlayerCabinet() {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isBanned, setIsBanned] = useState(false);
+  const [banReason, setBanReason] = useState('');
   const [timeUntilEmission, setTimeUntilEmission] = useState('');
 
   useEffect(() => {
@@ -63,9 +67,29 @@ export default function PlayerCabinet() {
 
   useEffect(() => {
     if (user) {
+      checkBanStatus();
       loadCharacters();
     }
   }, [user]);
+
+  async function checkBanStatus() {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('is_banned, ban_reason')
+        .eq('id', user!.id)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data?.is_banned) {
+        setIsBanned(true);
+        setBanReason(data.ban_reason || 'Причина не вказана');
+      }
+    } catch (error) {
+      console.error('Error checking ban status:', error);
+    }
+  }
 
   async function loadCharacters() {
     try {
@@ -121,6 +145,46 @@ export default function PlayerCabinet() {
           <a href="/" className="bg-red-600 hover:bg-red-500 px-6 py-2 rounded font-semibold transition">
             На головну
           </a>
+        </div>
+      </div>
+    );
+  }
+
+  if (isBanned) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100 flex items-center justify-center p-4">
+        <div className="max-w-2xl w-full">
+          <div className="bg-gray-800 bg-opacity-90 rounded-lg border-2 border-red-600 p-8 text-center">
+            <div className="mb-6">
+              <Ban className="w-24 h-24 text-red-500 mx-auto mb-4" />
+              <h1 className="text-3xl font-bold text-red-500 mb-2">Ваш акаунт заблоковано</h1>
+            </div>
+
+            <div className="bg-gray-900 bg-opacity-60 rounded p-6 mb-6 border border-red-600">
+              <h2 className="text-lg font-semibold mb-2 text-gray-300">Причина блокування:</h2>
+              <p className="text-gray-100 text-lg whitespace-pre-wrap">{banReason}</p>
+            </div>
+
+            <p className="text-gray-400 mb-6">
+              Доступ до особистого кабінету обмежено. Якщо ви вважаєте, що це помилка,
+              зверніться до адміністрації сервера в Discord.
+            </p>
+
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => navigate('/')}
+                className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded font-semibold transition"
+              >
+                На головну
+              </button>
+              <button
+                onClick={signOut}
+                className="px-6 py-3 bg-red-600 hover:bg-red-500 rounded font-semibold transition"
+              >
+                Вийти
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );

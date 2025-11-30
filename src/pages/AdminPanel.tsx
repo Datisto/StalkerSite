@@ -21,6 +21,8 @@ import {
   Skull,
   Video,
   Plus,
+  Ban,
+  UserCheck,
 } from 'lucide-react';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 
@@ -434,6 +436,60 @@ export default function AdminPanel() {
     } catch (error) {
       console.error('Error deleting video:', error);
       await showAlert('Помилка при видаленні відео', 'Помилка', 'error');
+    }
+  }
+
+  async function banUser(userId: string, currentBanStatus: boolean) {
+    if (currentBanStatus) {
+      const confirmed = await showConfirm(
+        'Розблокувати цього користувача?',
+        'Підтвердження розблокування',
+        { type: 'info', confirmText: 'Розблокувати', cancelText: 'Скасувати' }
+      );
+      if (!confirmed) return;
+
+      try {
+        const { error } = await supabase
+          .from('users')
+          .update({
+            is_banned: false,
+            banned_at: null,
+            ban_reason: null
+          })
+          .eq('id', userId);
+
+        if (error) throw error;
+        await showAlert('Користувача розблоковано', 'Успіх', 'success');
+        await loadUsers();
+      } catch (error) {
+        console.error('Error unbanning user:', error);
+        await showAlert('Помилка при розблокуванні користувача', 'Помилка', 'error');
+      }
+    } else {
+      const reason = await showPrompt(
+        'Введіть причину блокування користувача:',
+        'Причина блокування',
+        { multiline: true, placeholder: 'Причина...' }
+      );
+      if (!reason) return;
+
+      try {
+        const { error } = await supabase
+          .from('users')
+          .update({
+            is_banned: true,
+            banned_at: new Date().toISOString(),
+            ban_reason: reason
+          })
+          .eq('id', userId);
+
+        if (error) throw error;
+        await showAlert('Користувача заблоковано', 'Успіх', 'success');
+        await loadUsers();
+      } catch (error) {
+        console.error('Error banning user:', error);
+        await showAlert('Помилка при блокуванні користувача', 'Помилка', 'error');
+      }
     }
   }
 
@@ -859,6 +915,7 @@ export default function AdminPanel() {
                         <th className="text-left py-3 px-4">Steam ID</th>
                         <th className="text-left py-3 px-4">Discord</th>
                         <th className="text-left py-3 px-4">Правила</th>
+                        <th className="text-left py-3 px-4">Статус</th>
                         <th className="text-left py-3 px-4">Дата реєстрації</th>
                         <th className="text-left py-3 px-4">Дії</th>
                       </tr>
@@ -888,19 +945,54 @@ export default function AdminPanel() {
                               </span>
                             )}
                           </td>
+                          <td className="py-3 px-4">
+                            {user.is_banned ? (
+                              <span className="inline-flex items-center gap-1 text-red-500 font-semibold">
+                                <Ban className="w-4 h-4" />
+                                Заблоковано
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-green-400">
+                                <UserCheck className="w-4 h-4" />
+                                Активний
+                              </span>
+                            )}
+                          </td>
                           <td className="py-3 px-4 text-sm text-gray-400">
                             {new Date(user.created_at).toLocaleDateString('uk-UA')}
                           </td>
                           <td className="py-3 px-4">
-                            {user.rules_passed && (
+                            <div className="flex items-center gap-2">
+                              {user.rules_passed && !user.is_banned && (
+                                <button
+                                  onClick={() => resetUserRules(user.id)}
+                                  className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-500 px-3 py-1 rounded text-sm transition"
+                                >
+                                  <BookOpen className="w-4 h-4" />
+                                  На перездачу
+                                </button>
+                              )}
                               <button
-                                onClick={() => resetUserRules(user.id)}
-                                className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-500 px-3 py-1 rounded text-sm transition"
+                                onClick={() => banUser(user.id, user.is_banned)}
+                                className={`inline-flex items-center gap-2 px-3 py-1 rounded text-sm transition ${
+                                  user.is_banned
+                                    ? 'bg-green-600 hover:bg-green-500'
+                                    : 'bg-red-600 hover:bg-red-500'
+                                }`}
                               >
-                                <BookOpen className="w-4 h-4" />
-                                На перездачу
+                                {user.is_banned ? (
+                                  <>
+                                    <UserCheck className="w-4 h-4" />
+                                    Розблокувати
+                                  </>
+                                ) : (
+                                  <>
+                                    <Ban className="w-4 h-4" />
+                                    Заблокувати
+                                  </>
+                                )}
                               </button>
-                            )}
+                            </div>
                           </td>
                         </tr>
                       ))}

@@ -16,7 +16,9 @@ export interface Database {
           steam_nickname: string
           discord_id: string | null
           discord_username: string | null
+          rules_passed: boolean
           is_banned: boolean
+          banned_at: string | null
           ban_reason: string | null
           created_at: string
           last_login: string
@@ -27,7 +29,9 @@ export interface Database {
           steam_nickname: string
           discord_id?: string | null
           discord_username?: string | null
+          rules_passed?: boolean
           is_banned?: boolean
+          banned_at?: string | null
           ban_reason?: string | null
           created_at?: string
           last_login?: string
@@ -38,7 +42,9 @@ export interface Database {
           steam_nickname?: string
           discord_id?: string | null
           discord_username?: string | null
+          rules_passed?: boolean
           is_banned?: boolean
+          banned_at?: string | null
           ban_reason?: string | null
           created_at?: string
           last_login?: string
