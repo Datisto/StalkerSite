@@ -3,6 +3,7 @@ import { useAdminAuth } from '../contexts/AdminAuthContext';
 import { supabase } from '../lib/supabase';
 import QuestionsManager from '../components/QuestionsManager';
 import RulesManager from '../components/RulesManager';
+import FAQManager from '../components/FAQManager';
 import { showAlert, showConfirm, showPrompt } from '../utils/modals';
 import {
   Users,
@@ -23,6 +24,7 @@ import {
   Plus,
   Ban,
   UserCheck,
+  HelpCircle,
 } from 'lucide-react';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 
@@ -77,7 +79,7 @@ interface MediaVideo {
 
 export default function AdminPanel() {
   const { admin, logout } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState<'characters' | 'questions' | 'rules' | 'tests' | 'users' | 'media'>('characters');
+  const [activeTab, setActiveTab] = useState<'characters' | 'questions' | 'rules' | 'tests' | 'users' | 'media' | 'faq'>('characters');
   const [characters, setCharacters] = useState<Character[]>([]);
   const [filter, setFilter] = useState<'all' | 'draft' | 'pending' | 'approved' | 'rejected' | 'dead'>('pending');
   const [searchTerm, setSearchTerm] = useState('');
@@ -616,6 +618,17 @@ export default function AdminPanel() {
             Користувачі
           </button>
           <button
+            onClick={() => setActiveTab('faq')}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded transition ${
+              activeTab === 'faq'
+                ? 'bg-red-600 text-white'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            <HelpCircle className="w-5 h-5" />
+            FAQ
+          </button>
+          <button
             onClick={() => setActiveTab('media')}
             className={`inline-flex items-center gap-2 px-4 py-2 rounded transition ${
               activeTab === 'media'
@@ -894,6 +907,12 @@ export default function AdminPanel() {
         {activeTab === 'rules' && (
           <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700">
             <RulesManager />
+          </div>
+        )}
+
+        {activeTab === 'faq' && (
+          <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700">
+            <FAQManager />
           </div>
         )}
 

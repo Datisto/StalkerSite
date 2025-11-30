@@ -107,6 +107,7 @@ export default function LandingPage() {
                 <a href="#about" className="text-gray-300 hover:text-white transition">Про сервер</a>
                 <a href="#rules" className="text-gray-300 hover:text-white transition">Правила</a>
                 <a href="#media" className="text-gray-300 hover:text-white transition">Медіа</a>
+                <a href="#faq" className="text-gray-300 hover:text-white transition">FAQ</a>
                 <Link to="/rules-test" className="text-gray-300 hover:text-white transition">Здача правил</Link>
                 <a href="#discord" className="text-gray-300 hover:text-white transition">Discord</a>
               </nav>
@@ -423,7 +424,31 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="discord" className="py-16 px-4">
+        <section id="faq" className="py-16 px-4">
+          <div className="container mx-auto max-w-4xl">
+            <h3 className="text-3xl font-bold mb-8 text-center">FAQ - Часті питання</h3>
+            <p className="text-gray-400 text-center mb-12">
+              Відповіді на найпоширеніші питання про сервер
+            </p>
+
+            <div className="bg-gray-800 bg-opacity-60 rounded-lg border border-gray-700 p-8 text-center">
+              <p className="text-gray-300 mb-6 text-lg">
+                Маєте питання? Перегляньте нашу повну базу знань з відповідями на найпоширеніші питання.
+              </p>
+              <a
+                href="/faq"
+                className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 px-6 py-3 rounded-lg font-semibold transition text-lg"
+              >
+                <span>Переглянути всі FAQ</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section id="discord" className="py-16 px-4 bg-gray-900 bg-opacity-80">
           <div className="container mx-auto text-center max-w-2xl">
             <h3 className="text-3xl font-bold mb-6">Приєднуйся до спільноти</h3>
             <p className="text-gray-300 mb-8">
