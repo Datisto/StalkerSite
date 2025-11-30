@@ -345,6 +345,12 @@ export default function LandingPage() {
                     <strong>Повага до інших.</strong> Токсична поведінка та образи гравців неприпустимі.
                   </div>
                 </li>
+                <li className="flex gap-3">
+                  <span className="text-red-500 font-bold">6.</span>
+                  <div>
+                    <strong>Повні правила</strong> Обовязкові для гри на сервері.
+                  </div>
+                </li>
               </ol>
               <div className="mt-8 text-center">
                 <a
