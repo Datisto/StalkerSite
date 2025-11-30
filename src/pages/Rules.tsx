@@ -107,7 +107,7 @@ export default function Rules() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100">
       <div className="absolute inset-0 opacity-5" style={{
-        backgroundImage: 'url(https://images.pexels.com/photos/2444429/pexels-photo-2444429.jpeg)',
+        backgroundImage: 'url(https://i.ibb.co/nqgK0f8B/Screenshot-2025-11-30-032706.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed'
