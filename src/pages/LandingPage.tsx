@@ -79,7 +79,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-90 via-gray-800 to-black text-gray-100">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100">
       <div
         className="absolute inset-0 opacity-50"
         style={{
