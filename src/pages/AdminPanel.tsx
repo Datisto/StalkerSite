@@ -18,6 +18,8 @@ import {
   X,
   Trash2,
   Skull,
+  Video,
+  Plus,
 } from 'lucide-react';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 
@@ -57,9 +59,22 @@ interface User {
   last_login: string;
 }
 
+interface MediaVideo {
+  id: string;
+  title: string;
+  description: string;
+  video_url: string;
+  platform: 'youtube' | 'twitch';
+  thumbnail_url: string;
+  display_order: number;
+  is_visible: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export default function AdminPanel() {
   const { admin, logout } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState<'characters' | 'questions' | 'rules' | 'tests' | 'users'>('characters');
+  const [activeTab, setActiveTab] = useState<'characters' | 'questions' | 'rules' | 'tests' | 'users' | 'media'>('characters');
   const [characters, setCharacters] = useState<Character[]>([]);
   const [filter, setFilter] = useState<'all' | 'draft' | 'pending' | 'approved' | 'rejected' | 'dead'>('pending');
   const [searchTerm, setSearchTerm] = useState('');
@@ -71,6 +86,18 @@ export default function AdminPanel() {
   const [selectedTest, setSelectedTest] = useState<any>(null);
   const [questionGrades, setQuestionGrades] = useState<boolean[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [mediaVideos, setMediaVideos] = useState<MediaVideo[]>([]);
+  const [editingVideo, setEditingVideo] = useState<MediaVideo | null>(null);
+  const [isAddingVideo, setIsAddingVideo] = useState(false);
+  const [videoFormData, setVideoFormData] = useState({
+    title: '',
+    description: '',
+    video_url: '',
+    platform: 'youtube' as 'youtube' | 'twitch',
+    thumbnail_url: '',
+    display_order: 0,
+    is_visible: true,
+  });
 
   useEffect(() => {
     loadCharacters();
@@ -81,6 +108,8 @@ export default function AdminPanel() {
       loadTests();
     } else if (activeTab === 'users') {
       loadUsers();
+    } else if (activeTab === 'media') {
+      loadMediaVideos();
     }
   }, [activeTab]);
 
@@ -328,6 +357,101 @@ export default function AdminPanel() {
     }
   }
 
+  async function loadMediaVideos() {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('media_videos')
+        .select('*')
+        .order('display_order', { ascending: true });
+
+      if (error) throw error;
+      setMediaVideos(data || []);
+    } catch (error) {
+      console.error('Error loading media videos:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function saveMediaVideo() {
+    try {
+      if (editingVideo) {
+        const { error } = await supabase
+          .from('media_videos')
+          .update({
+            ...videoFormData,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', editingVideo.id);
+
+        if (error) throw error;
+        alert('Відео оновлено');
+      } else {
+        const { error } = await supabase
+          .from('media_videos')
+          .insert([videoFormData]);
+
+        if (error) throw error;
+        alert('Відео додано');
+      }
+
+      resetVideoForm();
+      await loadMediaVideos();
+    } catch (error) {
+      console.error('Error saving video:', error);
+      alert('Помилка при збереженні відео');
+    }
+  }
+
+  async function deleteMediaVideo(videoId: string) {
+    if (!confirm('Ви впевнені, що хочете видалити це відео?')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('media_videos')
+        .delete()
+        .eq('id', videoId);
+
+      if (error) throw error;
+      alert('Відео видалено');
+      await loadMediaVideos();
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      alert('Помилка при видаленні відео');
+    }
+  }
+
+  function startEditVideo(video: MediaVideo) {
+    setEditingVideo(video);
+    setVideoFormData({
+      title: video.title,
+      description: video.description,
+      video_url: video.video_url,
+      platform: video.platform,
+      thumbnail_url: video.thumbnail_url,
+      display_order: video.display_order,
+      is_visible: video.is_visible,
+    });
+    setIsAddingVideo(true);
+  }
+
+  function resetVideoForm() {
+    setEditingVideo(null);
+    setIsAddingVideo(false);
+    setVideoFormData({
+      title: '',
+      description: '',
+      video_url: '',
+      platform: 'youtube',
+      thumbnail_url: '',
+      display_order: 0,
+      is_visible: true,
+    });
+  }
+
   const filteredCharacters = characters.filter(
     (char) =>
       char.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -421,6 +545,17 @@ export default function AdminPanel() {
           >
             <Users className="w-5 h-5" />
             Користувачі
+          </button>
+          <button
+            onClick={() => setActiveTab('media')}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded transition ${
+              activeTab === 'media'
+                ? 'bg-red-600 text-white'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            <Video className="w-5 h-5" />
+            Медіа
           </button>
         </div>
 
@@ -752,6 +887,71 @@ export default function AdminPanel() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'media' && (
+          <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Медіа відео</h2>
+              <button
+                onClick={() => setIsAddingVideo(true)}
+                className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 px-4 py-2 rounded transition"
+              >
+                <Plus className="w-5 h-5" />
+                Додати відео
+              </button>
+            </div>
+
+            {loading ? (
+              <p className="text-gray-400 text-center py-8">Завантаження...</p>
+            ) : mediaVideos.length === 0 ? (
+              <p className="text-gray-400 text-center py-8">Відео відсутні</p>
+            ) : (
+              <div className="space-y-4">
+                {mediaVideos.map((video) => (
+                  <div
+                    key={video.id}
+                    className="bg-gray-900 bg-opacity-60 p-4 rounded border border-gray-700"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg mb-1">{video.title}</h3>
+                        <p className="text-sm text-gray-400 mb-2">{video.description}</p>
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="text-gray-500">
+                            Платформа: <span className="text-white">{video.platform}</span>
+                          </span>
+                          <span className="text-gray-500">
+                            Порядок: <span className="text-white">{video.display_order}</span>
+                          </span>
+                          <span className={video.is_visible ? 'text-green-400' : 'text-red-400'}>
+                            {video.is_visible ? 'Відображається' : 'Приховано'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">URL: {video.video_url}</p>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => startEditVideo(video)}
+                          className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded transition"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Редагувати
+                        </button>
+                        <button
+                          onClick={() => deleteMediaVideo(video.id)}
+                          className="inline-flex items-center gap-2 bg-red-900 hover:bg-red-800 px-3 py-2 rounded transition"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Видалити
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -1091,6 +1291,127 @@ export default function AdminPanel() {
                   )}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isAddingVideo && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-gray-800 rounded-lg max-w-2xl w-full">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-6">
+                <h2 className="text-2xl font-bold">
+                  {editingVideo ? 'Редагувати відео' : 'Додати відео'}
+                </h2>
+                <button
+                  onClick={resetVideoForm}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Назва відео</label>
+                  <input
+                    type="text"
+                    value={videoFormData.title}
+                    onChange={(e) => setVideoFormData({ ...videoFormData, title: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                    placeholder="Введіть назву відео"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Опис</label>
+                  <textarea
+                    value={videoFormData.description}
+                    onChange={(e) => setVideoFormData({ ...videoFormData, description: e.target.value })}
+                    rows={3}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
+                    placeholder="Введіть опис відео"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Платформа</label>
+                  <select
+                    value={videoFormData.platform}
+                    onChange={(e) => setVideoFormData({ ...videoFormData, platform: e.target.value as 'youtube' | 'twitch' })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                  >
+                    <option value="youtube">YouTube</option>
+                    <option value="twitch">Twitch</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">URL відео</label>
+                  <input
+                    type="text"
+                    value={videoFormData.video_url}
+                    onChange={(e) => setVideoFormData({ ...videoFormData, video_url: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                    placeholder="https://www.youtube.com/watch?v=... або https://www.twitch.tv/videos/..."
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Для YouTube: https://www.youtube.com/watch?v=VIDEO_ID<br />
+                    Для Twitch: https://www.twitch.tv/videos/VIDEO_ID
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">URL мініатюри (необов'язково)</label>
+                  <input
+                    type="text"
+                    value={videoFormData.thumbnail_url}
+                    onChange={(e) => setVideoFormData({ ...videoFormData, thumbnail_url: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Порядок відображення</label>
+                  <input
+                    type="number"
+                    value={videoFormData.display_order}
+                    onChange={(e) => setVideoFormData({ ...videoFormData, display_order: parseInt(e.target.value) || 0 })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="is_visible"
+                    checked={videoFormData.is_visible}
+                    onChange={(e) => setVideoFormData({ ...videoFormData, is_visible: e.target.checked })}
+                    className="w-4 h-4"
+                  />
+                  <label htmlFor="is_visible" className="text-sm">
+                    Відображати на сайті
+                  </label>
+                </div>
+
+                <div className="flex gap-2 pt-4">
+                  <button
+                    onClick={saveMediaVideo}
+                    className="flex-1 bg-green-600 hover:bg-green-500 py-3 rounded font-semibold transition"
+                  >
+                    {editingVideo ? 'Зберегти зміни' : 'Додати відео'}
+                  </button>
+                  <button
+                    onClick={resetVideoForm}
+                    className="flex-1 bg-gray-700 hover:bg-gray-600 py-3 rounded font-semibold transition"
+                  >
+                    Скасувати
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
