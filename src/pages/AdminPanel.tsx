@@ -3,6 +3,8 @@ import { useAdminAuth } from '../contexts/AdminAuthContext';
 import { supabase } from '../lib/supabase';
 import QuestionsManager from '../components/QuestionsManager';
 import RulesManager from '../components/RulesManager';
+import { AlertModal, ConfirmModal, PromptModal } from '../components/Modal';
+import { useAlertModal, useConfirmModal, usePromptModal } from '../hooks/useModal';
 import {
   Users,
   FileText,
@@ -74,6 +76,9 @@ interface MediaVideo {
 
 export default function AdminPanel() {
   const { admin, logout } = useAdminAuth();
+  const { isOpen: isAlertOpen, config: alertConfig, showAlert, close: closeAlert } = useAlertModal();
+  const { isOpen: isConfirmOpen, config: confirmConfig, showConfirm, handleConfirm: confirmYes, handleCancel: confirmNo } = useConfirmModal();
+  const { isOpen: isPromptOpen, config: promptConfig, showPrompt, handleSubmit: promptSubmit, handleCancel: promptCancel } = usePromptModal();
   const [activeTab, setActiveTab] = useState<'characters' | 'questions' | 'rules' | 'tests' | 'users' | 'media'>('characters');
   const [characters, setCharacters] = useState<Character[]>([]);
   const [filter, setFilter] = useState<'all' | 'draft' | 'pending' | 'approved' | 'rejected' | 'dead'>('pending');

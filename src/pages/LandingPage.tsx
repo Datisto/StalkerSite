@@ -4,6 +4,7 @@ import { Users, Shield, BookOpen, Play, Map, Kanban } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
+import { showAlert } from '../utils/modals';
 
 interface MediaVideo {
   id: string;
@@ -70,9 +71,9 @@ export default function LandingPage() {
     window.location.href = `${functionUrl}?mode=login&return_url=${encodeURIComponent(returnUrl)}`;
   };
 
-  const handleManualLogin = () => {
+  const handleManualLogin = async () => {
     if (!steamId.trim() || !steamName.trim()) {
-      alert('Заповніть всі поля');
+      await showAlert('Заповніть всі поля', 'Помилка', 'warning');
       return;
     }
     window.location.href = `/steam-callback?steamid=${steamId}&steamname=${encodeURIComponent(steamName)}`;

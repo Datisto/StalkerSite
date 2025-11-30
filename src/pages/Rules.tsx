@@ -3,6 +3,8 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ChevronDown, ChevronUp, BookOpen, Home, Link as LinkIcon } from 'lucide-react';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
+import { AlertModal } from '../components/Modal';
+import { useAlertModal } from '../hooks/useModal';
 
 interface RuleCategory {
   id: string;
@@ -23,6 +25,7 @@ interface Rule {
 export default function Rules() {
   const { slug, ruleNumber } = useParams<{ slug?: string; ruleNumber?: string }>();
   const navigate = useNavigate();
+  const { isOpen: isAlertOpen, config: alertConfig, showAlert, close: closeAlert } = useAlertModal();
   const [categories, setCategories] = useState<RuleCategory[]>([]);
   const [rules, setRules] = useState<Rule[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
@@ -93,7 +96,7 @@ export default function Rules() {
   function copyRuleLink(ruleNumber: string) {
     const url = `${window.location.origin}/rules/rule/${ruleNumber}`;
     navigator.clipboard.writeText(url);
-    alert(`Посилання на правило ${ruleNumber} скопійовано!`);
+    showAlert(`Посилання на правило ${ruleNumber} скопійовано!`, 'Успіх', 'success');
   }
 
   if (loading) {
@@ -245,6 +248,13 @@ export default function Rules() {
           border-color: rgba(239, 68, 68, 0.4);
         }
       `}</style>
+      <AlertModal
+        isOpen={isAlertOpen}
+        onClose={closeAlert}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+      />
     </div>
   );
 }
