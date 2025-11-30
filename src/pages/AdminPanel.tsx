@@ -3,8 +3,7 @@ import { useAdminAuth } from '../contexts/AdminAuthContext';
 import { supabase } from '../lib/supabase';
 import QuestionsManager from '../components/QuestionsManager';
 import RulesManager from '../components/RulesManager';
-import { AlertModal, ConfirmModal, PromptModal } from '../components/Modal';
-import { useAlertModal, useConfirmModal, usePromptModal } from '../hooks/useModal';
+import { showAlert, showConfirm, showPrompt } from '../utils/modals';
 import {
   Users,
   FileText,
@@ -76,9 +75,6 @@ interface MediaVideo {
 
 export default function AdminPanel() {
   const { admin, logout } = useAdminAuth();
-  const { isOpen: isAlertOpen, config: alertConfig, showAlert, close: closeAlert } = useAlertModal();
-  const { isOpen: isConfirmOpen, config: confirmConfig, showConfirm, handleConfirm: confirmYes, handleCancel: confirmNo } = useConfirmModal();
-  const { isOpen: isPromptOpen, config: promptConfig, showPrompt, handleSubmit: promptSubmit, handleCancel: promptCancel } = usePromptModal();
   const [activeTab, setActiveTab] = useState<'characters' | 'questions' | 'rules' | 'tests' | 'users' | 'media'>('characters');
   const [characters, setCharacters] = useState<Character[]>([]);
   const [filter, setFilter] = useState<'all' | 'draft' | 'pending' | 'approved' | 'rejected' | 'dead'>('pending');
@@ -167,10 +163,10 @@ export default function AdminPanel() {
 
       await loadCharacters();
       setSelectedCharacter(null);
-      alert(`Персонаж ${status === 'approved' ? 'схвалено' : 'відхилено'}`);
+      await showAlert(`Персонаж ${status === 'approved' ? 'схвалено' : 'відхилено'}`, 'Успіх', 'success');
     } catch (error) {
       console.error('Error updating character:', error);
-      alert('Помилка при оновленні персонажа');
+      await showAlert('Помилка при оновленні персонажа', 'Помилка', 'error');
     }
   }
 
@@ -185,13 +181,13 @@ export default function AdminPanel() {
 
       if (error) throw error;
 
-      alert('Зміни збережено');
+      await showAlert('Зміни збережено', 'Успіх', 'success');
       setEditMode(false);
       await loadCharacters();
       setSelectedCharacter(null);
     } catch (error) {
       console.error('Error saving character:', error);
-      alert('Помилка при збереженні');
+      await showAlert('Помилка при збереженні', 'Помилка', 'error');
     }
   }
 
@@ -254,13 +250,13 @@ export default function AdminPanel() {
         }
       }
 
-      alert(approved ? 'Тест схвалено!' : 'Тест відхилено');
+      await showAlert(approved ? 'Тест схвалено!' : 'Тест відхилено', 'Успіх', 'success');
       await loadTests();
       setSelectedTest(null);
       setQuestionGrades([]);
     } catch (error) {
       console.error('Error saving test review:', error);
-      alert(`Помилка при збереженні: ${error instanceof Error ? error.message : 'Невідома помилка'}`);
+      await showAlert(`Помилка при збереженні: ${error instanceof Error ? error.message : 'Невідома помилка'}`, 'Помилка', 'error');
     }
   }
 
@@ -280,9 +276,12 @@ export default function AdminPanel() {
   }
 
   async function deleteTestSubmission(testId: string) {
-    if (!confirm('Ви впевнені, що хочете видалити цю здачу правил?')) {
-      return;
-    }
+    const confirmed = await showConfirm(
+      'Ви впевнені, що хочете видалити цю здачу правил?',
+      'Підтвердження',
+      { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' }
+    );
+    if (!confirmed) return;
 
     try {
       const { error } = await supabase
@@ -292,12 +291,12 @@ export default function AdminPanel() {
 
       if (error) throw error;
 
-      alert('Здачу правил видалено');
+      await showAlert('Здачу правил видалено', 'Успіх', 'success');
       await loadTests();
       setSelectedTest(null);
     } catch (error) {
       console.error('Error deleting test submission:', error);
-      alert('Помилка при видаленні');
+      await showAlert('Помилка при видаленні', 'Помилка', 'error');
     }
   }
 
@@ -319,9 +318,12 @@ export default function AdminPanel() {
   }
 
   async function resetUserRules(userId: string) {
-    if (!confirm('Ви впевнені, що хочете скинути здачу правил для цього користувача? Він повинен буде здати правила заново.')) {
-      return;
-    }
+    const confirmed = await showConfirm(
+      'Ви впевнені, що хочете скинути здачу правил для цього користувача? Він повинен буде здати правила заново.',
+      'Підтвердження',
+      { type: 'warning', confirmText: 'Скинути', cancelText: 'Скасувати' }
+    );
+    if (!confirmed) return;
 
     try {
       const { error } = await supabase
@@ -331,18 +333,21 @@ export default function AdminPanel() {
 
       if (error) throw error;
 
-      alert('Здачу правил скинуто. Користувач має здати правила заново.');
+      await showAlert('Здачу правил скинуто. Користувач має здати правила заново.', 'Успіх', 'success');
       await loadUsers();
     } catch (error) {
       console.error('Error resetting user rules:', error);
-      alert('Помилка при скиданні правил');
+      await showAlert('Помилка при скиданні правил', 'Помилка', 'error');
     }
   }
 
   async function deleteCharacter(characterId: string) {
-    if (!confirm('Ви впевнені, що хочете видалити цього персонажа? Цю дію неможливо скасувати.')) {
-      return;
-    }
+    const confirmed = await showConfirm(
+      'Ви впевнені, що хочете видалити цього персонажа? Цю дію неможливо скасувати.',
+      'Підтвердження',
+      { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' }
+    );
+    if (!confirmed) return;
 
     try {
       const { error } = await supabase
@@ -352,13 +357,13 @@ export default function AdminPanel() {
 
       if (error) throw error;
 
-      alert('Персонажа видалено');
+      await showAlert('Персонажа видалено', 'Успіх', 'success');
       await loadCharacters();
       setSelectedCharacter(null);
       setEditMode(false);
     } catch (error) {
       console.error('Error deleting character:', error);
-      alert('Помилка при видаленні персонажа');
+      await showAlert('Помилка при видаленні персонажа', 'Помилка', 'error');
     }
   }
 
@@ -391,28 +396,31 @@ export default function AdminPanel() {
           .eq('id', editingVideo.id);
 
         if (error) throw error;
-        alert('Відео оновлено');
+        await showAlert('Відео оновлено', 'Успіх', 'success');
       } else {
         const { error } = await supabase
           .from('media_videos')
           .insert([videoFormData]);
 
         if (error) throw error;
-        alert('Відео додано');
+        await showAlert('Відео додано', 'Успіх', 'success');
       }
 
       resetVideoForm();
       await loadMediaVideos();
     } catch (error) {
       console.error('Error saving video:', error);
-      alert('Помилка при збереженні відео');
+      await showAlert('Помилка при збереженні відео', 'Помилка', 'error');
     }
   }
 
   async function deleteMediaVideo(videoId: string) {
-    if (!confirm('Ви впевнені, що хочете видалити це відео?')) {
-      return;
-    }
+    const confirmed = await showConfirm(
+      'Ви впевнені, що хочете видалити це відео?',
+      'Підтвердження',
+      { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' }
+    );
+    if (!confirmed) return;
 
     try {
       const { error } = await supabase
@@ -421,11 +429,11 @@ export default function AdminPanel() {
         .eq('id', videoId);
 
       if (error) throw error;
-      alert('Відео видалено');
+      await showAlert('Відео видалено', 'Успіх', 'success');
       await loadMediaVideos();
     } catch (error) {
       console.error('Error deleting video:', error);
-      alert('Помилка при видаленні відео');
+      await showAlert('Помилка при видаленні відео', 'Помилка', 'error');
     }
   }
 
@@ -731,8 +739,12 @@ export default function AdminPanel() {
                                 Схвалити
                               </button>
                               <button
-                                onClick={() => {
-                                  const reason = prompt('Причина відхилення:');
+                                onClick={async () => {
+                                  const reason = await showPrompt(
+                                    'Введіть причину відхилення:',
+                                    'Причина відхилення',
+                                    { multiline: true, placeholder: 'Причина...' }
+                                  );
                                   if (reason) {
                                     updateCharacterStatus(character.id, 'rejected', reason);
                                   }
@@ -746,8 +758,13 @@ export default function AdminPanel() {
                           )}
                           {(character.status === 'approved' || character.status === 'active') && (
                             <button
-                              onClick={() => {
-                                if (confirm(`Позначити персонажа "${character.nickname}" як мертвого? Це дозволить гравцю створити нового персонажа та зробить позивник доступним.`)) {
+                              onClick={async () => {
+                                const confirmed = await showConfirm(
+                                  `Позначити персонажа "${character.nickname}" як мертвого? Це дозволить гравцю створити нового персонажа та зробить позивник доступним.`,
+                                  'Підтвердження смерті персонажа',
+                                  { type: 'warning', confirmText: 'Позначити мертвим', cancelText: 'Скасувати' }
+                                );
+                                if (confirmed) {
                                   updateCharacterStatus(character.id, 'dead');
                                 }
                               }}
@@ -1282,8 +1299,12 @@ export default function AdminPanel() {
                         Схвалити персонажа
                       </button>
                       <button
-                        onClick={() => {
-                          const reason = prompt('Причина відхилення:');
+                        onClick={async () => {
+                          const reason = await showPrompt(
+                            'Введіть причину відхилення:',
+                            'Причина відхилення',
+                            { multiline: true, placeholder: 'Причина...' }
+                          );
                           if (reason) {
                             updateCharacterStatus(selectedCharacter.id, 'rejected', reason);
                           }
@@ -1498,9 +1519,15 @@ export default function AdminPanel() {
                     Схвалити
                   </button>
                   <button
-                    onClick={() => {
-                      const notes = prompt('Примітки (необов\'язково):');
-                      saveTestReview(selectedTest.id, false, notes || undefined);
+                    onClick={async () => {
+                      const notes = await showPrompt(
+                        'Введіть примітки (необов\'язково):',
+                        'Примітки',
+                        { multiline: true, placeholder: 'Примітки...', defaultValue: '' }
+                      );
+                      if (notes !== null) {
+                        saveTestReview(selectedTest.id, false, notes || undefined);
+                      }
                     }}
                     className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded font-semibold transition"
                   >
