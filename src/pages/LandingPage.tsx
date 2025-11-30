@@ -348,7 +348,7 @@ export default function LandingPage() {
                 <li className="flex gap-3">
                   <span className="text-red-500 font-bold">6.</span>
                   <div>
-                    <strong>Повні правила</strong> Обовязкові для гри на сервері.
+                    <strong>Повні правила.</strong> Обовязкові для гри на сервері.
                   </div>
                 </li>
               </ol>
