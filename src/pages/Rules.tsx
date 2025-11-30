@@ -162,7 +162,7 @@ export default function Rules() {
                 <div
                   key={category.id}
                   id={`category-${category.id}`}
-                  className="bg-gray-800 bg-opacity-80 rounded-lg border border-gray-700 overflow-hidden"
+                  className="bg-gray-800 bg-opacity-10 rounded-lg border border-gray-700 overflow-hidden"
                 >
                   <button
                     onClick={() => toggleCategory(category.id)}
