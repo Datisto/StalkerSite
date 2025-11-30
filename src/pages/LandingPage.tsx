@@ -1,14 +1,68 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, Shield, BookOpen, Play, Map, Kanban } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
+
+interface MediaVideo {
+  id: string;
+  title: string;
+  description: string;
+  video_url: string;
+  platform: 'youtube' | 'twitch';
+  thumbnail_url: string;
+  display_order: number;
+  is_visible: boolean;
+}
+
+function extractYouTubeId(url: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
+    /youtube\.com\/embed\/([^&\n?#]+)/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+}
+
+function extractTwitchId(url: string): string | null {
+  const match = url.match(/twitch\.tv\/videos\/(\d+)/);
+  return match ? match[1] : null;
+}
 
 export default function LandingPage() {
   const { user } = useAuth();
   const [showManualLogin, setShowManualLogin] = useState(false);
   const [steamId, setSteamId] = useState('');
   const [steamName, setSteamName] = useState('');
+  const [videos, setVideos] = useState<MediaVideo[]>([]);
+  const [loadingVideos, setLoadingVideos] = useState(true);
+
+  useEffect(() => {
+    loadVideos();
+  }, []);
+
+  async function loadVideos() {
+    setLoadingVideos(true);
+    try {
+      const { data, error } = await supabase
+        .from('media_videos')
+        .select('*')
+        .eq('is_visible', true)
+        .order('display_order', { ascending: true });
+
+      if (error) throw error;
+      setVideos(data || []);
+    } catch (error) {
+      console.error('Error loading videos:', error);
+    } finally {
+      setLoadingVideos(false);
+    }
+  }
 
   const handleSteamLogin = () => {
     const returnUrl = `${window.location.origin}/steam-callback`;
@@ -51,7 +105,7 @@ export default function LandingPage() {
               <nav className="hidden md:flex items-center gap-6">
                 <a href="#about" className="text-gray-300 hover:text-white transition">Про сервер</a>
                 <a href="#rules" className="text-gray-300 hover:text-white transition">Правила</a>
-                <Link to="/media" className="text-gray-300 hover:text-white transition">Медіа</Link>
+                <a href="#media" className="text-gray-300 hover:text-white transition">Медіа</a>
                 <Link to="/rules-test" className="text-gray-300 hover:text-white transition">Здача правил</Link>
                 <a href="#discord" className="text-gray-300 hover:text-white transition">Discord</a>
               </nav>
@@ -304,38 +358,61 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="factions" className="py-16 px-4 bg-gray-900 bg-opacity-80">
+        <section id="media" className="py-16 px-4 bg-gray-900 bg-opacity-80">
           <div className="container mx-auto">
             <h3 className="text-3xl font-bold mb-12 text-center">Медіа</h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700 hover:border-green-500 transition">
-                <h4 className="text-xl font-semibold mb-2 text-green-400">Вільні сталкери</h4>
-                <p className="text-gray-400 text-sm">
-                  Незалежні мисливці за артефактами. Свобода та особиста вигода понад усе.
-                </p>
+            {loadingVideos ? (
+              <div className="text-center py-12">
+                <p className="text-gray-400">Завантаження відео...</p>
               </div>
+            ) : videos.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-400">Відео поки що немає</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {videos.map((video) => {
+                  const youtubeId = video.platform === 'youtube' ? extractYouTubeId(video.video_url) : null;
+                  const twitchId = video.platform === 'twitch' ? extractTwitchId(video.video_url) : null;
 
-              <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700 hover:border-blue-500 transition">
-                <h4 className="text-xl font-semibold mb-2 text-blue-400">Свобода</h4>
-                <p className="text-gray-400 text-sm">
-                  Анархісти, що виступають за вільний доступ до Зони для всіх бажаючих.
-                </p>
+                  return (
+                    <div
+                      key={video.id}
+                      className="bg-gray-800 bg-opacity-60 rounded-lg border border-gray-700 overflow-hidden hover:border-red-500 transition"
+                    >
+                      <div className="aspect-video bg-black">
+                        {video.platform === 'youtube' && youtubeId ? (
+                          <iframe
+                            src={`https://www.youtube.com/embed/${youtubeId}`}
+                            title={video.title}
+                            className="w-full h-full"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        ) : video.platform === 'twitch' && twitchId ? (
+                          <iframe
+                            src={`https://player.twitch.tv/?video=${twitchId}&parent=${window.location.hostname}`}
+                            title={video.title}
+                            className="w-full h-full"
+                            allowFullScreen
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-500">
+                            Не вдалося завантажити відео
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <h4 className="font-semibold text-lg mb-2">{video.title}</h4>
+                        {video.description && (
+                          <p className="text-sm text-gray-400">{video.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-
-              <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700 hover:border-red-500 transition">
-                <h4 className="text-xl font-semibold mb-2 text-red-400">Duty</h4>
-                <p className="text-gray-400 text-sm">
-                  Військова організація, що прагне знищити Зону та захистити зовнішній світ.
-                </p>
-              </div>
-
-              <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700 hover:border-yellow-500 transition">
-                <h4 className="text-xl font-semibold mb-2 text-yellow-400">Торгівці</h4>
-                <p className="text-gray-400 text-sm">
-                  Нейтральні постачальники, що забезпечують сталкерів необхідним спорядженням.
-                </p>
-              </div>
-            </div>
+            )}
           </div>
         </section>
 

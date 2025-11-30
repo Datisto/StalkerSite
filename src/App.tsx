@@ -11,7 +11,6 @@ import AdminPanel from './pages/AdminPanel';
 import AdminLogin from './pages/AdminLogin';
 import RulesTest from './pages/RulesTest';
 import Rules from './pages/Rules';
-import Media from './pages/Media';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 
 function App() {
@@ -31,7 +30,6 @@ function App() {
             <Route path="/rules" element={<Rules />} />
             <Route path="/rules/category/:slug" element={<Rules />} />
             <Route path="/rules/rule/:ruleNumber" element={<Rules />} />
-            <Route path="/media" element={<Media />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route
               path="/admin"
