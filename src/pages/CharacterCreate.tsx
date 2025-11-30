@@ -340,7 +340,7 @@ export default function CharacterCreate() {
         isEditMode
           ? 'Зміни збережено'
           : status === 'draft'
-          ? 'Персонаж збережено як чернетку'
+          ? 'Персонажа збережено як чернетку'
           : 'Персонажа відправлено на розгляд',
         'Успіх',
         'success'
