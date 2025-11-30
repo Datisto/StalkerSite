@@ -81,7 +81,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100">
       <div
-        className="absolute inset-0 opacity-5"
+        className="absolute inset-0 opacity-50"
         style={{
           backgroundImage: 'url(https://i.ibb.co/nqgK0f8B/Screenshot-2025-11-30-032706.png)',
           backgroundSize: 'cover',
