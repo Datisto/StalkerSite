@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { ArrowLeft, Send, BookOpen, AlertCircle } from 'lucide-react';
+import { showAlert, showConfirm } from '../utils/modals';
 
 interface Question {
   id: string;
@@ -27,7 +28,7 @@ export default function RulesTest() {
 
   async function startTest() {
     if (!user) {
-      alert('Увійдіть через Steam для проходження тесту');
+      await showAlert('Увійдіть через Steam для проходження тесту', 'Попередження', 'warning');
       navigate('/');
       return;
     }
@@ -43,7 +44,7 @@ export default function RulesTest() {
       if (userError) throw userError;
 
       if (userData?.rules_passed) {
-        alert('Ви вже здали тест правил!');
+        await showAlert('Ви вже здали тест правил!', 'Інформація', 'info');
         navigate('/cabinet');
         return;
       }
@@ -57,7 +58,7 @@ export default function RulesTest() {
       if (pendingError) throw pendingError;
 
       if (pendingSubmissions && pendingSubmissions.length > 0) {
-        alert('У вас вже є здача правил на розгляді. Дочекайтесь результату перед новою спробою.');
+        await showAlert('У вас вже є здача правил на розгляді. Дочекайтесь результату перед новою спробою.', 'Попередження', 'warning');
         return;
       }
 
@@ -69,7 +70,7 @@ export default function RulesTest() {
       if (error) throw error;
 
       if (!data || data.length < 15) {
-        alert('Недостатньо питань для проходження тесту. Зверніться до адміністрації.');
+        await showAlert('Недостатньо питань для проходження тесту. Зверніться до адміністрації.', 'Помилка', 'error');
         return;
       }
 
@@ -78,7 +79,7 @@ export default function RulesTest() {
       setTestStarted(true);
     } catch (error) {
       console.error('Error starting test:', error);
-      alert('Помилка при завантаженні тесту');
+      await showAlert('Помилка при завантаженні тесту', 'Помилка', 'error');
     } finally {
       setLoading(false);
     }
@@ -86,19 +87,22 @@ export default function RulesTest() {
 
   async function submitTest() {
     if (!discordId.trim()) {
-      alert('Введіть ваш Discord ID');
+      await showAlert('Введіть ваш Discord ID', 'Помилка', 'warning');
       return;
     }
 
     const unanswered = questions.findIndex((_, i) => !answers[i]?.trim());
     if (unanswered !== -1) {
-      alert(`Відповідь на питання ${unanswered + 1} відсутня. Заповніть всі питання.`);
+      await showAlert(`Відповідь на питання ${unanswered + 1} відсутня. Заповніть всі питання.`, 'Помилка', 'warning');
       return;
     }
 
-    if (!confirm('Ви впевнені, що хочете відправити відповіді? Після відправки змінити їх буде неможливо.')) {
-      return;
-    }
+    const confirmed = await showConfirm(
+      'Ви впевнені, що хочете відправити відповіді? Після відправки змінити їх буде неможливо.',
+      'Підтвердження відправки',
+      { type: 'warning', confirmText: 'Відправити', cancelText: 'Скасувати' }
+    );
+    if (!confirmed) return;
 
     setSubmitting(true);
     try {
@@ -175,13 +179,15 @@ export default function RulesTest() {
         console.error('Discord webhook error:', discordError);
       }
 
-      alert(
-        'Відповіді успішно відправлено!\n\nАдміністрація розгляне ваші відповіді найближчим часом.\nРезультати можна побачити в особистому кабінеті.'
+      await showAlert(
+        'Відповіді успішно відправлено!\n\nАдміністрація розгляне ваші відповіді найближчим часом.\nРезультати можна побачити в особистому кабінеті.',
+        'Успіх',
+        'success'
       );
       navigate('/cabinet');
     } catch (error) {
       console.error('Error submitting test:', error);
-      alert('Помилка відправки відповідей. Спробуйте ще раз.');
+      await showAlert('Помилка відправки відповідей. Спробуйте ще раз.', 'Помилка', 'error');
     } finally {
       setSubmitting(false);
     }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Plus, Edit, Trash2, Save, X, ToggleLeft, ToggleRight } from 'lucide-react';
+import { showAlert, showConfirm } from '../utils/modals';
 
 interface Question {
   id: string;
@@ -37,7 +38,7 @@ export default function QuestionsManager() {
       setQuestions(data || []);
     } catch (error) {
       console.error('Error loading questions:', error);
-      alert('Помилка завантаження питань');
+      await showAlert('Помилка завантаження питань', 'Помилка', 'error');
     } finally {
       setLoading(false);
     }
@@ -46,7 +47,7 @@ export default function QuestionsManager() {
   async function saveQuestion() {
     try {
       if (!formData.question_text) {
-        alert('Введіть текст питання');
+        await showAlert('Введіть текст питання', 'Помилка', 'warning');
         return;
       }
 
@@ -63,34 +64,35 @@ export default function QuestionsManager() {
           .eq('id', editingQuestion.id);
 
         if (error) throw error;
-        alert('Питання оновлено');
+        await showAlert('Питання оновлено', 'Успіх', 'success');
       } else {
         const { error } = await supabase.from('rules_questions').insert(questionData);
 
         if (error) throw error;
-        alert('Питання додано');
+        await showAlert('Питання додано', 'Успіх', 'success');
       }
 
       resetForm();
       await loadQuestions();
     } catch (error) {
       console.error('Error saving question:', error);
-      alert('Помилка збереження питання');
+      await showAlert('Помилка збереження питання', 'Помилка', 'error');
     }
   }
 
   async function deleteQuestion(id: string) {
-    if (!confirm('Видалити це питання?')) return;
+    const confirmed = await showConfirm('Видалити це питання?', 'Підтвердження', { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' });
+    if (!confirmed) return;
 
     try {
       const { error } = await supabase.from('rules_questions').delete().eq('id', id);
 
       if (error) throw error;
-      alert('Питання видалено');
+      await showAlert('Питання видалено', 'Успіх', 'success');
       await loadQuestions();
     } catch (error) {
       console.error('Error deleting question:', error);
-      alert('Помилка видалення питання');
+      await showAlert('Помилка видалення питання', 'Помилка', 'error');
     }
   }
 
@@ -105,7 +107,7 @@ export default function QuestionsManager() {
       await loadQuestions();
     } catch (error) {
       console.error('Error toggling question:', error);
-      alert('Помилка зміни статусу');
+      await showAlert('Помилка зміни статусу', 'Помилка', 'error');
     }
   }
 

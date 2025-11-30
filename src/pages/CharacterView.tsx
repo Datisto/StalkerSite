@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { ArrowLeft, User, MapPin, Heart, Brain, Sword, Edit2, Send, Edit } from 'lucide-react';
+import { showAlert, showConfirm } from '../utils/modals';
 
 interface Character {
   id: string;
@@ -73,7 +74,7 @@ export default function CharacterView() {
 
       if (!data) {
         console.log('CharacterView: Character not found');
-        alert('Персонаж не знайдено');
+        await showAlert('Персонаж не знайдено', 'Помилка', 'error');
         navigate('/cabinet');
         return;
       }
@@ -84,7 +85,7 @@ export default function CharacterView() {
       if (!isAdmin && user && data.steam_id !== user.steam_id) {
         console.warn('CharacterView: Steam ID mismatch!');
         console.warn('Expected:', user.steam_id, 'Got:', data.steam_id);
-        alert('Ви не маєте доступу до цього персонажа');
+        await showAlert('Ви не маєте доступу до цього персонажа', 'Помилка', 'error');
         navigate('/cabinet');
         return;
       }
@@ -93,7 +94,7 @@ export default function CharacterView() {
       setCharacter(data);
     } catch (error) {
       console.error('Error loading character:', error);
-      alert('Помилка завантаження персонажа');
+      await showAlert('Помилка завантаження персонажа', 'Помилка', 'error');
       navigate('/cabinet');
     } finally {
       setLoading(false);
@@ -103,9 +104,12 @@ export default function CharacterView() {
   async function submitForReview() {
     if (!character) return;
 
-    if (!confirm('Подати персонажа на розгляд? Після цього ви не зможете редагувати персонажа до рішення адміністрації.')) {
-      return;
-    }
+    const confirmed = await showConfirm(
+      'Подати персонажа на розгляд? Після цього ви не зможете редагувати персонажа до рішення адміністрації.',
+      'Підтвердження',
+      { type: 'warning', confirmText: 'Подати', cancelText: 'Скасувати' }
+    );
+    if (!confirmed) return;
 
     try {
       const { error } = await supabase
@@ -118,11 +122,11 @@ export default function CharacterView() {
 
       if (error) throw error;
 
-      alert('Персонажа відправлено на розгляд!');
+      await showAlert('Персонажа відправлено на розгляд!', 'Успіх', 'success');
       navigate('/cabinet');
     } catch (error) {
       console.error('Error submitting character:', error);
-      alert('Помилка при відправці персонажа');
+      await showAlert('Помилка при відправці персонажа', 'Помилка', 'error');
     }
   }
 

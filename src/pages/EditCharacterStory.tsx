@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { ArrowLeft, Save } from 'lucide-react';
+import { showAlert } from '../utils/modals';
 
 interface CharacterStory {
   backstory: string;
@@ -46,7 +47,7 @@ export default function EditCharacterStory() {
 
       if (!data) {
         console.log('EditCharacterStory: Character not found');
-        alert('Персонаж не знайдено');
+        await showAlert('Персонаж не знайдено', 'Помилка', 'error');
         navigate('/cabinet');
         return;
       }
@@ -56,13 +57,13 @@ export default function EditCharacterStory() {
       if (user && data.steam_id !== user.steam_id) {
         console.warn('EditCharacterStory: Steam ID mismatch!');
         console.warn('Expected:', user.steam_id, 'Got:', data.steam_id);
-        alert('Ви не маєте доступу до цього персонажа');
+        await showAlert('Ви не маєте доступу до цього персонажа', 'Помилка', 'error');
         navigate('/cabinet');
         return;
       }
 
       if (data.status === 'approved') {
-        alert('Редагування квенти заблоковано після затвердження адміністрацією');
+        await showAlert('Редагування квенти заблоковано після затвердження адміністрацією', 'Попередження', 'warning');
         navigate('/cabinet');
         return;
       }
@@ -74,7 +75,7 @@ export default function EditCharacterStory() {
       });
     } catch (error) {
       console.error('Error loading character:', error);
-      alert('Помилка завантаження персонажа');
+      await showAlert('Помилка завантаження персонажа', 'Помилка', 'error');
       navigate('/cabinet');
     } finally {
       setLoading(false);
@@ -83,12 +84,12 @@ export default function EditCharacterStory() {
 
   async function saveStory() {
     if (!formData.backstory || formData.backstory.length < 500) {
-      alert('Біографія повинна містити мінімум 500 символів');
+      await showAlert('Біографія повинна містити мінімум 500 символів', 'Помилка', 'warning');
       return;
     }
 
     if (!formData.zone_motivation) {
-      alert('Заповніть мотивацію приходу в Зону');
+      await showAlert('Заповніть мотивацію приходу в Зону', 'Помилка', 'warning');
       return;
     }
 
@@ -105,11 +106,11 @@ export default function EditCharacterStory() {
 
       if (error) throw error;
 
-      alert('Квенту оновлено');
+      await showAlert('Квенту оновлено', 'Успіх', 'success');
       navigate(`/character/${id}`);
     } catch (error) {
       console.error('Error saving story:', error);
-      alert('Помилка збереження');
+      await showAlert('Помилка збереження', 'Помилка', 'error');
     } finally {
       setSaving(false);
     }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Plus, Edit, Trash2, Save, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { showAlert, showConfirm } from '../utils/modals';
 
 interface RuleCategory {
   id: string;
@@ -66,7 +67,7 @@ export default function RulesManager() {
 
     if (error) {
       console.error('Error saving category:', error);
-      alert('Помилка збереження: ' + error.message);
+      await showAlert('Помилка збереження: ' + error.message, 'Помилка', 'error');
     } else {
       setEditingCategory(null);
       loadCategories();
@@ -88,7 +89,8 @@ export default function RulesManager() {
   }
 
   async function handleDeleteCategory(id: string) {
-    if (!confirm('Видалити категорію та всі правила в ній?')) return;
+    const confirmed = await showConfirm('Видалити категорію та всі правила в ній?', 'Підтвердження', { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' });
+    if (!confirmed) return;
     const { error } = await supabase.from('rule_categories').delete().eq('id', id);
     if (!error) loadCategories();
   }
@@ -106,7 +108,7 @@ export default function RulesManager() {
 
     if (error) {
       console.error('Error saving rule:', error);
-      alert('Помилка збереження: ' + error.message);
+      await showAlert('Помилка збереження: ' + error.message, 'Помилка', 'error');
     } else {
       setEditingRule(null);
       loadRules();
@@ -130,7 +132,8 @@ export default function RulesManager() {
   }
 
   async function handleDeleteRule(id: string) {
-    if (!confirm('Видалити це правило?')) return;
+    const confirmed = await showConfirm('Видалити це правило?', 'Підтвердження', { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' });
+    if (!confirmed) return;
     const { error } = await supabase.from('rules').delete().eq('id', id);
     if (!error) loadRules();
   }

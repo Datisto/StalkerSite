@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ChevronRight, ChevronLeft, Save, Send, Copy } from 'lucide-react';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
+import { showAlert } from '../utils/modals';
 import {
   FACTIONS,
   FACE_MODELS,
@@ -122,13 +123,13 @@ export default function CharacterCreate() {
       if (error) throw error;
 
       if (!data) {
-        alert('Персонаж не знайдено');
+        await showAlert('Персонаж не знайдено', 'Помилка', 'error');
         navigate('/cabinet');
         return;
       }
 
       if (data.status !== 'draft' && data.status !== 'rejected') {
-        alert('Цей персонаж не може бути відредагований');
+        await showAlert('Цей персонаж не може бути відредагований', 'Помилка', 'warning');
         navigate('/cabinet');
         return;
       }
@@ -166,7 +167,7 @@ export default function CharacterCreate() {
       });
     } catch (error) {
       console.error('Error loading character:', error);
-      alert('Помилка завантаження персонажа');
+      await showAlert('Помилка завантаження персонажа', 'Помилка', 'error');
       navigate('/cabinet');
     } finally {
       setLoading(false);
@@ -335,25 +336,27 @@ export default function CharacterCreate() {
 
       if (error) throw error;
 
-      alert(
+      await showAlert(
         isEditMode
           ? 'Зміни збережено'
           : status === 'draft'
           ? 'Персонаж збережено як чернетку'
-          : 'Персонаж відправлено на розгляд'
+          : 'Персонаж відправлено на розгляд',
+        'Успіх',
+        'success'
       );
       navigate('/cabinet');
     } catch (error) {
       console.error('Error saving character:', error);
-      alert('Помилка при збереженні персонажа');
+      await showAlert('Помилка при збереженні персонажа', 'Помилка', 'error');
     } finally {
       setSaving(false);
     }
   };
 
-  const copySteamId = () => {
+  const copySteamId = async () => {
     navigator.clipboard.writeText(formData.steam_id);
-    alert('Steam ID скопійовано!');
+    await showAlert('Steam ID скопійовано!', 'Успіх', 'success');
   };
 
   if (!user) {
