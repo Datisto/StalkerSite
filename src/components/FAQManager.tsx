@@ -24,6 +24,8 @@ export default function FAQManager() {
   const [items, setItems] = useState<FAQItem[]>([]);
   const [editingCategory, setEditingCategory] = useState<FAQCategory | null>(null);
   const [editingItem, setEditingItem] = useState<FAQItem | null>(null);
+  const [showCategoryForm, setShowCategoryForm] = useState(false);
+  const [showItemForm, setShowItemForm] = useState(false);
   const [categoryForm, setCategoryForm] = useState({ title: '', slug: '' });
   const [itemForm, setItemForm] = useState({
     category_id: '',
@@ -61,6 +63,7 @@ export default function FAQManager() {
         if (error) throw error;
       }
       setEditingCategory(null);
+      setShowCategoryForm(false);
       setCategoryForm({ title: '', slug: '' });
       await loadData();
     } catch (error: any) {
@@ -114,6 +117,7 @@ export default function FAQManager() {
         if (error) throw error;
       }
       setEditingItem(null);
+      setShowItemForm(false);
       setItemForm({ category_id: '', question: '', answer: '', is_visible: true });
       await loadData();
     } catch (error: any) {
@@ -158,6 +162,7 @@ export default function FAQManager() {
             onClick={() => {
               setEditingCategory(null);
               setCategoryForm({ title: '', slug: '' });
+              setShowCategoryForm(true);
             }}
             className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 px-3 py-2 rounded text-sm transition"
           >
@@ -166,7 +171,7 @@ export default function FAQManager() {
           </button>
         </div>
 
-        {(editingCategory || categoryForm.title || categoryForm.slug) && (
+        {(showCategoryForm || editingCategory) && (
           <div className="bg-gray-900 bg-opacity-60 p-4 rounded border border-gray-700 mb-4">
             <div className="grid gap-3">
               <input
@@ -194,6 +199,7 @@ export default function FAQManager() {
                 <button
                   onClick={() => {
                     setEditingCategory(null);
+                    setShowCategoryForm(false);
                     setCategoryForm({ title: '', slug: '' });
                   }}
                   className="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded transition"
@@ -232,6 +238,7 @@ export default function FAQManager() {
                   <button
                     onClick={() => {
                       setEditingCategory(category);
+                      setShowCategoryForm(true);
                       setCategoryForm({ title: category.title, slug: category.slug });
                     }}
                     className="p-1 hover:bg-gray-700 rounded"
@@ -254,6 +261,7 @@ export default function FAQManager() {
           <button
             onClick={() => {
               setEditingItem(null);
+              setShowItemForm(true);
               setItemForm({ category_id: '', question: '', answer: '', is_visible: true });
             }}
             className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 px-3 py-2 rounded text-sm transition"
@@ -263,7 +271,7 @@ export default function FAQManager() {
           </button>
         </div>
 
-        {(editingItem || itemForm.question || itemForm.answer) && (
+        {(showItemForm || editingItem) && (
           <div className="bg-gray-900 bg-opacity-60 p-4 rounded border border-gray-700 mb-4">
             <div className="grid gap-3">
               <select
@@ -312,6 +320,7 @@ export default function FAQManager() {
                 <button
                   onClick={() => {
                     setEditingItem(null);
+                    setShowItemForm(false);
                     setItemForm({ category_id: '', question: '', answer: '', is_visible: true });
                   }}
                   className="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded transition"
@@ -359,6 +368,7 @@ export default function FAQManager() {
                           <button
                             onClick={() => {
                               setEditingItem(item);
+                              setShowItemForm(true);
                               setItemForm({
                                 category_id: item.category_id,
                                 question: item.question,
