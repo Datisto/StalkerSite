@@ -177,7 +177,7 @@ export default function LandingPage() {
 
         <section id="about" className="py-16 px-4 bg-gray-900 bg-opacity-80">
           <div className="container mx-auto">
-            <h3 className="text-3xl font-bold mb-12 text-center">Чому варто приєднатись?</h3>
+            <h3 className="text-3xl font-bold mb-12 text-center">Коротко про нас</h3>
             <div className="grid md:grid-cols-3 gap-8">
 
               <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700 hover:border-red-500 transition">
