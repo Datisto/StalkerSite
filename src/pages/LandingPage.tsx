@@ -108,7 +108,6 @@ export default function LandingPage() {
                 <a href="#rules" className="text-gray-300 hover:text-white transition">Правила</a>
                 <a href="#media" className="text-gray-300 hover:text-white transition">Медіа</a>
                 <a href="#faq" className="text-gray-300 hover:text-white transition">FAQ</a>
-                <Link to="/rules-test" className="text-gray-300 hover:text-white transition">Здача правил</Link>
                 <a href="#discord" className="text-gray-300 hover:text-white transition">Discord</a>
               </nav>
 
