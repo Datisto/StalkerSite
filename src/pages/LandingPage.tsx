@@ -465,7 +465,6 @@ export default function LandingPage() {
         <footer className="py-8 px-4 border-t border-gray-700 bg-black bg-opacity-60">
           <div className="container mx-auto text-center text-gray-400 text-sm">
             <div className="mb-4 flex justify-center gap-6">
-              <Link to="/rules-test" className="hover:text-white transition">Здача правил</Link>
               <Link to="/admin/login" className="hover:text-white transition">Адмін-панель</Link>
             </div>
             <p>&copy; 2025 Eternal ZONE. Усі права захищені.</p>
