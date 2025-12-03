@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/api-client';
 import { CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface FaceModel {
@@ -39,18 +39,7 @@ export default function FaceModelSelector({
     setLoading(true);
     setError(null);
     try {
-      const { data: models, error: modelsError } = await supabase
-        .from('face_models')
-        .select('*')
-        .eq('is_active', true)
-        .eq('gender', gender)
-        .order('display_order');
-
-      if (modelsError) {
-        console.error('Error loading face models:', modelsError);
-        setError(`Помилка завантаження: ${modelsError.message}`);
-        throw modelsError;
-      }
+      const models = await apiClient.faceModels.list(gender);
 
       console.log('Loaded face models:', models);
 
@@ -61,15 +50,8 @@ export default function FaceModelSelector({
         return;
       }
 
-      const { data: usedFaces, error: usedError } = await supabase
-        .from('characters')
-        .select('face_model')
-        .not('status', 'eq', 'dead')
-        .in('status', ['pending', 'approved', 'active']);
-
-      if (usedError) {
-        console.error('Error loading used faces:', usedError);
-      }
+      const allCharacters = await apiClient.characters.list({ status: 'pending,approved,active' });
+      const usedFaces = allCharacters.filter(c => c.status !== 'dead');
 
       const uniqueModels = models?.filter((m) => m.is_unique) || [];
       const usedUniqueFaces = new Set(
@@ -79,11 +61,7 @@ export default function FaceModelSelector({
       );
 
       if (currentCharacterId) {
-        const { data: currentChar } = await supabase
-          .from('characters')
-          .select('face_model')
-          .eq('id', currentCharacterId)
-          .maybeSingle();
+        const currentChar = await apiClient.characters.get(currentCharacterId);
 
         if (currentChar?.face_model) {
           usedUniqueFaces.delete(currentChar.face_model);
@@ -92,7 +70,7 @@ export default function FaceModelSelector({
 
       setUnavailableModels(usedUniqueFaces);
       setFaceModels(models || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading face models:', error);
       setError('Не вдалося завантажити моделі облич');
     } finally {
