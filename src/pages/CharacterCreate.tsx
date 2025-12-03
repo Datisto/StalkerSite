@@ -218,13 +218,17 @@ export default function CharacterCreate() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const toggleTrait = (trait: string) => {
+  const toggleTrait = (trait: string, category: keyof typeof CHARACTER_TRAITS) => {
     setFormData((prev) => {
       const traits = prev.character_traits;
       if (traits.includes(trait)) {
         return { ...prev, character_traits: traits.filter((t) => t !== trait) };
-      } else if (traits.length < 5) {
-        return { ...prev, character_traits: [...traits, trait] };
+      } else {
+        const categoryTraits = CHARACTER_TRAITS[category];
+        const selectedInCategory = traits.filter((t) => categoryTraits.includes(t as any));
+        if (selectedInCategory.length < 3) {
+          return { ...prev, character_traits: [...traits, trait] };
+        }
       }
       return prev;
     });
@@ -732,38 +736,52 @@ export default function CharacterCreate() {
 
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Основні риси характеру (оберіть 3-5) *
+                  Основні риси характеру (максимум 3 з кожної категорії) *
                   <span className="text-xs text-gray-400 block mt-1">
-                    Обрано: {formData.character_traits.length}/5
+                    Обрано: {formData.character_traits.length} (мін. 3)
                   </span>
                 </label>
                 <div className="bg-gray-900 border border-gray-700 rounded p-4 max-h-96 overflow-y-auto space-y-4">
-                  {(Object.keys(CHARACTER_TRAITS) as Array<keyof typeof CHARACTER_TRAITS>).map((category) => (
-                    <div key={category}>
-                      <h3 className="text-sm font-semibold text-red-400 mb-2 uppercase tracking-wide">
-                        {TRAIT_CATEGORIES[category]}
-                      </h3>
+                  {(Object.keys(CHARACTER_TRAITS) as Array<keyof typeof CHARACTER_TRAITS>).map((category) => {
+                    const categoryTraits = CHARACTER_TRAITS[category];
+                    const selectedInCategory = formData.character_traits.filter((t) => categoryTraits.includes(t as any));
+
+                    return (
+                      <div key={category}>
+                        <h3 className="text-sm font-semibold text-red-400 mb-2 uppercase tracking-wide flex justify-between items-center">
+                          <span>{TRAIT_CATEGORIES[category]}</span>
+                          <span className="text-xs text-gray-400 normal-case">
+                            {selectedInCategory.length}/3
+                          </span>
+                        </h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {CHARACTER_TRAITS[category].map((trait) => (
-                          <button
-                            key={trait}
-                            onClick={() => toggleTrait(trait)}
-                            className={`text-left px-3 py-2 rounded text-sm transition ${
-                              formData.character_traits.includes(trait)
-                                ? 'bg-red-600 text-white'
-                                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                            }`}
-                            disabled={
-                              !formData.character_traits.includes(trait) &&
-                              formData.character_traits.length >= 5
-                            }
-                          >
-                            {trait}
-                          </button>
-                        ))}
+                        {CHARACTER_TRAITS[category].map((trait) => {
+                          const categoryTraits = CHARACTER_TRAITS[category];
+                          const selectedInCategory = formData.character_traits.filter((t) => categoryTraits.includes(t as any));
+                          const isSelected = formData.character_traits.includes(trait);
+                          const isDisabled = !isSelected && selectedInCategory.length >= 3;
+
+                          return (
+                            <button
+                              key={trait}
+                              onClick={() => toggleTrait(trait, category)}
+                              className={`text-left px-3 py-2 rounded text-sm transition ${
+                                isSelected
+                                  ? 'bg-red-600 text-white'
+                                  : isDisabled
+                                  ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
+                                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                              }`}
+                              disabled={isDisabled}
+                            >
+                              {trait}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
