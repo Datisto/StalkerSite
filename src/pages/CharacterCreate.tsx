@@ -245,7 +245,7 @@ export default function CharacterCreate() {
           formData.face_model &&
           formData.hair_color &&
           formData.eye_color &&
-          formData.beard_style
+          (formData.gender === 'female' || formData.beard_style)
         );
       case 3:
         return formData.height && formData.weight && formData.body_type;
@@ -555,7 +555,13 @@ export default function CharacterCreate() {
                   <label className="block text-sm font-medium mb-2">Стать *</label>
                   <select
                     value={formData.gender}
-                    onChange={(e) => updateField('gender', e.target.value as 'male' | 'female')}
+                    onChange={(e) => {
+                      const newGender = e.target.value as 'male' | 'female';
+                      updateField('gender', newGender);
+                      if (newGender === 'female') {
+                        updateField('beard_style', 'Немає');
+                      }
+                    }}
                     className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                   >
                     <option value="male">Чоловіча</option>
@@ -628,21 +634,23 @@ export default function CharacterCreate() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Борода / Вуса *</label>
-                <select
-                  value={formData.beard_style}
-                  onChange={(e) => updateField('beard_style', e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                >
-                  <option value="">Оберіть стиль</option>
-                  {BEARD_STYLES.map((style) => (
-                    <option key={style} value={style}>
-                      {style}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {formData.gender === 'male' && (
+                <div>
+                  <label className="block text-sm font-medium mb-2">Борода / Вуса *</label>
+                  <select
+                    value={formData.beard_style}
+                    onChange={(e) => updateField('beard_style', e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                  >
+                    <option value="">Оберіть стиль</option>
+                    {BEARD_STYLES.map((style) => (
+                      <option key={style} value={style}>
+                        {style}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium mb-2">
