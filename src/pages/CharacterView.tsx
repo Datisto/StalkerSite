@@ -383,20 +383,11 @@ export default function CharacterView() {
             </section>
 
             <section>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Heart className="w-6 h-6 text-red-500" />
-                  <h2 className="text-2xl font-bold">Квента (Біографія)</h2>
-                </div>
-                {character.status === 'approved' && (
-                  <button
-                    onClick={() => navigate(`/character/edit-story/${character.id}`)}
-                    className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded transition text-sm"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                    Редагувати квенту
-                  </button>
-                )}
+              <div className="flex items-center gap-2 mb-4">
+                <Heart className="w-6 h-6 text-red-500" />
+                <h2 className="text-2xl font-bold">
+                  {character.backstory && character.backstory.length < 500 ? 'Анкета (Біографія)' : 'Квента (Біографія)'}
+                </h2>
               </div>
 
               {character.backstory && (
