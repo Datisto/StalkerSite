@@ -64,8 +64,8 @@ export default function FaceModelSelector({
       const { data: usedFaces, error: usedError } = await supabase
         .from('characters')
         .select('face_model')
-        .eq('is_dead', false)
-        .in('status', ['approved', 'active']);
+        .not('status', 'eq', 'dead')
+        .in('status', ['pending', 'approved', 'active']);
 
       if (usedError) {
         console.error('Error loading used faces:', usedError);
