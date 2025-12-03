@@ -289,6 +289,35 @@ export interface Database {
           created_at?: string
         }
       }
+      face_models: {
+        Row: {
+          id: string
+          name: string
+          image_url: string
+          is_unique: boolean
+          display_order: number
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          image_url: string
+          is_unique?: boolean
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          image_url?: string
+          is_unique?: boolean
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+        }
+      }
     }
   }
 }

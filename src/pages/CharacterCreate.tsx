@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { ChevronRight, ChevronLeft, Save, Send, Copy } from 'lucide-react';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 import { showAlert } from '../utils/modals';
+import FaceModelSelector from '../components/FaceModelSelector';
 import {
   FACTIONS,
   FACE_MODELS,
@@ -585,19 +586,12 @@ export default function CharacterCreate() {
               <h2 className="text-2xl font-semibold mb-4">Зовнішність</h2>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Модель обличчя *</label>
-                <select
-                  value={formData.face_model}
-                  onChange={(e) => updateField('face_model', e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                >
-                  <option value="">Оберіть модель</option>
-                  {FACE_MODELS.map((model) => (
-                    <option key={model} value={model}>
-                      {model}
-                    </option>
-                  ))}
-                </select>
+                <label className="block text-sm font-medium mb-4">Модель обличчя *</label>
+                <FaceModelSelector
+                  selectedModel={formData.face_model}
+                  onSelect={(modelName) => updateField('face_model', modelName)}
+                  currentCharacterId={id}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
