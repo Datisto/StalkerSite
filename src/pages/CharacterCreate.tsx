@@ -643,7 +643,7 @@ export default function CharacterCreate() {
 
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Додаткові особливості
+                  Додаткові особливості на обличчі
                   <span className="text-xs text-gray-400 block mt-1">
                     Шрами, татуювання, пошкодження тощо
                   </span>
