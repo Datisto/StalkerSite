@@ -100,12 +100,12 @@ export default function CharacterCreate() {
   useEffect(() => {
     if (user) {
       setFormData((prev) => ({ ...prev, steam_id: user.steam_id || user.id }));
+      checkApprovedTest();
       if (id) {
         setIsEditMode(true);
         loadExistingCharacter();
       } else {
         checkExistingCharacter();
-        checkApprovedTest();
       }
     }
   }, [user, id]);
