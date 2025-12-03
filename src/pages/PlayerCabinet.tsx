@@ -229,6 +229,9 @@ export default function PlayerCabinet() {
           <h1 className="text-3xl font-bold mb-2">Особистий кабінет</h1>
           <p className="text-gray-400">Керуйте своїми персонажами</p>
           <p className="text-gray-400">Ваш Steam ID64: {user!.steam_id}</p>
+          <p className="text-gray-400">
+            Ваш Discord ID: {user!.discord_username || <span className="text-orange-400">Не вказано</span>}
+          </p>
         </div>
 
         <div className="mb-6 flex justify-between items-center">
