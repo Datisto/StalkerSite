@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/api-client';
 
 interface User {
   id: string;
@@ -8,12 +8,14 @@ interface User {
   discord_id?: string;
   discord_username?: string;
   is_banned: boolean;
+  rules_passed?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,58 +26,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     checkUser();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(() => {
-      (() => {
-        checkUser();
-      })();
-    });
-
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
   }, []);
 
   async function checkUser() {
     try {
-      const mockSteamId = localStorage.getItem('mock_steam_id');
+      const token = apiClient.getToken();
 
-      if (mockSteamId) {
-        const { data: userData } = await supabase
-          .from('users')
-          .select('*')
-          .eq('steam_id', mockSteamId)
-          .maybeSingle();
-
-        if (userData) {
-          setUser(userData);
-          localStorage.setItem('mock_user_id', userData.id);
-        } else {
-          setUser(null);
-          localStorage.removeItem('mock_user_id');
-          localStorage.removeItem('mock_steam_id');
-        }
+      if (token) {
+        const userData = await apiClient.auth.getCurrentUser();
+        setUser(userData);
       } else {
         setUser(null);
       }
     } catch (error) {
       console.error('Error checking user:', error);
+      apiClient.setToken(null);
       setUser(null);
     } finally {
       setLoading(false);
     }
   }
 
+  async function refreshUser() {
+    await checkUser();
+  }
+
   async function signOut() {
-    localStorage.removeItem('mock_user_id');
-    localStorage.removeItem('mock_steam_id');
-    localStorage.removeItem('mock_steam_nickname');
-    await supabase.auth.signOut();
+    apiClient.auth.signOut();
     setUser(null);
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/api-client';
 
 interface Admin {
   id: string;
@@ -27,24 +27,15 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   async function checkAdminSession() {
     const adminData = localStorage.getItem('admin_session');
-    if (adminData) {
+    const token = apiClient.getToken();
+
+    if (adminData && token) {
       try {
         const parsed = JSON.parse(adminData);
-        const { data, error } = await supabase
-          .from('admins')
-          .select('id, username, role, permissions')
-          .eq('id', parsed.id)
-          .eq('is_active', true)
-          .maybeSingle();
-
-        if (error || !data) {
-          localStorage.removeItem('admin_session');
-          setAdmin(null);
-        } else {
-          setAdmin(data);
-        }
+        setAdmin(parsed);
       } catch (error) {
         localStorage.removeItem('admin_session');
+        apiClient.setToken(null);
         setAdmin(null);
       }
     }
@@ -53,34 +44,14 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   async function login(username: string, password: string) {
     try {
-      const { data: admins, error } = await supabase
-        .from('admins')
-        .select('id, username, password_hash, role, permissions, is_active')
-        .eq('username', username.trim())
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (error || !admins) {
-        return { success: false, error: 'Невірний логін або пароль' };
-      }
-
-      const passwordMatch = password.trim() === admins.password_hash.trim();
-
-      if (!passwordMatch) {
-        return { success: false, error: 'Невірний логін або пароль' };
-      }
+      const response = await apiClient.admin.login(username, password);
 
       const adminData: Admin = {
-        id: admins.id,
-        username: admins.username,
-        role: admins.role,
-        permissions: admins.permissions || [],
+        id: response.admin.id,
+        username: response.admin.username,
+        role: response.admin.role,
+        permissions: response.admin.permissions || [],
       };
-
-      await supabase
-        .from('admins')
-        .update({ last_login: new Date().toISOString() })
-        .eq('id', admins.id);
 
       setAdmin(adminData);
       localStorage.setItem('admin_session', JSON.stringify(adminData));
@@ -88,13 +59,14 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       return { success: true };
     } catch (error) {
       console.error('Login error:', error);
-      return { success: false, error: 'Помилка при вході' };
+      return { success: false, error: 'Невірний логін або пароль' };
     }
   }
 
   function logout() {
     setAdmin(null);
     localStorage.removeItem('admin_session');
+    apiClient.setToken(null);
   }
 
   return (

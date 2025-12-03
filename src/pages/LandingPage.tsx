@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, Shield, BookOpen, Play, Map, Kanban } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/api-client';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 import { showAlert } from '../utils/modals';
 
@@ -47,13 +47,7 @@ export default function LandingPage() {
   async function loadVideos() {
     setLoadingVideos(true);
     try {
-      const { data, error } = await supabase
-        .from('media_videos')
-        .select('*')
-        .eq('is_visible', true)
-        .order('display_order', { ascending: true });
-
-      if (error) throw error;
+      const data = await apiClient.get<MediaVideo[]>('/media-videos');
       setVideos(data || []);
     } catch (error) {
       console.error('Error loading videos:', error);
@@ -64,8 +58,7 @@ export default function LandingPage() {
 
   const handleSteamLogin = () => {
     const returnUrl = `${window.location.origin}/steam-callback`;
-    const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/steam-auth`;
-    window.location.href = `${functionUrl}?mode=login&return_url=${encodeURIComponent(returnUrl)}`;
+    apiClient.auth.steamLogin(returnUrl);
   };
 
   return (
