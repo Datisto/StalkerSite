@@ -441,6 +441,30 @@ export default function AdminPanel() {
     }
   }
 
+  async function editUserDiscord(userId: string, currentDiscord: string) {
+    const newDiscord = await showPrompt(
+      'Редагувати Discord username користувача:',
+      'Discord Username',
+      { defaultValue: currentDiscord, placeholder: 'username#0000' }
+    );
+
+    if (newDiscord === null) return;
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ discord_username: newDiscord.trim() || null })
+        .eq('id', userId);
+
+      if (error) throw error;
+      await showAlert('Discord username оновлено', 'Успіх', 'success');
+      await loadUsers();
+    } catch (error) {
+      console.error('Error updating discord username:', error);
+      await showAlert('Помилка оновлення Discord username', 'Помилка', 'error');
+    }
+  }
+
   async function banUser(userId: string, currentBanStatus: boolean) {
     if (currentBanStatus) {
       const confirmed = await showConfirm(
@@ -945,11 +969,20 @@ export default function AdminPanel() {
                           <td className="py-3 px-4">{user.steam_nickname}</td>
                           <td className="py-3 px-4 font-mono text-sm">{user.steam_id}</td>
                           <td className="py-3 px-4 text-sm">
-                            {user.discord_username ? (
-                              <span>{user.discord_username}</span>
-                            ) : (
-                              <span className="text-gray-500">Не вказано</span>
-                            )}
+                            <div className="flex items-center gap-2">
+                              {user.discord_username ? (
+                                <span>{user.discord_username}</span>
+                              ) : (
+                                <span className="text-gray-500">Не вказано</span>
+                              )}
+                              <button
+                                onClick={() => editUserDiscord(user.id, user.discord_username || '')}
+                                className="p-1 hover:bg-gray-700 rounded"
+                                title="Редагувати Discord username"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                            </div>
                           </td>
                           <td className="py-3 px-4">
                             {user.rules_passed ? (

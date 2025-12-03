@@ -23,6 +23,8 @@ export default function RulesTest() {
   useEffect(() => {
     if (!user) {
       navigate('/');
+    } else if (user.discord_username) {
+      setDiscordId(user.discord_username);
     }
   }, [user, navigate]);
 

@@ -17,6 +17,7 @@
 | `id` | uuid | Унікальний ідентифікатор (PK) |
 | `steam_id` | text | Steam ID користувача (унікальний) |
 | `steam_name` | text | Нікнейм користувача в Steam |
+| `discord_username` | text | Discord username користувача (формат: username або username#0000) |
 | `rules_passed` | boolean | Чи здав користувач тест на знання правил |
 | `is_banned` | boolean | Чи заблокований користувач |
 | `ban_reason` | text | Причина блокування |

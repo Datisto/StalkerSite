@@ -40,6 +40,7 @@ CREATE TABLE users (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   steam_id text UNIQUE,
   steam_name text,
+  discord_username text,
   rules_passed boolean DEFAULT false,
   is_banned boolean DEFAULT false,
   ban_reason text,
