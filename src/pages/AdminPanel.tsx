@@ -1406,7 +1406,7 @@ export default function AdminPanel() {
                     <div>
                       <p className="text-sm text-gray-400 mb-2">Біографія ({selectedCharacter.backstory.length} символів)</p>
                       <div className="bg-gray-900 p-4 rounded border border-gray-700">
-                        <p className="whitespace-pre-wrap">{selectedCharacter.backstory}</p>
+                        <p className="whitespace-pre-wrap break-words leading-relaxed">{selectedCharacter.backstory}</p>
                       </div>
                     </div>
                   )}
