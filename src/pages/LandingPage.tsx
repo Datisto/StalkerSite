@@ -37,9 +37,6 @@ function extractTwitchId(url: string): string | null {
 
 export default function LandingPage() {
   const { user } = useAuth();
-  const [showManualLogin, setShowManualLogin] = useState(false);
-  const [steamId, setSteamId] = useState('');
-  const [steamName, setSteamName] = useState('');
   const [videos, setVideos] = useState<MediaVideo[]>([]);
   const [loadingVideos, setLoadingVideos] = useState(true);
 
@@ -69,14 +66,6 @@ export default function LandingPage() {
     const returnUrl = `${window.location.origin}/steam-callback`;
     const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/steam-auth`;
     window.location.href = `${functionUrl}?mode=login&return_url=${encodeURIComponent(returnUrl)}`;
-  };
-
-  const handleManualLogin = async () => {
-    if (!steamId.trim() || !steamName.trim()) {
-      await showAlert('Заповніть всі поля', 'Помилка', 'warning');
-      return;
-    }
-    window.location.href = `/steam-callback?steamid=${steamId}&steamname=${encodeURIComponent(steamName)}`;
   };
 
   return (
@@ -112,20 +101,12 @@ export default function LandingPage() {
               </nav>
 
               {!user ? (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setShowManualLogin(!showManualLogin)}
-                    className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded font-semibold transition"
-                  >
-                    Тест вхід
-                  </button>
-                  <button
-                    onClick={handleSteamLogin}
-                    className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 px-6 py-2 rounded font-semibold transition shadow-lg"
-                  >
-                    Увійти через Steam
-                  </button>
-                </div>
+                <button
+                  onClick={handleSteamLogin}
+                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 px-6 py-2 rounded font-semibold transition shadow-lg"
+                >
+                  Увійти через Steam
+                </button>
               ) : (
                 <div className="flex items-center gap-4">
                   <span className="text-sm text-gray-300">{user.steam_nickname}</span>
@@ -477,55 +458,6 @@ export default function LandingPage() {
         </footer>
       </div>
 
-      {showManualLogin && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
-          <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full border border-gray-700">
-            <h2 className="text-2xl font-bold mb-4">Тестовий вхід</h2>
-            <p className="text-gray-400 text-sm mb-4">
-              Тимчасова форма для тестування. Введіть будь-які дані.
-            </p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Steam ID</label>
-                <input
-                  type="text"
-                  value={steamId}
-                  onChange={(e) => setSteamId(e.target.value)}
-                  placeholder="76561198000000000"
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Steam нікнейм</label>
-                <input
-                  type="text"
-                  value={steamName}
-                  onChange={(e) => setSteamName(e.target.value)}
-                  placeholder="TestPlayer"
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2 mt-6">
-              <button
-                onClick={() => setShowManualLogin(false)}
-                className="flex-1 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition"
-              >
-                Скасувати
-              </button>
-              <button
-                onClick={handleManualLogin}
-                className="flex-1 bg-red-600 hover:bg-red-500 px-4 py-2 rounded transition"
-              >
-                Увійти
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
