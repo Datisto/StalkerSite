@@ -69,7 +69,8 @@ class APIClient {
 
   auth = {
     steamLogin: (returnUrl: string) => {
-      window.location.href = `${API_URL}/steam-auth/login?return_url=${encodeURIComponent(returnUrl)}`;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      window.location.href = `${supabaseUrl}/functions/v1/steam-auth?mode=login&return_url=${encodeURIComponent(returnUrl)}`;
     },
 
     verify: async (queryParams: URLSearchParams) => {
@@ -77,11 +78,17 @@ class APIClient {
       queryParams.forEach((value, key) => {
         params.append(key, value);
       });
-      const response = await this.get<any>(`/steam-auth/verify?${params.toString()}`);
-      if (response.token) {
-        this.setToken(response.token);
+      params.append('mode', 'verify');
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/steam-auth?${params.toString()}`);
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Request failed' }));
+        throw new Error(error.error || `HTTP ${response.status}`);
       }
-      return response;
+
+      return response.json();
     },
 
     signOut: () => {
