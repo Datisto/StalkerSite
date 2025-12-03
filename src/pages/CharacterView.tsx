@@ -11,6 +11,7 @@ interface Character {
   steam_id: string;
   name: string;
   surname: string;
+  patronymic: string;
   nickname: string;
   discord_id: string;
   age: number;
@@ -191,7 +192,7 @@ export default function CharacterView() {
             <div className="flex items-start justify-between">
               <div>
                 <h1 className="text-3xl font-bold mb-2">
-                  {character.name} {character.surname}
+                  {character.name} {character.patronymic ? `${character.patronymic} ` : ''}{character.surname}
                 </h1>
                 {character.nickname && (
                   <p className="text-xl text-gray-300">"{character.nickname}"</p>

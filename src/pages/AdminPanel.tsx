@@ -32,6 +32,7 @@ interface Character {
   id: string;
   name: string;
   surname: string;
+  patronymic: string;
   nickname: string;
   discord_id: string;
   age: number;
@@ -794,7 +795,7 @@ export default function AdminPanel() {
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <h3 className="font-semibold text-lg mb-1">
-                            {character.name} {character.surname}
+                            {character.name} {character.patronymic ? `${character.patronymic} ` : ''}{character.surname}
                             {character.nickname && (
                               <span className="text-gray-400 ml-2">"{character.nickname}"</span>
                             )}
@@ -1129,7 +1130,7 @@ export default function AdminPanel() {
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <h2 className="text-2xl font-bold mb-2">
-                    {selectedCharacter.name} {selectedCharacter.surname}
+                    {selectedCharacter.name} {selectedCharacter.patronymic ? `${selectedCharacter.patronymic} ` : ''}{selectedCharacter.surname}
                   </h2>
                   {selectedCharacter.nickname && (
                     <p className="text-gray-400">"{selectedCharacter.nickname}"</p>

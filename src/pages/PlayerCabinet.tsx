@@ -9,6 +9,7 @@ interface Character {
   id: string;
   name: string;
   surname: string;
+  patronymic: string | null;
   nickname: string | null;
   age: number;
   faction: string;
@@ -97,7 +98,7 @@ export default function PlayerCabinet() {
 
       const { data, error } = await supabase
         .from('characters')
-        .select('id, name, surname, nickname, age, faction, status, created_at, rejection_reason, steam_id')
+        .select('id, name, surname, patronymic, nickname, age, faction, status, created_at, rejection_reason, steam_id')
         .eq('steam_id', user!.steam_id)
         .order('created_at', { ascending: false });
 
@@ -297,7 +298,7 @@ export default function PlayerCabinet() {
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <h3 className="text-xl font-semibold mb-1">
-                      {character.name} {character.surname}
+                      {character.name} {character.patronymic ? `${character.patronymic} ` : ''}{character.surname}
                       {character.nickname && (
                         <span className="text-gray-400 ml-2">"{character.nickname}"</span>
                       )}

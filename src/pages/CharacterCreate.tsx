@@ -27,6 +27,7 @@ interface CharacterData {
   discord_id: string;
   name: string;
   surname: string;
+  patronymic: string;
   nickname: string;
   gender: 'male' | 'female';
   age: number;
@@ -69,6 +70,7 @@ export default function CharacterCreate() {
     discord_id: '',
     name: '',
     surname: '',
+    patronymic: '',
     nickname: '',
     gender: 'male',
     age: 25,
@@ -141,6 +143,7 @@ export default function CharacterCreate() {
         discord_id: data.discord_id || '',
         name: data.name || '',
         surname: data.surname || '',
+        patronymic: data.patronymic || '',
         nickname: data.nickname || '',
         gender: data.gender || 'male',
         age: data.age || 25,
@@ -291,6 +294,7 @@ export default function CharacterCreate() {
         discord_id: formData.discord_id,
         name: formData.name,
         surname: formData.surname,
+        patronymic: formData.patronymic || null,
         nickname: formData.nickname,
         gender: formData.gender,
         age: formData.age,
@@ -506,7 +510,7 @@ export default function CharacterCreate() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Ім'я *</label>
                   <input
@@ -526,6 +530,17 @@ export default function CharacterCreate() {
                     onChange={(e) => updateField('surname', e.target.value)}
                     className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                     placeholder="Коваленко"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">По батькові</label>
+                  <input
+                    type="text"
+                    value={formData.patronymic}
+                    onChange={(e) => updateField('patronymic', e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                    placeholder="Іванович"
                   />
                 </div>
               </div>

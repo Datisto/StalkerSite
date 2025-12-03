@@ -58,6 +58,7 @@ export interface Database {
           status: 'draft' | 'pending' | 'approved' | 'rejected' | 'active' | 'archived'
           name: string
           surname: string
+          patronymic: string | null
           nickname: string | null
           age: number
           gender: 'male' | 'female'
@@ -83,6 +84,7 @@ export interface Database {
           status?: 'draft' | 'pending' | 'approved' | 'rejected' | 'active' | 'archived'
           name: string
           surname: string
+          patronymic?: string | null
           nickname?: string | null
           age: number
           gender: 'male' | 'female'
@@ -107,6 +109,7 @@ export interface Database {
           status?: 'draft' | 'pending' | 'approved' | 'rejected' | 'active' | 'archived'
           name?: string
           surname?: string
+          patronymic?: string | null
           nickname?: string | null
           age?: number
           gender?: 'male' | 'female'
