@@ -24,6 +24,7 @@ export default function FaceModelSelector({
   const [faceModels, setFaceModels] = useState<FaceModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [unavailableModels, setUnavailableModels] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadFaceModels();
@@ -31,6 +32,7 @@ export default function FaceModelSelector({
 
   async function loadFaceModels() {
     setLoading(true);
+    setError(null);
     try {
       const { data: models, error: modelsError } = await supabase
         .from('face_models')
@@ -38,7 +40,20 @@ export default function FaceModelSelector({
         .eq('is_active', true)
         .order('display_order');
 
-      if (modelsError) throw modelsError;
+      if (modelsError) {
+        console.error('Error loading face models:', modelsError);
+        setError(`Помилка завантаження: ${modelsError.message}`);
+        throw modelsError;
+      }
+
+      console.log('Loaded face models:', models);
+
+      if (!models || models.length === 0) {
+        console.warn('No face models found in database');
+        setError('Моделі облич не знайдені в базі даних');
+        setFaceModels([]);
+        return;
+      }
 
       const { data: usedFaces, error: usedError } = await supabase
         .from('characters')
@@ -46,7 +61,9 @@ export default function FaceModelSelector({
         .eq('is_dead', false)
         .in('status', ['approved', 'active']);
 
-      if (usedError) throw usedError;
+      if (usedError) {
+        console.error('Error loading used faces:', usedError);
+      }
 
       const uniqueModels = models?.filter((m) => m.is_unique) || [];
       const usedUniqueFaces = new Set(
@@ -71,6 +88,7 @@ export default function FaceModelSelector({
       setFaceModels(models || []);
     } catch (error) {
       console.error('Error loading face models:', error);
+      setError('Не вдалося завантажити моделі облич');
     } finally {
       setLoading(false);
     }
@@ -80,6 +98,28 @@ export default function FaceModelSelector({
     return (
       <div className="text-center py-8">
         <p className="text-gray-400">Завантаження моделей...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-400">{error}</p>
+        <button
+          onClick={loadFaceModels}
+          className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded"
+        >
+          Спробувати знову
+        </button>
+      </div>
+    );
+  }
+
+  if (faceModels.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-400">Немає доступних моделей облич</p>
       </div>
     );
   }
