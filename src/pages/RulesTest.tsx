@@ -21,12 +21,10 @@ export default function RulesTest() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      navigate('/');
-    } else if (user.discord_username) {
+    if (user && user.discord_username) {
       setDiscordId(user.discord_username);
     }
-  }, [user, navigate]);
+  }, [user]);
 
   async function startTest() {
     if (!user) {
@@ -196,7 +194,23 @@ export default function RulesTest() {
   }
 
   if (!user) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100 flex items-center justify-center p-4">
+        <div className="bg-gray-800 bg-opacity-60 p-8 rounded-lg border border-gray-700 max-w-md w-full text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-4">Потрібна авторизація</h2>
+          <p className="text-gray-300 mb-6">
+            Для здачі тесту на правила необхідно увійти через Steam
+          </p>
+          <a
+            href="/"
+            className="inline-block bg-red-600 hover:bg-red-500 px-6 py-3 rounded font-semibold transition"
+          >
+            Повернутись на головну
+          </a>
+        </div>
+      </div>
+    );
   }
 
   if (!testStarted) {

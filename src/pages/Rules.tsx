@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { ChevronDown, ChevronUp, BookOpen, Home, Link as LinkIcon } from 'lucide-react';
+import { ChevronDown, ChevronUp, BookOpen, Home, Link as LinkIcon, FileCheck } from 'lucide-react';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 import { AlertModal } from '../components/Modal';
 import { useAlertModal } from '../hooks/useModal';
+import { useAuth } from '../contexts/AuthContext';
 
 interface RuleCategory {
   id: string;
@@ -25,6 +26,7 @@ interface Rule {
 export default function Rules() {
   const { slug, ruleNumber } = useParams<{ slug?: string; ruleNumber?: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { isOpen: isAlertOpen, config: alertConfig, showAlert, close: closeAlert } = useAlertModal();
   const [categories, setCategories] = useState<RuleCategory[]>([]);
   const [rules, setRules] = useState<Rule[]>([]);
@@ -216,10 +218,34 @@ export default function Rules() {
 
           <div className="mt-8 p-6 bg-gray-800 bg-opacity-80 rounded-lg border border-gray-700">
             <h3 className="text-lg font-semibold mb-2">Важливо</h3>
-            <p className="text-gray-300 leading-relaxed">
+            <p className="text-gray-300 leading-relaxed mb-4">
               Незнання правил не звільняє від відповідальності. Якщо у вас є питання щодо
               правил, звертайтесь до адміністрації сервера в Discord.
             </p>
+            {user && (
+              <div className="mt-4 text-center">
+                <Link
+                  to="/rules-test"
+                  className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 px-6 py-3 rounded font-semibold transition"
+                >
+                  <FileCheck className="w-5 h-5" />
+                  Здати тест на знання правил
+                </Link>
+              </div>
+            )}
+            {!user && (
+              <div className="mt-4 text-center">
+                <p className="text-gray-400 text-sm mb-2">
+                  Для здачі тесту на правила увійдіть через Steam
+                </p>
+                <Link
+                  to="/"
+                  className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded font-semibold transition"
+                >
+                  На головну
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>
