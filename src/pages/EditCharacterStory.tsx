@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/api-client';
 import { ArrowLeft, Save } from 'lucide-react';
 import { showAlert } from '../utils/modals';
 
@@ -34,16 +34,7 @@ export default function EditCharacterStory() {
       console.log('EditCharacterStory: Loading character with id:', id);
       console.log('EditCharacterStory: Current user steam_id:', user?.steam_id);
 
-      const { data, error } = await supabase
-        .from('characters')
-        .select('steam_id, status, backstory, zone_motivation, character_goals')
-        .eq('id', id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('EditCharacterStory: Error from Supabase:', error);
-        throw error;
-      }
+      const data = await apiClient.characters.get(id!);
 
       if (!data) {
         console.log('EditCharacterStory: Character not found');
@@ -95,16 +86,11 @@ export default function EditCharacterStory() {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('characters')
-        .update({
-          backstory: formData.backstory,
-          zone_motivation: formData.zone_motivation,
-          character_goals: formData.character_goals,
-        })
-        .eq('id', id);
-
-      if (error) throw error;
+      await apiClient.characters.update(id!, {
+        backstory: formData.backstory,
+        zone_motivation: formData.zone_motivation,
+        character_goals: formData.character_goals,
+      });
 
       await showAlert('Квенту оновлено', 'Успіх', 'success');
       navigate(`/character/${id}`);
