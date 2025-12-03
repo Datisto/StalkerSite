@@ -1289,10 +1289,6 @@ export default function AdminPanel() {
                       <p className="text-sm text-gray-400">Колір очей</p>
                       <p className="font-semibold">{selectedCharacter.eye_color || 'Не вказано'}</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-400">Борода</p>
-                      <p className="font-semibold">{selectedCharacter.beard_style || 'Не вказано'}</p>
-                    </div>
                   </div>
 
                   {selectedCharacter.special_features && (
