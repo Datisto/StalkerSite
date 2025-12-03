@@ -318,19 +318,13 @@ export default function RulesTest() {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-2">
-                Discord ID <span className="text-red-500">*</span>
-              </label>
+              <label className="block text-sm text-gray-400 mb-2">Discord ID</label>
               <input
                 type="text"
                 value={discordId}
-                onChange={(e) => setDiscordId(e.target.value)}
-                placeholder="Наприклад: 123456789012345678"
-                className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                disabled
+                className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 text-gray-400"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Ваш унікальний ID з Discord (не нікнейм, а числовий ID)
-              </p>
             </div>
           </div>
         </div>
