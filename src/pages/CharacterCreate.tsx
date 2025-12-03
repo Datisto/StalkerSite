@@ -97,7 +97,11 @@ export default function CharacterCreate() {
 
   useEffect(() => {
     if (user) {
-      setFormData((prev) => ({ ...prev, steam_id: user.steam_id || user.id }));
+      setFormData((prev) => ({
+        ...prev,
+        steam_id: user.steam_id || user.id,
+        discord_id: user.discord_username || ''
+      }));
       checkApprovedTest();
       if (id) {
         setIsEditMode(true);
@@ -490,16 +494,15 @@ export default function CharacterCreate() {
                 <label className="block text-sm font-medium mb-2">
                   Discord ID *
                   <span className="text-xs text-gray-400 block mt-1">
-                    Ваш унікальний логін у Discord (не розробницькі цифри). Відображається під
-                    нікнеймом.
+                    Автоматично заповнюється з вашого профілю після реєстрації
                   </span>
                 </label>
                 <input
                   type="text"
                   value={formData.discord_id}
-                  onChange={(e) => updateField('discord_id', e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                  placeholder="username"
+                  disabled
+                  className="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2 text-gray-400 cursor-not-allowed"
+                  placeholder="Не заповнено"
                 />
               </div>
 
