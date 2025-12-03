@@ -30,17 +30,6 @@ export const EYE_COLORS = [
   'Синьо-сірі',
 ] as const;
 
-export const BEARD_STYLES = [
-  'Без бороди',
-  'Легка щетина',
-  'Середня щетина',
-  'Повна борода',
-  'Коротка борода',
-  'Козлина',
-  'Вуса',
-  'Вуса + борода',
-] as const;
-
 export const BODY_TYPES = [
   'Худий',
   'Нормальний',

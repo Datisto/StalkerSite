@@ -11,7 +11,6 @@ import {
   FACE_MODELS,
   HAIR_COLORS,
   EYE_COLORS,
-  BEARD_STYLES,
   BODY_TYPES,
   MILITARY_EXPERIENCE,
   CHARACTER_TRAITS,
@@ -34,7 +33,6 @@ interface CharacterData {
   face_model: string;
   hair_color: string;
   eye_color: string;
-  beard_style: string;
   special_features: string;
   height: number;
   weight: number;
@@ -77,7 +75,6 @@ export default function CharacterCreate() {
     face_model: '',
     hair_color: '',
     eye_color: '',
-    beard_style: '',
     special_features: '',
     height: 175,
     weight: 75,
@@ -146,7 +143,6 @@ export default function CharacterCreate() {
         face_model: data.face_model || '',
         hair_color: data.hair_color || '',
         eye_color: data.eye_color || '',
-        beard_style: data.beard_style || '',
         special_features: data.special_features || '',
         height: data.height || 175,
         weight: data.weight || 75,
@@ -244,8 +240,7 @@ export default function CharacterCreate() {
         return (
           formData.face_model &&
           formData.hair_color &&
-          formData.eye_color &&
-          (formData.gender === 'female' || formData.beard_style)
+          formData.eye_color
         );
       case 3:
         return formData.height && formData.weight && formData.body_type;
@@ -298,7 +293,6 @@ export default function CharacterCreate() {
         face_model: formData.face_model,
         hair_color: formData.hair_color,
         eye_color: formData.eye_color,
-        beard_style: formData.beard_style,
         special_features: formData.special_features,
         height: formData.height,
         weight: formData.weight,
@@ -555,13 +549,7 @@ export default function CharacterCreate() {
                   <label className="block text-sm font-medium mb-2">Стать *</label>
                   <select
                     value={formData.gender}
-                    onChange={(e) => {
-                      const newGender = e.target.value as 'male' | 'female';
-                      updateField('gender', newGender);
-                      if (newGender === 'female') {
-                        updateField('beard_style', 'Немає');
-                      }
-                    }}
+                    onChange={(e) => updateField('gender', e.target.value as 'male' | 'female')}
                     className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                   >
                     <option value="male">Чоловіча</option>
@@ -597,6 +585,7 @@ export default function CharacterCreate() {
                   selectedModel={formData.face_model}
                   onSelect={(modelName) => updateField('face_model', modelName)}
                   currentCharacterId={id}
+                  gender={formData.gender}
                 />
               </div>
 
@@ -633,24 +622,6 @@ export default function CharacterCreate() {
                   </select>
                 </div>
               </div>
-
-              {formData.gender === 'male' && (
-                <div>
-                  <label className="block text-sm font-medium mb-2">Борода / Вуса *</label>
-                  <select
-                    value={formData.beard_style}
-                    onChange={(e) => updateField('beard_style', e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                  >
-                    <option value="">Оберіть стиль</option>
-                    {BEARD_STYLES.map((style) => (
-                      <option key={style} value={style}>
-                        {style}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
 
               <div>
                 <label className="block text-sm font-medium mb-2">

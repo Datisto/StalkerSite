@@ -8,18 +8,21 @@ interface FaceModel {
   image_url: string;
   is_unique: boolean;
   display_order: number;
+  gender: 'male' | 'female';
 }
 
 interface FaceModelSelectorProps {
   selectedModel: string;
   onSelect: (modelName: string) => void;
   currentCharacterId?: string;
+  gender: 'male' | 'female';
 }
 
 export default function FaceModelSelector({
   selectedModel,
   onSelect,
   currentCharacterId,
+  gender,
 }: FaceModelSelectorProps) {
   const [faceModels, setFaceModels] = useState<FaceModel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +33,7 @@ export default function FaceModelSelector({
 
   useEffect(() => {
     loadFaceModels();
-  }, [currentCharacterId]);
+  }, [currentCharacterId, gender]);
 
   async function loadFaceModels() {
     setLoading(true);
@@ -40,6 +43,7 @@ export default function FaceModelSelector({
         .from('face_models')
         .select('*')
         .eq('is_active', true)
+        .eq('gender', gender)
         .order('display_order');
 
       if (modelsError) {
