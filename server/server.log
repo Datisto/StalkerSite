@@ -2,20 +2,39 @@
 > stalker-rp-backend@1.0.0 start
 > node src/index.js
 
-node:internal/modules/package_json_reader:314
-  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
-        ^
-
-Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'express' imported from /tmp/cc-agent/60770383/project/server/src/index.js
-    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:314:9)
-    at packageResolve (node:internal/modules/esm/resolve:767:81)
-    at moduleResolve (node:internal/modules/esm/resolve:853:18)
-    at defaultResolve (node:internal/modules/esm/resolve:983:11)
-    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
-    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
-    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
-    at ModuleJob._link (node:internal/modules/esm/module_job:182:49) {
-  code: 'ERR_MODULE_NOT_FOUND'
+Server running on port 3000
+Frontend URL: https://dayzstalker.win
+Failed to log request: Error: Table 'h74551c_eternalzone.request_logs' doesn't exist
+    at PromisePool.query (/tmp/cc-agent/60770383/project/server/node_modules/mysql2/lib/promise/pool.js:36:22)
+    at ServerResponse.<anonymous> (file:///tmp/cc-agent/60770383/project/server/src/middleware/logger.js:82:18)
+    at ServerResponse.emit (node:events:531:35)
+    at onFinish (node:_http_outgoing:1082:10)
+    at callback (node:internal/streams/writable:766:21)
+    at afterWrite (node:internal/streams/writable:710:5)
+    at afterWriteTick (node:internal/streams/writable:696:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'ER_NO_SUCH_TABLE',
+  errno: 1146,
+  sql: 'INSERT INTO request_logs\n' +
+    '        (method, endpoint, ip_address, user_agent, user_id, admin_id, status_code, response_time, request_body, error_message)\n' +
+    `        VALUES ('POST', '/login', '::1', 'curl/8.14.1', NULL, NULL, 401, 1228, '{\\"username\\":\\"admin\\",\\"password\\":\\"[REDACTED]\\"}', 'Invalid credentials')`,
+  sqlState: '42S02',
+  sqlMessage: "Table 'h74551c_eternalzone.request_logs' doesn't exist"
 }
-
-Node.js v22.21.1
+Failed to log request: Error: Table 'h74551c_eternalzone.request_logs' doesn't exist
+    at PromisePool.query (/tmp/cc-agent/60770383/project/server/node_modules/mysql2/lib/promise/pool.js:36:22)
+    at ServerResponse.<anonymous> (file:///tmp/cc-agent/60770383/project/server/src/middleware/logger.js:82:18)
+    at ServerResponse.emit (node:events:531:35)
+    at onFinish (node:_http_outgoing:1082:10)
+    at callback (node:internal/streams/writable:766:21)
+    at afterWrite (node:internal/streams/writable:710:5)
+    at afterWriteTick (node:internal/streams/writable:696:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'ER_NO_SUCH_TABLE',
+  errno: 1146,
+  sql: 'INSERT INTO request_logs\n' +
+    '        (method, endpoint, ip_address, user_agent, user_id, admin_id, status_code, response_time, request_body, error_message)\n' +
+    `        VALUES ('POST', '/login', '::1', 'curl/8.14.1', NULL, NULL, 200, 519, '{\\"username\\":\\"testadmin\\",\\"password\\":\\"[REDACTED]\\"}', NULL)`,
+  sqlState: '42S02',
+  sqlMessage: "Table 'h74551c_eternalzone.request_logs' doesn't exist"
+}
