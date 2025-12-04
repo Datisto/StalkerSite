@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/api-client';
 import { Plus, Edit, Trash2, Save, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { showAlert, showConfirm } from '../utils/modals';
 
@@ -39,12 +39,16 @@ export default function FAQManager() {
   }, []);
 
   async function loadData() {
-    const [categoriesRes, itemsRes] = await Promise.all([
-      supabase.from('faq_categories').select('*').order('order_index'),
-      supabase.from('faq_items').select('*').order('order_index'),
-    ]);
-    if (categoriesRes.data) setCategories(categoriesRes.data);
-    if (itemsRes.data) setItems(itemsRes.data);
+    try {
+      const [categoriesData, itemsData] = await Promise.all([
+        apiClient.faq.categories.list(),
+        apiClient.faq.list(),
+      ]);
+      setCategories(categoriesData);
+      setItems(itemsData);
+    } catch (error) {
+      console.error('Error loading FAQ data:', error);
+    }
   }
 
   async function handleSaveCategory() {

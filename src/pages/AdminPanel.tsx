@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/api-client';
 import QuestionsManager from '../components/QuestionsManager';
 import RulesManager from '../components/RulesManager';
 import FAQManager from '../components/FAQManager';

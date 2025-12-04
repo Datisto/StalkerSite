@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/api-client';
 import { Plus, Edit, Trash2, Save, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { showAlert, showConfirm } from '../utils/modals';
 

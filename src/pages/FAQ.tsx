@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/api-client';
 import { ChevronDown, ChevronUp, HelpCircle, Home } from 'lucide-react';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 
@@ -33,13 +33,17 @@ export default function FAQ() {
 
   async function loadData() {
     setLoading(true);
-    const [categoriesResult, itemsResult] = await Promise.all([
-      supabase.from('faq_categories').select('*').order('order_index'),
-      supabase.from('faq_items').select('*').eq('is_visible', true).order('category_id, order_index'),
-    ]);
+    try {
+      const [categoriesData, itemsData] = await Promise.all([
+        apiClient.faq.categories.list(),
+        apiClient.faq.list(),
+      ]);
 
-    if (categoriesResult.data) setCategories(categoriesResult.data);
-    if (itemsResult.data) setItems(itemsResult.data);
+      setCategories(categoriesData);
+      setItems(itemsData.filter(item => item.is_visible));
+    } catch (error) {
+      console.error('Error loading FAQ:', error);
+    }
     setLoading(false);
   }
 

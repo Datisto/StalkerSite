@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/api-client';
 import { ChevronDown, ChevronUp, BookOpen, Home, Link as LinkIcon, FileCheck } from 'lucide-react';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 import { AlertModal } from '../components/Modal';
@@ -67,13 +67,17 @@ export default function Rules() {
 
   async function loadData() {
     setLoading(true);
-    const [categoriesResult, rulesResult] = await Promise.all([
-      supabase.from('rule_categories').select('*').order('order_index'),
-      supabase.from('rules').select('*').order('category_id, order_index'),
-    ]);
+    try {
+      const [categoriesData, rulesData] = await Promise.all([
+        apiClient.rules.categories.list(),
+        apiClient.rules.list(),
+      ]);
 
-    if (categoriesResult.data) setCategories(categoriesResult.data);
-    if (rulesResult.data) setRules(rulesResult.data);
+      setCategories(categoriesData);
+      setRules(rulesData);
+    } catch (error) {
+      console.error('Error loading rules:', error);
+    }
     setLoading(false);
   }
 

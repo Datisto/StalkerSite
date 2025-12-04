@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/api-client';
 import { ArrowLeft, Send, BookOpen, AlertCircle } from 'lucide-react';
 import { showAlert, showConfirm } from '../utils/modals';
 
