@@ -4,7 +4,7 @@
 
 Server running on port 3000
 Frontend URL: http://localhost:5173
-Failed to log request: Error: Access denied for user 'root'@'34.34.229.104' (using password: NO)
+Failed to log request: Error: Access denied for user 'root'@'34.34.229.1' (using password: NO)
     at PromisePool.query (/tmp/cc-agent/60770383/project/server/node_modules/mysql2/lib/promise/pool.js:36:22)
     at ServerResponse.<anonymous> (file:///tmp/cc-agent/60770383/project/server/src/middleware/logger.js:82:18)
     at ServerResponse.emit (node:events:531:35)
@@ -17,5 +17,5 @@ Failed to log request: Error: Access denied for user 'root'@'34.34.229.104' (usi
   errno: 1045,
   sql: undefined,
   sqlState: '28000',
-  sqlMessage: "Access denied for user 'root'@'34.34.229.104' (using password: NO)"
+  sqlMessage: "Access denied for user 'root'@'34.34.229.1' (using password: NO)"
 }
