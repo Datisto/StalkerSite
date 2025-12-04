@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/api-client';
 import { Plus, User, Edit, CheckCircle, XCircle, Clock, BookOpen, RefreshCw, Ban } from 'lucide-react';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
+import { DiscordSetupModal } from '../components/DiscordSetupModal';
 
 interface Character {
   id: string;
@@ -19,13 +20,14 @@ interface Character {
 }
 
 export default function PlayerCabinet() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isBanned, setIsBanned] = useState(false);
-  const [banReason, setBanReason] = useState('');
   const [timeUntilEmission, setTimeUntilEmission] = useState('');
+  const [showDiscordModal, setShowDiscordModal] = useState(false);
+  const [discordLoading, setDiscordLoading] = useState(false);
+  const [discordError, setDiscordError] = useState('');
 
   useEffect(() => {
     const updateTimer = () => {
@@ -68,50 +70,40 @@ export default function PlayerCabinet() {
 
   useEffect(() => {
     if (user) {
-      checkBanStatus();
+      if (!user.discord_username) {
+        setShowDiscordModal(true);
+      }
       loadCharacters();
     }
   }, [user]);
 
-  async function checkBanStatus() {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('is_banned, ban_reason')
-        .eq('id', user!.id)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data?.is_banned) {
-        setIsBanned(true);
-        setBanReason(data.ban_reason || 'Причина не вказана');
-      }
-    } catch (error) {
-      console.error('Error checking ban status:', error);
-    }
-  }
-
   async function loadCharacters() {
     try {
-      console.log('Loading characters for steam_id:', user!.steam_id);
-
-      const { data, error } = await supabase
-        .from('characters')
-        .select('id, name, surname, patronymic, nickname, age, faction, status, created_at, rejection_reason, steam_id')
-        .eq('steam_id', user!.steam_id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error from Supabase:', error);
-        throw error;
-      }
-      console.log('Loaded characters:', data);
+      setLoading(true);
+      const data = await apiClient.characters.list({ steam_id: user!.steam_id });
       setCharacters(data || []);
     } catch (error) {
       console.error('Error loading characters:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDiscordSubmit(discordUsername: string) {
+    try {
+      setDiscordLoading(true);
+      setDiscordError('');
+
+      await apiClient.users.update({ discord_username: discordUsername });
+
+      await refreshUser();
+
+      setShowDiscordModal(false);
+    } catch (error: any) {
+      console.error('Error saving Discord ID:', error);
+      setDiscordError(error?.message || 'Помилка збереження Discord ID');
+    } finally {
+      setDiscordLoading(false);
     }
   }
 
@@ -151,7 +143,7 @@ export default function PlayerCabinet() {
     );
   }
 
-  if (isBanned) {
+  if (user.is_banned) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100 flex items-center justify-center p-4">
         <div className="max-w-2xl w-full">
@@ -163,7 +155,7 @@ export default function PlayerCabinet() {
 
             <div className="bg-gray-900 bg-opacity-60 rounded p-6 mb-6 border border-red-600">
               <h2 className="text-lg font-semibold mb-2 text-gray-300">Причина блокування:</h2>
-              <p className="text-gray-100 text-lg whitespace-pre-wrap">{banReason}</p>
+              <p className="text-gray-100 text-lg whitespace-pre-wrap">Причина не вказана</p>
             </div>
 
             <p className="text-gray-400 mb-6">
@@ -341,6 +333,13 @@ export default function PlayerCabinet() {
           </div>
         )}
       </div>
+
+      <DiscordSetupModal
+        isOpen={showDiscordModal}
+        onSubmit={handleDiscordSubmit}
+        loading={discordLoading}
+        error={discordError}
+      />
     </div>
   );
 }

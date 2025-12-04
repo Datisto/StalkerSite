@@ -84,6 +84,8 @@ router.get('/verify', async (req, res) => {
       return res.status(403).json({ error: 'Account is banned', reason: existingUser.ban_reason });
     }
 
+    const isNewUser = !existingUser;
+
     if (!existingUser) {
       await query(
         'INSERT INTO users (id, steam_id, steam_nickname, is_banned) VALUES (UUID(), ?, ?, FALSE)',
@@ -109,6 +111,7 @@ router.get('/verify', async (req, res) => {
 
     res.json({
       token,
+      is_new_user: isNewUser,
       user: {
         id: user.id,
         steam_id: user.steam_id,
