@@ -23,4 +23,5 @@ export async function getConnection() {
   return await pool.getConnection();
 }
 
+export { pool };
 export default pool;
