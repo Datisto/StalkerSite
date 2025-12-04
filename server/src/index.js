@@ -12,6 +12,7 @@ import testSubmissionsRoutes from './routes/test-submissions.js';
 import faqRoutes from './routes/faq.js';
 import faceModelsRoutes from './routes/face-models.js';
 import mediaVideosRoutes from './routes/media-videos.js';
+import { requestLogger } from './middleware/logger.js';
 
 dotenv.config();
 
@@ -24,6 +25,8 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+app.use(requestLogger);
 
 app.use('/api/steam-auth', steamAuthRoutes);
 app.use('/api/users', usersRoutes);

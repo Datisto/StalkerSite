@@ -221,4 +221,171 @@ router.patch('/test-submissions/:id', authenticateAdmin, async (req, res) => {
   }
 });
 
+router.get('/logs', authenticateAdmin, async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 50,
+      method,
+      status_code,
+      endpoint,
+      user_id,
+      admin_id,
+      from_date,
+      to_date
+    } = req.query;
+
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const conditions = [];
+    const params = [];
+
+    if (method) {
+      conditions.push('method = ?');
+      params.push(method);
+    }
+
+    if (status_code) {
+      conditions.push('status_code = ?');
+      params.push(parseInt(status_code));
+    }
+
+    if (endpoint) {
+      conditions.push('endpoint LIKE ?');
+      params.push(`%${endpoint}%`);
+    }
+
+    if (user_id) {
+      conditions.push('user_id = ?');
+      params.push(user_id);
+    }
+
+    if (admin_id) {
+      conditions.push('admin_id = ?');
+      params.push(admin_id);
+    }
+
+    if (from_date) {
+      conditions.push('created_at >= ?');
+      params.push(from_date);
+    }
+
+    if (to_date) {
+      conditions.push('created_at <= ?');
+      params.push(to_date);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const [countResult] = await query(
+      `SELECT COUNT(*) as total FROM request_logs ${whereClause}`,
+      params
+    );
+
+    const logs = await query(
+      `SELECT
+        rl.*,
+        u.steam_nickname as user_nickname,
+        a.username as admin_username
+      FROM request_logs rl
+      LEFT JOIN users u ON rl.user_id = u.id
+      LEFT JOIN admins a ON rl.admin_id = a.id
+      ${whereClause}
+      ORDER BY rl.created_at DESC
+      LIMIT ? OFFSET ?`,
+      [...params, parseInt(limit), offset]
+    );
+
+    res.json({
+      logs,
+      pagination: {
+        total: countResult.total,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(countResult.total / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/logs/stats', authenticateAdmin, async (req, res) => {
+  try {
+    const { from_date, to_date } = req.query;
+    const conditions = [];
+    const params = [];
+
+    if (from_date) {
+      conditions.push('created_at >= ?');
+      params.push(from_date);
+    }
+
+    if (to_date) {
+      conditions.push('created_at <= ?');
+      params.push(to_date);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const [totalRequests] = await query(
+      `SELECT COUNT(*) as count FROM request_logs ${whereClause}`,
+      params
+    );
+
+    const methodStats = await query(
+      `SELECT method, COUNT(*) as count FROM request_logs ${whereClause} GROUP BY method`,
+      params
+    );
+
+    const statusStats = await query(
+      `SELECT
+        CASE
+          WHEN status_code < 300 THEN '2xx'
+          WHEN status_code < 400 THEN '3xx'
+          WHEN status_code < 500 THEN '4xx'
+          ELSE '5xx'
+        END as status_group,
+        COUNT(*) as count
+      FROM request_logs ${whereClause}
+      GROUP BY status_group`,
+      params
+    );
+
+    const [avgResponseTime] = await query(
+      `SELECT AVG(response_time) as avg_time FROM request_logs ${whereClause}`,
+      params
+    );
+
+    const topEndpoints = await query(
+      `SELECT endpoint, COUNT(*) as count
+      FROM request_logs ${whereClause}
+      GROUP BY endpoint
+      ORDER BY count DESC
+      LIMIT 10`,
+      params
+    );
+
+    const slowestEndpoints = await query(
+      `SELECT endpoint, AVG(response_time) as avg_time, COUNT(*) as count
+      FROM request_logs ${whereClause}
+      GROUP BY endpoint
+      HAVING count > 5
+      ORDER BY avg_time DESC
+      LIMIT 10`,
+      params
+    );
+
+    res.json({
+      total_requests: totalRequests.count,
+      methods: methodStats,
+      status_codes: statusStats,
+      avg_response_time: Math.round(avgResponseTime.avg_time || 0),
+      top_endpoints: topEndpoints,
+      slowest_endpoints: slowestEndpoints
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;
