@@ -2,20 +2,20 @@
 > stalker-rp-backend@1.0.0 start
 > node src/index.js
 
-Server running on port 3000
-Frontend URL: http://localhost:5173
-Failed to log request: Error: Access denied for user 'root'@'34.34.229.1' (using password: NO)
-    at PromisePool.query (/tmp/cc-agent/60770383/project/server/node_modules/mysql2/lib/promise/pool.js:36:22)
-    at ServerResponse.<anonymous> (file:///tmp/cc-agent/60770383/project/server/src/middleware/logger.js:82:18)
-    at ServerResponse.emit (node:events:531:35)
-    at onFinish (node:_http_outgoing:1082:10)
-    at callback (node:internal/streams/writable:766:21)
-    at afterWrite (node:internal/streams/writable:710:5)
-    at afterWriteTick (node:internal/streams/writable:696:10)
-    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
-  code: 'ER_ACCESS_DENIED_ERROR',
-  errno: 1045,
-  sql: undefined,
-  sqlState: '28000',
-  sqlMessage: "Access denied for user 'root'@'34.34.229.1' (using password: NO)"
+node:internal/modules/package_json_reader:314
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'express' imported from /tmp/cc-agent/60770383/project/server/src/index.js
+    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:314:9)
+    at packageResolve (node:internal/modules/esm/resolve:767:81)
+    at moduleResolve (node:internal/modules/esm/resolve:853:18)
+    at defaultResolve (node:internal/modules/esm/resolve:983:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:182:49) {
+  code: 'ERR_MODULE_NOT_FOUND'
 }
+
+Node.js v22.21.1
