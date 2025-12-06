@@ -31,12 +31,27 @@ app.use(cors({
 
 app.use(express.json());
 
-app.get('/api', (req, res) => {
+app.get('/api', async (req, res) => {
+  let dbStatus = 'unknown';
+  try {
+    const connection = await pool.getConnection();
+    dbStatus = 'connected';
+    connection.release();
+  } catch (error) {
+    dbStatus = 'disconnected: ' + error.message;
+  }
+
   res.json({
     status: 'ok',
     message: 'API is running',
     version: '1.0.0',
-    timestamp: new Date().toISOString()
+    database: dbStatus,
+    timestamp: new Date().toISOString(),
+    env: {
+      nodeEnv: process.env.NODE_ENV || 'development',
+      port: PORT,
+      frontendUrl: process.env.FRONTEND_URL
+    }
   });
 });
 
@@ -59,9 +74,17 @@ const distPath = path.join(__dirname, '../../dist');
 app.use(express.static(distPath, {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.js')) {
-      res.setHeader('Content-Type', 'application/javascript');
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
     } else if (filePath.endsWith('.css')) {
-      res.setHeader('Content-Type', 'text/css');
+      res.setHeader('Content-Type', 'text/css; charset=utf-8');
+    } else if (filePath.endsWith('.json')) {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    } else if (filePath.endsWith('.png')) {
+      res.setHeader('Content-Type', 'image/png');
+    } else if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+      res.setHeader('Content-Type', 'image/jpeg');
+    } else if (filePath.endsWith('.webp')) {
+      res.setHeader('Content-Type', 'image/webp');
     }
   }
 }));
@@ -83,18 +106,16 @@ async function startServer() {
     const connection = await pool.getConnection();
     console.log('✓ Database connected successfully');
     connection.release();
-
-    app.listen(PORT, () => {
-      console.log(`✓ Server running on port ${PORT}`);
-      console.log(`✓ Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
-      console.log(`✓ API available at: ${process.env.FRONTEND_URL || 'http://localhost:5173'}/api`);
-    });
   } catch (error) {
-    console.error('✗ Failed to start server:');
-    console.error('Database connection error:', error.message);
-    console.error('Make sure your database credentials are correct in .env file');
-    process.exit(1);
+    console.error('⚠ Database connection warning:', error.message);
+    console.error('⚠ Server will start but database operations may fail');
   }
+
+  app.listen(PORT, () => {
+    console.log(`✓ Server running on port ${PORT}`);
+    console.log(`✓ Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+    console.log(`✓ API available at: ${process.env.FRONTEND_URL || 'http://localhost:5173'}/api`);
+  });
 }
 
 startServer();
