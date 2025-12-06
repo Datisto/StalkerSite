@@ -57,7 +57,7 @@ app.use(express.static(distPath, {
 }));
 
 app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api/')) {
+  if (req.path.startsWith('/api/') || req.path.startsWith('/assets/')) {
     return next();
   }
   res.sendFile(path.join(distPath, 'index.html'));
