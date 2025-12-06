@@ -14,7 +14,6 @@ import testSubmissionsRoutes from './routes/test-submissions.js';
 import faqRoutes from './routes/faq.js';
 import faceModelsRoutes from './routes/face-models.js';
 import mediaVideosRoutes from './routes/media-videos.js';
-import { requestLogger } from './middleware/logger.js';
 
 dotenv.config();
 
@@ -30,8 +29,6 @@ app.use(cors({
 }));
 
 app.use(express.json());
-
-app.use(requestLogger);
 
 app.use('/api/steam-auth', steamAuthRoutes);
 app.use('/api/users', usersRoutes);
@@ -51,10 +48,7 @@ app.get('/health', (req, res) => {
 const distPath = path.join(__dirname, '../../dist');
 app.use(express.static(distPath));
 
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api/')) {
-    return next();
-  }
+app.get('*', (req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
 
