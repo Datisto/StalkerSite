@@ -370,7 +370,7 @@ export default function CharacterCreate() {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-300 mb-4">Будь ласка, увійдіть через Steam</p>
+          <p className="text-gray-300 mb-4">Завантаження Steam</p>
           <a
             href="/"
             className="bg-red-600 hover:bg-red-500 px-6 py-2 rounded font-semibold transition"
