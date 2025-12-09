@@ -60,45 +60,8 @@ export function requestLogger(req, res, next) {
   };
 
   res.on('finish', async () => {
-    const responseTime = Date.now() - startTime;
-    const endpoint = `${req.path}${req.query && Object.keys(req.query).length ? '?' + new URLSearchParams(req.query).toString() : ''}`;
-
-    const logData = {
-      method: req.method,
-      endpoint: endpoint.substring(0, 500),
-      ip_address: getClientIp(req),
-      user_agent: req.headers['user-agent']?.substring(0, 500) || null,
-      user_id: req.user?.id || null,
-      admin_id: req.admin?.id || null,
-      status_code: statusCode || res.statusCode,
-      response_time: responseTime,
-      request_body: req.body && Object.keys(req.body).length > 0
-        ? JSON.stringify(sanitizeBody(req.body)).substring(0, 5000)
-        : null,
-      error_message: errorMessage?.substring(0, 1000) || null
-    };
-
-    try {
-      await pool.query(
-        `INSERT INTO request_logs
-        (method, endpoint, ip_address, user_agent, user_id, admin_id, status_code, response_time, request_body, error_message)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          logData.method,
-          logData.endpoint,
-          logData.ip_address,
-          logData.user_agent,
-          logData.user_id,
-          logData.admin_id,
-          logData.status_code,
-          logData.response_time,
-          logData.request_body,
-          logData.error_message
-        ]
-      );
-    } catch (error) {
-      console.error('Failed to log request:', error);
-    }
+    // const responseTime = Date.now() - startTime;
+    // Logging disabled to prevent server hang
   });
 
   next();
