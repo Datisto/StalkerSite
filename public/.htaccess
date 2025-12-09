@@ -5,7 +5,6 @@
   AddType image/webp .webp
 </IfModule>
 
-<<<<<<< HEAD
 <IfModule mod_proxy.c>
   ProxyPreserveHost On
   ProxyPass /api http://localhost:3000/api
@@ -14,25 +13,13 @@
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-
-  # Don't rewrite files or directories
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-
-  # Don't rewrite API requests
-  RewriteCond %{REQUEST_URI} !^/api/
-
-  # Send everything else to index.html
-  RewriteRule ^(.*)$ /index.html [L,QSA]
-=======
-<IfModule mod_rewrite.c>
-  RewriteEngine On
   RewriteBase /
 
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_FILENAME} !-l
   RewriteCond %{REQUEST_URI} !^/assets/
+  RewriteCond %{REQUEST_URI} !^/api/
   RewriteRule . /index.html [L]
 </IfModule>
 
@@ -43,5 +30,4 @@
   <FilesMatch "\.css$">
     Header set Content-Type "text/css"
   </FilesMatch>
->>>>>>> parent of c78c0a8 (Updated .htaccess)
 </IfModule>
