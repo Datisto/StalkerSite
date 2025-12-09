@@ -9,6 +9,8 @@
   ProxyPreserveHost On
   ProxyPass /api http://localhost:3000/api
   ProxyPassReverse /api http://localhost:3000/api
+  ProxyPass /steam-auth http://localhost:3000/steam-auth
+  ProxyPassReverse /steam-auth http://localhost:3000/steam-auth
 </IfModule>
 
 <IfModule mod_rewrite.c>
@@ -20,6 +22,7 @@
   RewriteCond %{REQUEST_FILENAME} !-l
   RewriteCond %{REQUEST_URI} !^/assets/
   RewriteCond %{REQUEST_URI} !^/api/
+  RewriteCond %{REQUEST_URI} !^/steam-auth/
   RewriteRule . /index.html [L]
 </IfModule>
 
