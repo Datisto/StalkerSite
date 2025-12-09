@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../lib/api-client';
+import { supabase } from '../lib/supabase';
 import { ChevronRight, ChevronLeft, Save, Send, Copy } from 'lucide-react';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 import { showAlert } from '../utils/modals';
