@@ -33,11 +33,7 @@ router.post('/', authenticateAdmin, async (req, res) => {
       [name, gender, image_url, is_unique || false, is_active !== false]
     );
 
-    const [model] = await query(
-      'SELECT * FROM face_models WHERE id = LAST_INSERT_ID() LIMIT 1'
-    );
-
-    res.status(201).json(model);
+    res.status(201).json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -85,12 +81,7 @@ router.patch('/:id', authenticateAdmin, async (req, res) => {
       values
     );
 
-    const [model] = await query(
-      'SELECT * FROM face_models WHERE id = ? LIMIT 1',
-      [req.params.id]
-    );
-
-    res.json(model);
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -4,12 +4,22 @@ import { authenticateAdmin, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
+let rulesCache = { rules: [], categories: [], lastUpdate: 0 };
+const CACHE_TTL = 5 * 60 * 1000;
+
+async function refreshRulesCache() {
+  const now = Date.now();
+  if (now - rulesCache.lastUpdate > CACHE_TTL) {
+    rulesCache.categories = await query('SELECT * FROM rules_categories ORDER BY order_index ASC');
+    rulesCache.rules = await query('SELECT * FROM rules WHERE is_published = TRUE ORDER BY category_id, order_index ASC');
+    rulesCache.lastUpdate = now;
+  }
+}
+
 router.get('/categories', async (req, res) => {
   try {
-    const categories = await query(
-      'SELECT * FROM rules_categories ORDER BY order_index ASC'
-    );
-    res.json(categories);
+    await refreshRulesCache();
+    res.json(rulesCache.categories);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -17,10 +27,8 @@ router.get('/categories', async (req, res) => {
 
 router.get('/', async (req, res) => {
   try {
-    const rules = await query(
-      'SELECT * FROM rules WHERE is_published = TRUE ORDER BY category_id, order_index ASC'
-    );
-    res.json(rules);
+    await refreshRulesCache();
+    res.json(rulesCache.rules);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -35,11 +43,8 @@ router.post('/categories', authenticateAdmin, async (req, res) => {
       [name, order_index || 0]
     );
 
-    const [category] = await query(
-      'SELECT * FROM rules_categories WHERE id = LAST_INSERT_ID() LIMIT 1'
-    );
-
-    res.status(201).json(category);
+    rulesCache.lastUpdate = 0;
+    res.status(201).json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -54,11 +59,8 @@ router.post('/', authenticateAdmin, async (req, res) => {
       [category_id, title, content, order_index || 0, is_published !== false]
     );
 
-    const [rule] = await query(
-      'SELECT * FROM rules WHERE id = LAST_INSERT_ID() LIMIT 1'
-    );
-
-    res.status(201).json(rule);
+    rulesCache.lastUpdate = 0;
+    res.status(201).json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -101,12 +103,8 @@ router.patch('/:id', authenticateAdmin, async (req, res) => {
       values
     );
 
-    const [rule] = await query(
-      'SELECT * FROM rules WHERE id = ? LIMIT 1',
-      [req.params.id]
-    );
-
-    res.json(rule);
+    rulesCache.lastUpdate = 0;
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

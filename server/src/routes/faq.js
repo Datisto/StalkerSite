@@ -4,12 +4,22 @@ import { authenticateAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
+let faqCache = { items: [], categories: [], lastUpdate: 0 };
+const CACHE_TTL = 5 * 60 * 1000;
+
+async function refreshFaqCache() {
+  const now = Date.now();
+  if (now - faqCache.lastUpdate > CACHE_TTL) {
+    faqCache.categories = await query('SELECT * FROM faq_categories ORDER BY order_index ASC');
+    faqCache.items = await query('SELECT * FROM faq_items WHERE is_published = TRUE ORDER BY category_id, order_index ASC');
+    faqCache.lastUpdate = now;
+  }
+}
+
 router.get('/categories', async (req, res) => {
   try {
-    const categories = await query(
-      'SELECT * FROM faq_categories ORDER BY order_index ASC'
-    );
-    res.json(categories);
+    await refreshFaqCache();
+    res.json(faqCache.categories);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -17,10 +27,8 @@ router.get('/categories', async (req, res) => {
 
 router.get('/', async (req, res) => {
   try {
-    const items = await query(
-      'SELECT * FROM faq_items WHERE is_published = TRUE ORDER BY category_id, order_index ASC'
-    );
-    res.json(items);
+    await refreshFaqCache();
+    res.json(faqCache.items);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -35,11 +43,8 @@ router.post('/categories', authenticateAdmin, async (req, res) => {
       [name, order_index || 0]
     );
 
-    const [category] = await query(
-      'SELECT * FROM faq_categories WHERE id = LAST_INSERT_ID() LIMIT 1'
-    );
-
-    res.status(201).json(category);
+    faqCache.lastUpdate = 0;
+    res.status(201).json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -54,11 +59,8 @@ router.post('/', authenticateAdmin, async (req, res) => {
       [category_id, question, answer, order_index || 0, is_published !== false]
     );
 
-    const [item] = await query(
-      'SELECT * FROM faq_items WHERE id = LAST_INSERT_ID() LIMIT 1'
-    );
-
-    res.status(201).json(item);
+    faqCache.lastUpdate = 0;
+    res.status(201).json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -101,12 +103,8 @@ router.patch('/:id', authenticateAdmin, async (req, res) => {
       values
     );
 
-    const [item] = await query(
-      'SELECT * FROM faq_items WHERE id = ? LIMIT 1',
-      [req.params.id]
-    );
-
-    res.json(item);
+    faqCache.lastUpdate = 0;
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

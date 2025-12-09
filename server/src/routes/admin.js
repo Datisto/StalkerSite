@@ -49,7 +49,7 @@ router.post('/login', async (req, res) => {
 router.get('/characters', authenticateAdmin, async (req, res) => {
   try {
     const { status } = req.query;
-    let sql = 'SELECT c.*, u.steam_nickname FROM characters c JOIN users u ON c.user_id = u.id';
+    let sql = 'SELECT c.id, c.user_id, c.steam_id, c.status, c.name, c.surname, c.nickname, c.created_at, c.updated_at, u.steam_nickname FROM characters c JOIN users u ON c.user_id = u.id';
     const params = [];
 
     if (status) {
@@ -57,7 +57,7 @@ router.get('/characters', authenticateAdmin, async (req, res) => {
       params.push(status);
     }
 
-    sql += ' ORDER BY c.created_at DESC';
+    sql += ' ORDER BY c.created_at DESC LIMIT 1000';
 
     const characters = await query(sql, params);
     res.json(characters);
@@ -103,12 +103,7 @@ router.patch('/characters/:id', authenticateAdmin, async (req, res) => {
       values
     );
 
-    const [character] = await query(
-      'SELECT * FROM characters WHERE id = ? LIMIT 1',
-      [req.params.id]
-    );
-
-    res.json(character);
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -116,7 +111,7 @@ router.patch('/characters/:id', authenticateAdmin, async (req, res) => {
 
 router.get('/users', authenticateAdmin, async (req, res) => {
   try {
-    const users = await query('SELECT * FROM users ORDER BY created_at DESC');
+    const users = await query('SELECT id, steam_id, steam_nickname, discord_username, is_banned, rules_passed, created_at, updated_at FROM users ORDER BY created_at DESC LIMIT 1000');
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -150,12 +145,7 @@ router.patch('/users/:id', authenticateAdmin, async (req, res) => {
       values
     );
 
-    const [user] = await query(
-      'SELECT * FROM users WHERE id = ? LIMIT 1',
-      [req.params.id]
-    );
-
-    res.json(user);
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -164,10 +154,11 @@ router.patch('/users/:id', authenticateAdmin, async (req, res) => {
 router.get('/test-submissions', authenticateAdmin, async (req, res) => {
   try {
     const submissions = await query(`
-      SELECT rts.*, u.steam_nickname
+      SELECT rts.id, rts.user_id, rts.steam_id, rts.score, rts.created_at, rts.reviewed_at, u.steam_nickname
       FROM rules_test_submissions rts
       LEFT JOIN users u ON rts.user_id = u.id
       ORDER BY rts.created_at DESC
+      LIMIT 500
     `);
     res.json(submissions);
   } catch (error) {
@@ -210,12 +201,7 @@ router.patch('/test-submissions/:id', authenticateAdmin, async (req, res) => {
       values
     );
 
-    const [submission] = await query(
-      'SELECT * FROM rules_test_submissions WHERE id = ? LIMIT 1',
-      [req.params.id]
-    );
-
-    res.json(submission);
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -13,11 +13,7 @@ router.post('/', optionalAuth, async (req, res) => {
       [req.user?.id || null, steam_id, JSON.stringify(answers), score]
     );
 
-    const [submission] = await query(
-      'SELECT * FROM rules_test_submissions WHERE id = LAST_INSERT_ID() LIMIT 1'
-    );
-
-    res.status(201).json(submission);
+    res.status(201).json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -32,7 +28,7 @@ router.get('/', optionalAuth, async (req, res) => {
     }
 
     const submissions = await query(
-      'SELECT * FROM rules_test_submissions WHERE steam_id = ? ORDER BY created_at DESC',
+      'SELECT * FROM rules_test_submissions WHERE steam_id = ? ORDER BY created_at DESC LIMIT 100',
       [steam_id || req.user.steam_id]
     );
 

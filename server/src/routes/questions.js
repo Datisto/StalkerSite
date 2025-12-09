@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/', optionalAuth, async (req, res) => {
   try {
     const questions = await query(
-      'SELECT * FROM rules_questions WHERE is_active = TRUE ORDER BY category, difficulty'
+      'SELECT * FROM rules_questions WHERE is_active = TRUE ORDER BY category, difficulty LIMIT 1000'
     );
     res.json(questions);
   } catch (error) {
@@ -31,11 +31,7 @@ router.post('/', authenticateAdmin, async (req, res) => {
       ]
     );
 
-    const [question] = await query(
-      'SELECT * FROM rules_questions WHERE id = LAST_INSERT_ID() LIMIT 1'
-    );
-
-    res.status(201).json(question);
+    res.status(201).json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -88,12 +84,7 @@ router.patch('/:id', authenticateAdmin, async (req, res) => {
       values
     );
 
-    const [question] = await query(
-      'SELECT * FROM rules_questions WHERE id = ? LIMIT 1',
-      [req.params.id]
-    );
-
-    res.json(question);
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -9,7 +9,7 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'stalker_rp',
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 30,
   queueLimit: 0,
   timezone: '+00:00',
   connectTimeout: 10000,

@@ -56,12 +56,7 @@ router.patch('/me', authenticateUser, async (req, res) => {
       values
     );
 
-    const [updatedUser] = await query(
-      'SELECT * FROM users WHERE steam_id = ? LIMIT 1',
-      [req.user.steam_id]
-    );
-
-    res.json(updatedUser);
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

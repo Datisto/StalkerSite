@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/', optionalAuth, async (req, res) => {
   try {
     const { steam_id, status } = req.query;
-    let sql = 'SELECT * FROM characters WHERE 1=1';
+    let sql = 'SELECT id, user_id, steam_id, status, name, surname, nickname, age, gender, face_model, faction, created_at, updated_at FROM characters WHERE 1=1';
     const params = [];
 
     if (steam_id) {
@@ -25,7 +25,7 @@ router.get('/', optionalAuth, async (req, res) => {
       params.push(req.user.steam_id);
     }
 
-    sql += ' ORDER BY created_at DESC';
+    sql += ' ORDER BY created_at DESC LIMIT 500';
 
     const characters = await query(sql, params);
     res.json(characters);
@@ -78,7 +78,7 @@ router.post('/', authenticateUser, async (req, res) => {
       }
     }
 
-    const result = await query(
+    await query(
       `INSERT INTO characters (
         id, user_id, steam_id, status, name, surname, patronymic, nickname, age, gender,
         face_model, origin_country, citizenship, faction, biography,
@@ -92,11 +92,7 @@ router.post('/', authenticateUser, async (req, res) => {
       ]
     );
 
-    const [character] = await query(
-      'SELECT * FROM characters WHERE id = LAST_INSERT_ID() LIMIT 1'
-    );
-
-    res.status(201).json(character);
+    res.status(201).json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -154,12 +150,7 @@ router.patch('/:id', authenticateUser, async (req, res) => {
       values
     );
 
-    const [updatedCharacter] = await query(
-      'SELECT * FROM characters WHERE id = ? LIMIT 1',
-      [req.params.id]
-    );
-
-    res.json(updatedCharacter);
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
