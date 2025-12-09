@@ -5,10 +5,22 @@
   AddType image/webp .webp
 </IfModule>
 
+<IfModule mod_proxy.c>
+  ProxyPreserveHost On
+  ProxyPass /api http://localhost:3000/api
+  ProxyPassReverse /api http://localhost:3000/api
+</IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
+  # Don't rewrite files or directories
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
+
+  # Don't rewrite API requests
+  RewriteCond %{REQUEST_URI} !^/api/
+
+  # Send everything else to index.html
   RewriteRule ^(.*)$ /index.html [L,QSA]
 </IfModule>
