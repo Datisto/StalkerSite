@@ -103,15 +103,24 @@ export default function CharacterCreate() {
         steam_id: user.steam_id || user.id,
         discord_id: user.discord_username || ''
       }));
-      checkApprovedTest();
-      if (id) {
-        setIsEditMode(true);
-        loadExistingCharacter();
-      } else {
-        checkExistingCharacter();
-      }
+      loadInitialData();
     }
   }, [user, id]);
+
+  async function loadInitialData() {
+    try {
+      setLoading(true);
+      await checkApprovedTest();
+      if (id) {
+        setIsEditMode(true);
+        await loadExistingCharacter();
+      } else {
+        await checkExistingCharacter();
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function loadExistingCharacter() {
     if (!user || !id) return;
@@ -171,8 +180,6 @@ export default function CharacterCreate() {
       console.error('Error loading character:', error);
       await showAlert('Помилка завантаження персонажа', 'Помилка', 'error');
       navigate('/cabinet');
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -191,8 +198,6 @@ export default function CharacterCreate() {
       }
     } catch (error) {
       console.error('Error checking character:', error);
-    } finally {
-      setLoading(false);
     }
   }
 
