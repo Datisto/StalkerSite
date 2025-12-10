@@ -137,6 +137,8 @@ class APIClient {
     categories: {
       list: () => this.get<any[]>('/rules/categories'),
       create: (data: any) => this.post<any>('/rules/categories', data),
+      update: (id: string, data: any) => this.patch<any>(`/rules/categories/${id}`, data),
+      delete: (id: string) => this.delete<any>(`/rules/categories/${id}`),
     },
     list: () => this.get<any[]>('/rules'),
     create: (data: any) => this.post<any>('/rules', data),
@@ -164,6 +166,8 @@ class APIClient {
     categories: {
       list: () => this.get<any[]>('/faq/categories'),
       create: (data: any) => this.post<any>('/faq/categories', data),
+      update: (id: string, data: any) => this.patch<any>(`/faq/categories/${id}`, data),
+      delete: (id: string) => this.delete<any>(`/faq/categories/${id}`),
     },
     list: () => this.get<any[]>('/faq'),
     create: (data: any) => this.post<any>('/faq', data),

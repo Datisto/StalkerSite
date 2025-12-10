@@ -54,30 +54,10 @@ export default function FAQManager() {
   async function handleSaveCategory() {
     try {
       if (editingCategory) {
-        const response = await fetch(`/api/faq/categories/${editingCategory.id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ ...categoryForm, updated_at: new Date().toISOString() }),
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to save category');
-        }
+        await apiClient.faq.categories.update(editingCategory.id, { ...categoryForm, updated_at: new Date().toISOString() });
       } else {
         const maxOrder = Math.max(0, ...categories.map((c) => c.order_index));
-        const response = await fetch('/api/faq/categories', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ ...categoryForm, order_index: maxOrder + 1 }),
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to add category');
-        }
+        await apiClient.faq.categories.create({ ...categoryForm, order_index: maxOrder + 1 });
       }
       setEditingCategory(null);
       setShowCategoryForm(false);
@@ -93,13 +73,8 @@ export default function FAQManager() {
     const confirmed = await showConfirm('Видалити категорію та всі FAQ в ній?', 'Підтвердження', { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' });
     if (!confirmed) return;
     try {
-      const response = await fetch(`/api/faq/categories/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (response.ok) await loadData();
+      await apiClient.faq.categories.delete(id);
+      await loadData();
     } catch (error) {
       console.error('Error deleting category:', error);
     }
@@ -117,13 +92,7 @@ export default function FAQManager() {
 
     try {
       for (const update of updates) {
-        await fetch(`/api/faq/categories/${update.id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ order_index: update.order_index }),
-        });
+        await apiClient.faq.categories.update(update.id, { order_index: update.order_index });
       }
       await loadData();
     } catch (error) {
@@ -139,31 +108,11 @@ export default function FAQManager() {
       }
 
       if (editingItem) {
-        const response = await fetch(`/api/faq/${editingItem.id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ ...itemForm, updated_at: new Date().toISOString() }),
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to save item');
-        }
+        await apiClient.faq.update(editingItem.id, { ...itemForm, updated_at: new Date().toISOString() });
       } else {
         const categoryItems = items.filter((i) => i.category_id === itemForm.category_id);
         const maxOrder = Math.max(0, ...categoryItems.map((i) => i.order_index));
-        const response = await fetch('/api/faq/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ ...itemForm, order_index: maxOrder + 1 }),
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to add item');
-        }
+        await apiClient.faq.create({ ...itemForm, order_index: maxOrder + 1 });
       }
       setEditingItem(null);
       setShowItemForm(false);
@@ -179,13 +128,8 @@ export default function FAQManager() {
     const confirmed = await showConfirm('Видалити цей FAQ?', 'Підтвердження', { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' });
     if (!confirmed) return;
     try {
-      const response = await fetch(`/api/faq/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (response.ok) await loadData();
+      await apiClient.faq.delete(id);
+      await loadData();
     } catch (error) {
       console.error('Error deleting item:', error);
     }
@@ -207,13 +151,7 @@ export default function FAQManager() {
 
     try {
       for (const update of updates) {
-        await fetch(`/api/faq/${update.id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ order_index: update.order_index }),
-        });
+        await apiClient.faq.update(update.id, { order_index: update.order_index });
       }
       await loadData();
     } catch (error) {

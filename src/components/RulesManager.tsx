@@ -41,16 +41,8 @@ export default function RulesManager() {
 
   async function loadCategories() {
     try {
-      const response = await fetch('/api/rules/categories', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setCategories(data);
-      }
+      const data = await apiClient.rules.categories.list();
+      setCategories(data);
     } catch (error) {
       console.error('Error loading categories:', error);
     }
@@ -58,16 +50,8 @@ export default function RulesManager() {
 
   async function loadRules() {
     try {
-      const response = await fetch('/api/rules/', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setRules(data);
-      }
+      const data = await apiClient.rules.list();
+      setRules(data);
     } catch (error) {
       console.error('Error loading rules:', error);
     }
@@ -75,22 +59,11 @@ export default function RulesManager() {
 
   async function handleSaveCategory(category: RuleCategory) {
     try {
-      const response = await fetch(`/api/rules/categories/${category.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: category.title,
-          slug: category.slug,
-          updated_at: new Date().toISOString(),
-        }),
+      await apiClient.rules.categories.update(category.id, {
+        title: category.title,
+        slug: category.slug,
+        updated_at: new Date().toISOString(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to save category');
-      }
 
       setEditingCategory(null);
       loadCategories();
@@ -103,21 +76,10 @@ export default function RulesManager() {
   async function handleAddCategory() {
     try {
       const maxOrder = Math.max(...categories.map((c) => c.order_index), 0);
-      const response = await fetch('/api/rules/categories', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...newCategory,
-          order_index: maxOrder + 1,
-        }),
+      await apiClient.rules.categories.create({
+        ...newCategory,
+        order_index: maxOrder + 1,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add category');
-      }
 
       setNewCategory({ title: '', slug: '' });
       setShowAddCategory(false);
@@ -131,13 +93,8 @@ export default function RulesManager() {
     const confirmed = await showConfirm('Видалити категорію та всі правила в ній?', 'Підтвердження', { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' });
     if (!confirmed) return;
     try {
-      const response = await fetch(`/api/rules/categories/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (response.ok) loadCategories();
+      await apiClient.rules.categories.delete(id);
+      loadCategories();
     } catch (error) {
       console.error('Error deleting category:', error);
     }
@@ -145,23 +102,12 @@ export default function RulesManager() {
 
   async function handleSaveRule(rule: Rule) {
     try {
-      const response = await fetch(`/api/rules/${rule.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          number: rule.number,
-          title: rule.title,
-          content: rule.content,
-          updated_at: new Date().toISOString(),
-        }),
+      await apiClient.rules.update(rule.id, {
+        number: rule.number,
+        title: rule.title,
+        content: rule.content,
+        updated_at: new Date().toISOString(),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to save rule');
-      }
 
       setEditingRule(null);
       loadRules();
@@ -176,21 +122,10 @@ export default function RulesManager() {
       const categoryRules = rules.filter((r) => r.category_id === newRule.category_id);
       const maxOrder = Math.max(...categoryRules.map((r) => r.order_index), 0);
 
-      const response = await fetch('/api/rules/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...newRule,
-          order_index: maxOrder + 1,
-        }),
+      await apiClient.rules.create({
+        ...newRule,
+        order_index: maxOrder + 1,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add rule');
-      }
 
       setNewRule({ category_id: '', number: '', title: '', content: '' });
       setShowAddRule(null);
@@ -204,13 +139,8 @@ export default function RulesManager() {
     const confirmed = await showConfirm('Видалити це правило?', 'Підтвердження', { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' });
     if (!confirmed) return;
     try {
-      const response = await fetch(`/api/rules/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (response.ok) loadRules();
+      await apiClient.rules.delete(id);
+      loadRules();
     } catch (error) {
       console.error('Error deleting rule:', error);
     }
@@ -234,13 +164,7 @@ export default function RulesManager() {
     try {
       await Promise.all(
         updatedCategories.map((cat, idx) =>
-          fetch(`/api/rules/categories/${cat.id}`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ order_index: idx + 1 }),
-          })
+          apiClient.rules.categories.update(cat.id, { order_index: idx + 1 })
         )
       );
 
