@@ -1,0 +1,4 @@
+/assets/* /assets/:splat 200
+/*.png /favicon.png 200
+/*.webp /:splat 200
+/* /index.html 200
