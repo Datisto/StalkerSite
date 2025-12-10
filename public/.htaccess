@@ -17,23 +17,13 @@
   RewriteEngine On
   RewriteBase /
 
-  # Skip real files and directories
-  RewriteCond %{REQUEST_FILENAME} -f [OR]
-  RewriteCond %{REQUEST_FILENAME} -d
-
-  # Skip API and auth routes
-  RewriteCond %{REQUEST_URI} ^/api/ [OR]
-  RewriteCond %{REQUEST_URI} ^/steam-auth/
-
-  # Skip certain paths
-  RewriteCond %{REQUEST_URI} ^/assets/ [OR]
-  RewriteCond %{REQUEST_URI} ^/public/
-  RewriteRule ^ - [L]
-
-  # Rewrite all other requests to index.html for SPA routing
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^ /index.html [L]
+  RewriteCond %{REQUEST_FILENAME} !-l
+  RewriteCond %{REQUEST_URI} !^/assets/
+  RewriteCond %{REQUEST_URI} !^/api/
+  RewriteCond %{REQUEST_URI} !^/steam-auth/
+  RewriteRule . /index.html [L]
 </IfModule>
 
 <IfModule mod_headers.c>
