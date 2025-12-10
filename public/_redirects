@@ -1,4 +1,9 @@
+# Don't cache HTML - always fresh
+/index.html /index.html 200!
+Cache-Control: public, max-age=0, must-revalidate
+
+# Don't rewrite assets files
 /assets/* /assets/:splat 200
-/*.png /favicon.png 200
-/*.webp /:splat 200
+
+# Single page app
 /* /index.html 200
