@@ -9,6 +9,7 @@ interface User {
   discord_username?: string;
   is_banned: boolean;
   rules_passed?: boolean;
+  token?: string;
 }
 
 interface AuthContextType {
@@ -34,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (token) {
         const userData = await apiClient.auth.getCurrentUser();
-        setUser(userData);
+        setUser({ ...userData, token });
       } else {
         setUser(null);
       }

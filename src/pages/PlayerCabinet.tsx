@@ -242,9 +242,6 @@ export default function PlayerCabinet() {
               const hasActive = characters.some(c => c.status === 'approved' || c.status === 'active');
               const canCreate = !hasPending && !hasActive;
 
-              console.log('Character statuses:', characters.map(c => ({ nickname: c.nickname, status: c.status })));
-              console.log('Can create:', canCreate, '| Has pending:', hasPending, '| Has active:', hasActive);
-
               return canCreate ? (
                 <a
                   href="/character/new"

@@ -179,7 +179,11 @@ export default function CharacterCreate() {
   async function checkExistingCharacter() {
     if (!user) return;
     try {
-      const response = await fetch(`/api/characters?steam_id=${user.steam_id}`);
+      const response = await fetch(`/api/characters?steam_id=${user.steam_id}`, {
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+        },
+      });
       const characters = await response.json();
       const hasActive = characters.some((char: any) => ['pending', 'approved', 'active'].includes(char.status));
       if (hasActive) {
