@@ -29,18 +29,7 @@ export default function QuestionsManager() {
   async function loadQuestions() {
     setLoading(true);
     try {
-      const response = await fetch('/api/questions/', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to load questions');
-      }
-
-      const data = await response.json();
+      const data = await apiClient.questions.list();
       setQuestions(data || []);
     } catch (error) {
       console.error('Error loading questions:', error);
@@ -64,32 +53,10 @@ export default function QuestionsManager() {
       };
 
       if (editingQuestion) {
-        const response = await fetch(`/api/questions/${editingQuestion.id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(questionData),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to update question');
-        }
+        await apiClient.questions.update(editingQuestion.id, questionData);
         await showAlert('Питання оновлено', 'Успіх', 'success');
       } else {
-        const response = await fetch('/api/questions/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(questionData),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to add question');
-        }
+        await apiClient.questions.create(questionData);
         await showAlert('Питання додано', 'Успіх', 'success');
       }
 
@@ -106,17 +73,7 @@ export default function QuestionsManager() {
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`/api/questions/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete question');
-      }
+      await apiClient.questions.delete(id);
       await showAlert('Питання видалено', 'Успіх', 'success');
       await loadQuestions();
     } catch (error) {
@@ -127,18 +84,7 @@ export default function QuestionsManager() {
 
   async function toggleActive(id: string, currentState: boolean) {
     try {
-      const response = await fetch(`/api/questions/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ is_active: !currentState }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to toggle question');
-      }
+      await apiClient.questions.update(id, { is_active: !currentState });
       await loadQuestions();
     } catch (error) {
       console.error('Error toggling question:', error);
