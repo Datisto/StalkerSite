@@ -191,6 +191,12 @@ export default function CharacterCreate() {
           'Authorization': `Bearer ${user.token}`,
         },
       });
+
+      if (!response.ok) {
+        console.error('Error checking character:', response.status);
+        return;
+      }
+
       const characters = await response.json();
       const hasActive = characters.some((char: any) => ['pending', 'approved', 'active'].includes(char.status));
       if (hasActive) {
@@ -204,11 +210,17 @@ export default function CharacterCreate() {
   async function checkApprovedTest() {
     if (!user) return;
     try {
-      const response = await fetch(`/api/users/${user.id}`, {
+      const response = await fetch(`/api/users/${user.steam_id}`, {
         headers: {
           'Authorization': `Bearer ${user.token}`,
         },
       });
+
+      if (!response.ok) {
+        console.error('Error checking test approval:', response.status);
+        return;
+      }
+
       const data = await response.json();
       setHasApprovedTest(!!data.rules_passed);
     } catch (error) {
