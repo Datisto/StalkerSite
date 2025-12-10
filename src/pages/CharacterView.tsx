@@ -62,16 +62,16 @@ export default function CharacterView() {
       console.log('CharacterView: Loading character with id:', id);
       console.log('CharacterView: Current user steam_id:', user?.steam_id);
 
-      const { data, error } = await supabase
-        .from('characters')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
+      const response = await fetch(`/api/characters/${id}`, {
+        headers: user?.token ? { 'Authorization': `Bearer ${user.token}` } : {},
+      });
 
-      if (error) {
-        console.error('CharacterView: Error from Supabase:', error);
-        throw error;
+      if (!response.ok) {
+        console.error('CharacterView: Error loading character');
+        throw new Error('Character not found');
       }
+
+      const data = await response.json();
 
       if (!data) {
         console.log('CharacterView: Character not found');
@@ -113,15 +113,22 @@ export default function CharacterView() {
     if (!confirmed) return;
 
     try {
-      const { error } = await supabase
-        .from('characters')
-        .update({
+      const response = await fetch(`/api/characters/${character.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user?.token || ''}`,
+        },
+        body: JSON.stringify({
           status: 'pending',
           submitted_at: new Date().toISOString()
-        })
-        .eq('id', character.id);
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to submit character');
+      }
 
       await showAlert('Персонажа відправлено на розгляд!', 'Успіх', 'success');
       navigate('/cabinet');

@@ -123,21 +123,18 @@ export default function AdminPanel() {
     setLoading(true);
     try {
       console.log('AdminPanel: Loading characters with filter:', filter);
-      let query = supabase
-        .from('characters')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const statusParam = filter !== 'all' ? `?status=${filter}` : '';
+      const response = await fetch(`/api/admin/characters${statusParam}`, {
+        headers: {
+          'Authorization': `Bearer ${admin?.token}`,
+        },
+      });
 
-      if (filter !== 'all') {
-        query = query.eq('status', filter);
+      if (!response.ok) {
+        throw new Error('Failed to load characters');
       }
 
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('AdminPanel: Error from Supabase:', error);
-        throw error;
-      }
+      const data = await response.json();
       console.log('AdminPanel: Loaded characters:', data);
       setCharacters(data || []);
     } catch (error) {
@@ -159,12 +156,16 @@ export default function AdminPanel() {
         ...(status === 'rejected' && { rejection_reason: rejectionReason }),
       };
 
-      const { error } = await supabase
-        .from('characters')
-        .update(updates)
-        .eq('id', characterId);
+      const response = await fetch(`/api/admin/characters/${characterId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${admin?.token}`,
+        },
+        body: JSON.stringify(updates),
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to update character');
 
       await loadCharacters();
       setSelectedCharacter(null);
@@ -179,12 +180,16 @@ export default function AdminPanel() {
     if (!selectedCharacter) return;
 
     try {
-      const { error } = await supabase
-        .from('characters')
-        .update(editData)
-        .eq('id', selectedCharacter.id);
+      const response = await fetch(`/api/admin/characters/${selectedCharacter.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${admin?.token}`,
+        },
+        body: JSON.stringify(editData),
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to save character');
 
       await showAlert('Зміни збережено', 'Успіх', 'success');
       setEditMode(false);
@@ -204,12 +209,14 @@ export default function AdminPanel() {
   async function loadTests() {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('rules_test_submissions')
-        .select('*, users(steam_nickname)')
-        .order('submitted_at', { ascending: false });
+      const response = await fetch('/api/admin/test-submissions', {
+        headers: {
+          'Authorization': `Bearer ${admin?.token}`,
+        },
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to load tests');
+      const data = await response.json();
       setTests(data || []);
     } catch (error) {
       console.error('Error loading tests:', error);
@@ -227,30 +234,37 @@ export default function AdminPanel() {
 
       console.log('Saving test review:', { testId, approved, reviewNote, questionGrades });
 
-      const { data, error } = await supabase
-        .from('rules_test_submissions')
-        .update({
+      const response = await fetch(`/api/admin/test-submissions/${testId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${admin?.token}`,
+        },
+        body: JSON.stringify({
           approved,
-          reviewed: true,
+          feedback: reviewNote,
           question_grades: questionGrades,
-          review_notes: reviewNote
-        })
-        .eq('id', testId);
+          score: correctCount
+        }),
+      });
 
-      console.log('Update result:', { data, error });
+      console.log('Update result:', response.status);
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
+      if (!response.ok) {
+        throw new Error('Failed to save test review');
       }
 
       if (approved && selectedTest?.user_id) {
-        const { error: userError } = await supabase
-          .from('users')
-          .update({ rules_passed: true })
-          .eq('id', selectedTest.user_id);
-
-        if (userError) {
+        try {
+          await fetch(`/api/admin/users/${selectedTest.user_id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${admin?.token}`,
+            },
+            body: JSON.stringify({ rules_passed: true }),
+          });
+        } catch (userError) {
           console.error('Error updating user rules_passed:', userError);
         }
       }
@@ -289,12 +303,14 @@ export default function AdminPanel() {
     if (!confirmed) return;
 
     try {
-      const { error } = await supabase
-        .from('rules_test_submissions')
-        .delete()
-        .eq('id', testId);
+      const response = await fetch(`/api/test-submissions/${testId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${admin?.token}`,
+        },
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to delete test submission');
 
       await showAlert('Здачу правил видалено', 'Успіх', 'success');
       await loadTests();
@@ -308,12 +324,14 @@ export default function AdminPanel() {
   async function loadUsers() {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const response = await fetch('/api/admin/users', {
+        headers: {
+          'Authorization': `Bearer ${admin?.token}`,
+        },
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to load users');
+      const data = await response.json();
       setUsers(data || []);
     } catch (error) {
       console.error('Error loading users:', error);
@@ -331,12 +349,16 @@ export default function AdminPanel() {
     if (!confirmed) return;
 
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({ rules_passed: false })
-        .eq('id', userId);
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${admin?.token}`,
+        },
+        body: JSON.stringify({ rules_passed: false }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to reset user rules');
 
       await showAlert('Здачу правил скинуто. Користувач має здати правила заново.', 'Успіх', 'success');
       await loadUsers();
@@ -355,12 +377,14 @@ export default function AdminPanel() {
     if (!confirmed) return;
 
     try {
-      const { error } = await supabase
-        .from('characters')
-        .delete()
-        .eq('id', characterId);
+      const response = await fetch(`/api/characters/${characterId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${admin?.token}`,
+        },
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to delete character');
 
       await showAlert('Персонажа видалено', 'Успіх', 'success');
       await loadCharacters();
@@ -375,12 +399,14 @@ export default function AdminPanel() {
   async function loadMediaVideos() {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('media_videos')
-        .select('*')
-        .order('display_order', { ascending: true });
+      const response = await fetch('/api/media-videos/all', {
+        headers: {
+          'Authorization': `Bearer ${admin?.token}`,
+        },
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to load videos');
+      const data = await response.json();
       setMediaVideos(data || []);
     } catch (error) {
       console.error('Error loading media videos:', error);
@@ -392,22 +418,28 @@ export default function AdminPanel() {
   async function saveMediaVideo() {
     try {
       if (editingVideo) {
-        const { error } = await supabase
-          .from('media_videos')
-          .update({
-            ...videoFormData,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', editingVideo.id);
+        const response = await fetch(`/api/media-videos/${editingVideo.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${admin?.token}`,
+          },
+          body: JSON.stringify(videoFormData),
+        });
 
-        if (error) throw error;
+        if (!response.ok) throw new Error('Failed to update video');
         await showAlert('Відео оновлено', 'Успіх', 'success');
       } else {
-        const { error } = await supabase
-          .from('media_videos')
-          .insert([videoFormData]);
+        const response = await fetch('/api/media-videos', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${admin?.token}`,
+          },
+          body: JSON.stringify(videoFormData),
+        });
 
-        if (error) throw error;
+        if (!response.ok) throw new Error('Failed to create video');
         await showAlert('Відео додано', 'Успіх', 'success');
       }
 
@@ -428,12 +460,14 @@ export default function AdminPanel() {
     if (!confirmed) return;
 
     try {
-      const { error } = await supabase
-        .from('media_videos')
-        .delete()
-        .eq('id', videoId);
+      const response = await fetch(`/api/media-videos/${videoId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${admin?.token}`,
+        },
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to delete video');
       await showAlert('Відео видалено', 'Успіх', 'success');
       await loadMediaVideos();
     } catch (error) {
@@ -452,12 +486,16 @@ export default function AdminPanel() {
     if (newDiscord === null) return;
 
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({ discord_username: newDiscord.trim() || null })
-        .eq('id', userId);
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${admin?.token}`,
+        },
+        body: JSON.stringify({ discord_username: newDiscord.trim() || null }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to update discord username');
       await showAlert('Discord username оновлено', 'Успіх', 'success');
       await loadUsers();
     } catch (error) {
@@ -476,16 +514,16 @@ export default function AdminPanel() {
       if (!confirmed) return;
 
       try {
-        const { error } = await supabase
-          .from('users')
-          .update({
-            is_banned: false,
-            banned_at: null,
-            ban_reason: null
-          })
-          .eq('id', userId);
+        const response = await fetch(`/api/admin/users/${userId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${admin?.token}`,
+          },
+          body: JSON.stringify({ is_banned: false }),
+        });
 
-        if (error) throw error;
+        if (!response.ok) throw new Error('Failed to unban user');
         await showAlert('Користувача розблоковано', 'Успіх', 'success');
         await loadUsers();
       } catch (error) {
@@ -501,16 +539,19 @@ export default function AdminPanel() {
       if (!reason) return;
 
       try {
-        const { error } = await supabase
-          .from('users')
-          .update({
+        const response = await fetch(`/api/admin/users/${userId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${admin?.token}`,
+          },
+          body: JSON.stringify({
             is_banned: true,
-            banned_at: new Date().toISOString(),
             ban_reason: reason
-          })
-          .eq('id', userId);
+          }),
+        });
 
-        if (error) throw error;
+        if (!response.ok) throw new Error('Failed to ban user');
         await showAlert('Користувача заблоковано', 'Успіх', 'success');
         await loadUsers();
       } catch (error) {

@@ -29,12 +29,18 @@ export default function QuestionsManager() {
   async function loadQuestions() {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('rules_questions')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const response = await fetch('/api/questions/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error('Failed to load questions');
+      }
+
+      const data = await response.json();
       setQuestions(data || []);
     } catch (error) {
       console.error('Error loading questions:', error);
@@ -58,17 +64,32 @@ export default function QuestionsManager() {
       };
 
       if (editingQuestion) {
-        const { error } = await supabase
-          .from('rules_questions')
-          .update(questionData)
-          .eq('id', editingQuestion.id);
+        const response = await fetch(`/api/questions/${editingQuestion.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(questionData),
+        });
 
-        if (error) throw error;
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to update question');
+        }
         await showAlert('Питання оновлено', 'Успіх', 'success');
       } else {
-        const { error } = await supabase.from('rules_questions').insert(questionData);
+        const response = await fetch('/api/questions/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(questionData),
+        });
 
-        if (error) throw error;
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to add question');
+        }
         await showAlert('Питання додано', 'Успіх', 'success');
       }
 
@@ -85,9 +106,17 @@ export default function QuestionsManager() {
     if (!confirmed) return;
 
     try {
-      const { error } = await supabase.from('rules_questions').delete().eq('id', id);
+      const response = await fetch(`/api/questions/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete question');
+      }
       await showAlert('Питання видалено', 'Успіх', 'success');
       await loadQuestions();
     } catch (error) {
@@ -98,12 +127,18 @@ export default function QuestionsManager() {
 
   async function toggleActive(id: string, currentState: boolean) {
     try {
-      const { error } = await supabase
-        .from('rules_questions')
-        .update({ is_active: !currentState })
-        .eq('id', id);
+      const response = await fetch(`/api/questions/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ is_active: !currentState }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to toggle question');
+      }
       await loadQuestions();
     } catch (error) {
       console.error('Error toggling question:', error);

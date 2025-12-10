@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useParams, useNavigate } from 'react-router-dom';
-import { apiClient } from '../lib/api-client';
-import { supabase } from '../lib/supabase';
 import { ChevronRight, ChevronLeft, Save, Send, Copy } from 'lucide-react';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 import { showAlert } from '../utils/modals';
@@ -118,20 +116,19 @@ export default function CharacterCreate() {
   async function loadExistingCharacter() {
     if (!user || !id) return;
     try {
-      const { data, error } = await supabase
-        .from('characters')
-        .select('*')
-        .eq('id', id)
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const response = await fetch(`/api/characters/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+        },
+      });
 
-      if (error) throw error;
-
-      if (!data) {
+      if (!response.ok) {
         await showAlert('Персонаж не знайдено', 'Помилка', 'error');
         navigate('/cabinet');
         return;
       }
+
+      const data = await response.json();
 
       if (data.status !== 'draft' && data.status !== 'rejected') {
         await showAlert('Цей персонаж не може бути відредагований', 'Помилка', 'warning');
@@ -156,7 +153,7 @@ export default function CharacterCreate() {
         weight: data.weight || 75,
         body_type: data.body_type || '',
         physical_features: data.physical_features || '',
-        character_traits: data.character_traits || [],
+        character_traits: Array.isArray(data.character_traits) ? data.character_traits : (typeof data.character_traits === 'string' ? JSON.parse(data.character_traits) : []),
         phobias: data.phobias || '',
         values: data.values || '',
         faction: data.faction || '',
@@ -182,14 +179,10 @@ export default function CharacterCreate() {
   async function checkExistingCharacter() {
     if (!user) return;
     try {
-      const { data, error } = await supabase
-        .from('characters')
-        .select('id, status')
-        .eq('steam_id', user.steam_id)
-        .in('status', ['pending', 'approved', 'active']);
-
-      if (error) throw error;
-      if (data && data.length > 0) {
+      const response = await fetch(`/api/characters?steam_id=${user.steam_id}`);
+      const characters = await response.json();
+      const hasActive = characters.some((char: any) => ['pending', 'approved', 'active'].includes(char.status));
+      if (hasActive) {
         setHasExistingCharacter(true);
       }
     } catch (error) {
@@ -202,14 +195,13 @@ export default function CharacterCreate() {
   async function checkApprovedTest() {
     if (!user) return;
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('rules_passed')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (error) throw error;
-      setHasApprovedTest(!!data?.rules_passed);
+      const response = await fetch(`/api/users/${user.id}`, {
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+        },
+      });
+      const data = await response.json();
+      setHasApprovedTest(!!data.rules_passed);
     } catch (error) {
       console.error('Error checking test approval:', error);
     }
@@ -293,7 +285,6 @@ export default function CharacterCreate() {
     setSaving(true);
     try {
       const characterData = {
-        user_id: user.id,
         steam_id: user.steam_id,
         status,
         discord_id: formData.discord_id,
@@ -327,22 +318,31 @@ export default function CharacterCreate() {
         submitted_at: status === 'pending' ? new Date().toISOString() : null,
       };
 
-      let error;
-
+      let response;
       if (isEditMode && id) {
-        const result = await supabase
-          .from('characters')
-          .update(characterData)
-          .eq('id', id);
-        error = result.error;
+        response = await fetch(`/api/characters/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user.token}`,
+          },
+          body: JSON.stringify(characterData),
+        });
       } else {
-        const result = await supabase
-          .from('characters')
-          .insert(characterData);
-        error = result.error;
+        response = await fetch('/api/characters', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user.token}`,
+          },
+          body: JSON.stringify(characterData),
+        });
       }
 
-      if (error) throw error;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save character');
+      }
 
       await showAlert(
         isEditMode

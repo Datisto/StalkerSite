@@ -54,17 +54,30 @@ export default function FAQManager() {
   async function handleSaveCategory() {
     try {
       if (editingCategory) {
-        const { error } = await supabase
-          .from('faq_categories')
-          .update({ ...categoryForm, updated_at: new Date().toISOString() })
-          .eq('id', editingCategory.id);
-        if (error) throw error;
+        const response = await fetch(`/api/faq/categories/${editingCategory.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ...categoryForm, updated_at: new Date().toISOString() }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to save category');
+        }
       } else {
         const maxOrder = Math.max(0, ...categories.map((c) => c.order_index));
-        const { error } = await supabase
-          .from('faq_categories')
-          .insert({ ...categoryForm, order_index: maxOrder + 1 });
-        if (error) throw error;
+        const response = await fetch('/api/faq/categories', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ...categoryForm, order_index: maxOrder + 1 }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to add category');
+        }
       }
       setEditingCategory(null);
       setShowCategoryForm(false);
@@ -79,8 +92,17 @@ export default function FAQManager() {
   async function handleDeleteCategory(id: string) {
     const confirmed = await showConfirm('Видалити категорію та всі FAQ в ній?', 'Підтвердження', { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' });
     if (!confirmed) return;
-    const { error } = await supabase.from('faq_categories').delete().eq('id', id);
-    if (!error) await loadData();
+    try {
+      const response = await fetch(`/api/faq/categories/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) await loadData();
+    } catch (error) {
+      console.error('Error deleting category:', error);
+    }
   }
 
   async function moveCategory(id: string, direction: 'up' | 'down') {
@@ -93,10 +115,20 @@ export default function FAQManager() {
       { id: categories[swapIndex].id, order_index: categories[index].order_index },
     ];
 
-    for (const update of updates) {
-      await supabase.from('faq_categories').update({ order_index: update.order_index }).eq('id', update.id);
+    try {
+      for (const update of updates) {
+        await fetch(`/api/faq/categories/${update.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ order_index: update.order_index }),
+        });
+      }
+      await loadData();
+    } catch (error) {
+      console.error('Error moving category:', error);
     }
-    await loadData();
   }
 
   async function handleSaveItem() {
@@ -107,18 +139,31 @@ export default function FAQManager() {
       }
 
       if (editingItem) {
-        const { error } = await supabase
-          .from('faq_items')
-          .update({ ...itemForm, updated_at: new Date().toISOString() })
-          .eq('id', editingItem.id);
-        if (error) throw error;
+        const response = await fetch(`/api/faq/${editingItem.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ...itemForm, updated_at: new Date().toISOString() }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to save item');
+        }
       } else {
         const categoryItems = items.filter((i) => i.category_id === itemForm.category_id);
         const maxOrder = Math.max(0, ...categoryItems.map((i) => i.order_index));
-        const { error } = await supabase
-          .from('faq_items')
-          .insert({ ...itemForm, order_index: maxOrder + 1 });
-        if (error) throw error;
+        const response = await fetch('/api/faq/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ...itemForm, order_index: maxOrder + 1 }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to add item');
+        }
       }
       setEditingItem(null);
       setShowItemForm(false);
@@ -133,8 +178,17 @@ export default function FAQManager() {
   async function handleDeleteItem(id: string) {
     const confirmed = await showConfirm('Видалити цей FAQ?', 'Підтвердження', { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' });
     if (!confirmed) return;
-    const { error } = await supabase.from('faq_items').delete().eq('id', id);
-    if (!error) await loadData();
+    try {
+      const response = await fetch(`/api/faq/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) await loadData();
+    } catch (error) {
+      console.error('Error deleting item:', error);
+    }
   }
 
   async function moveItem(id: string, direction: 'up' | 'down') {
@@ -151,10 +205,20 @@ export default function FAQManager() {
       { id: categoryItems[swapIndex].id, order_index: categoryItems[index].order_index },
     ];
 
-    for (const update of updates) {
-      await supabase.from('faq_items').update({ order_index: update.order_index }).eq('id', update.id);
+    try {
+      for (const update of updates) {
+        await fetch(`/api/faq/${update.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ order_index: update.order_index }),
+        });
+      }
+      await loadData();
+    } catch (error) {
+      console.error('Error moving item:', error);
     }
-    await loadData();
   }
 
   return (

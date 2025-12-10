@@ -40,102 +40,180 @@ export default function RulesManager() {
   }, []);
 
   async function loadCategories() {
-    const { data, error } = await supabase
-      .from('rule_categories')
-      .select('*')
-      .order('order_index');
-    if (!error && data) setCategories(data);
+    try {
+      const response = await fetch('/api/rules/categories', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data);
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
   }
 
   async function loadRules() {
-    const { data, error } = await supabase
-      .from('rules')
-      .select('*')
-      .order('category_id, order_index');
-    if (!error && data) setRules(data);
+    try {
+      const response = await fetch('/api/rules/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setRules(data);
+      }
+    } catch (error) {
+      console.error('Error loading rules:', error);
+    }
   }
 
   async function handleSaveCategory(category: RuleCategory) {
-    const { error } = await supabase
-      .from('rule_categories')
-      .update({
-        title: category.title,
-        slug: category.slug,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', category.id);
+    try {
+      const response = await fetch(`/api/rules/categories/${category.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: category.title,
+          slug: category.slug,
+          updated_at: new Date().toISOString(),
+        }),
+      });
 
-    if (error) {
-      console.error('Error saving category:', error);
-      await showAlert('Помилка збереження: ' + error.message, 'Помилка', 'error');
-    } else {
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save category');
+      }
+
       setEditingCategory(null);
       loadCategories();
+    } catch (error: any) {
+      console.error('Error saving category:', error);
+      await showAlert('Помилка збереження: ' + error.message, 'Помилка', 'error');
     }
   }
 
   async function handleAddCategory() {
-    const maxOrder = Math.max(...categories.map((c) => c.order_index), 0);
-    const { error } = await supabase.from('rule_categories').insert({
-      ...newCategory,
-      order_index: maxOrder + 1,
-    });
+    try {
+      const maxOrder = Math.max(...categories.map((c) => c.order_index), 0);
+      const response = await fetch('/api/rules/categories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...newCategory,
+          order_index: maxOrder + 1,
+        }),
+      });
 
-    if (!error) {
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add category');
+      }
+
       setNewCategory({ title: '', slug: '' });
       setShowAddCategory(false);
       loadCategories();
+    } catch (error) {
+      console.error('Error adding category:', error);
     }
   }
 
   async function handleDeleteCategory(id: string) {
     const confirmed = await showConfirm('Видалити категорію та всі правила в ній?', 'Підтвердження', { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' });
     if (!confirmed) return;
-    const { error } = await supabase.from('rule_categories').delete().eq('id', id);
-    if (!error) loadCategories();
+    try {
+      const response = await fetch(`/api/rules/categories/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) loadCategories();
+    } catch (error) {
+      console.error('Error deleting category:', error);
+    }
   }
 
   async function handleSaveRule(rule: Rule) {
-    const { error } = await supabase
-      .from('rules')
-      .update({
-        number: rule.number,
-        title: rule.title,
-        content: rule.content,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', rule.id);
+    try {
+      const response = await fetch(`/api/rules/${rule.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          number: rule.number,
+          title: rule.title,
+          content: rule.content,
+          updated_at: new Date().toISOString(),
+        }),
+      });
 
-    if (error) {
-      console.error('Error saving rule:', error);
-      await showAlert('Помилка збереження: ' + error.message, 'Помилка', 'error');
-    } else {
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save rule');
+      }
+
       setEditingRule(null);
       loadRules();
+    } catch (error: any) {
+      console.error('Error saving rule:', error);
+      await showAlert('Помилка збереження: ' + error.message, 'Помилка', 'error');
     }
   }
 
   async function handleAddRule() {
-    const categoryRules = rules.filter((r) => r.category_id === newRule.category_id);
-    const maxOrder = Math.max(...categoryRules.map((r) => r.order_index), 0);
+    try {
+      const categoryRules = rules.filter((r) => r.category_id === newRule.category_id);
+      const maxOrder = Math.max(...categoryRules.map((r) => r.order_index), 0);
 
-    const { error } = await supabase.from('rules').insert({
-      ...newRule,
-      order_index: maxOrder + 1,
-    });
+      const response = await fetch('/api/rules/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...newRule,
+          order_index: maxOrder + 1,
+        }),
+      });
 
-    if (!error) {
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add rule');
+      }
+
       setNewRule({ category_id: '', number: '', title: '', content: '' });
       setShowAddRule(null);
       loadRules();
+    } catch (error) {
+      console.error('Error adding rule:', error);
     }
   }
 
   async function handleDeleteRule(id: string) {
     const confirmed = await showConfirm('Видалити це правило?', 'Підтвердження', { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' });
     if (!confirmed) return;
-    const { error } = await supabase.from('rules').delete().eq('id', id);
-    if (!error) loadRules();
+    try {
+      const response = await fetch(`/api/rules/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) loadRules();
+    } catch (error) {
+      console.error('Error deleting rule:', error);
+    }
   }
 
   async function moveCategory(id: string, direction: 'up' | 'down') {
@@ -153,16 +231,23 @@ export default function RulesManager() {
       updatedCategories[index],
     ];
 
-    await Promise.all(
-      updatedCategories.map((cat, idx) =>
-        supabase
-          .from('rule_categories')
-          .update({ order_index: idx + 1 })
-          .eq('id', cat.id)
-      )
-    );
+    try {
+      await Promise.all(
+        updatedCategories.map((cat, idx) =>
+          fetch(`/api/rules/categories/${cat.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ order_index: idx + 1 }),
+          })
+        )
+      );
 
-    loadCategories();
+      loadCategories();
+    } catch (error) {
+      console.error('Error moving category:', error);
+    }
   }
 
   return (

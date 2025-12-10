@@ -35,13 +35,19 @@ export default function RulesTest() {
 
     setLoading(true);
     try {
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('rules_passed')
-        .eq('id', user.id)
-        .maybeSingle();
+      const userResponse = await fetch(`/api/users/${user.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user?.token || ''}`,
+        },
+      });
 
-      if (userError) throw userError;
+      if (!userResponse.ok) {
+        throw new Error('Failed to fetch user data');
+      }
+
+      const userData = await userResponse.json();
 
       if (userData?.rules_passed) {
         await showAlert('Ви вже здали тест правил!', 'Інформація', 'info');
@@ -49,32 +55,46 @@ export default function RulesTest() {
         return;
       }
 
-      const { data: pendingSubmissions, error: pendingError } = await supabase
-        .from('rules_test_submissions')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('reviewed', false);
+      const submissionsResponse = await fetch('/api/test-submissions/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user?.token || ''}`,
+        },
+      });
 
-      if (pendingError) throw pendingError;
+      if (!submissionsResponse.ok) {
+        throw new Error('Failed to fetch submissions');
+      }
 
-      if (pendingSubmissions && pendingSubmissions.length > 0) {
+      const submissions = await submissionsResponse.json();
+      const pendingSubmissions = Array.isArray(submissions) ? submissions.filter((s: any) => !s.reviewed && s.user_id === user.id) : [];
+
+      if (pendingSubmissions.length > 0) {
         await showAlert('У вас вже є здача правил на розгляді. Дочекайтесь результату перед новою спробою.', 'Попередження', 'warning');
         return;
       }
 
-      const { data, error } = await supabase
-        .from('rules_questions')
-        .select('id, question_text')
-        .eq('is_active', true);
+      const questionsResponse = await fetch('/api/questions/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      if (error) throw error;
+      if (!questionsResponse.ok) {
+        throw new Error('Failed to fetch questions');
+      }
 
-      if (!data || data.length < 15) {
+      const allQuestions = await questionsResponse.json();
+      const activeQuestions = Array.isArray(allQuestions) ? allQuestions.filter((q: any) => q.is_active) : [];
+
+      if (!activeQuestions || activeQuestions.length < 15) {
         await showAlert('Недостатньо питань для проходження тесту. Зверніться до адміністрації.', 'Помилка', 'error');
         return;
       }
 
-      const shuffled = data.sort(() => Math.random() - 0.5).slice(0, 15);
+      const shuffled = activeQuestions.sort(() => Math.random() - 0.5).slice(0, 15);
       setQuestions(shuffled);
       setTestStarted(true);
     } catch (error) {
@@ -117,16 +137,26 @@ export default function RulesTest() {
         })),
       };
 
-      const { error: dbError } = await supabase.from('rules_test_submissions').insert({
-        user_id: user?.id,
-        steam_id: user?.steam_id,
-        discord_id: discordId,
-        questions: questions.map((q) => q.question_text),
-        answers: questions.map((_, i) => answers[i] || ''),
-        submitted_at: timestamp,
+      const dbResponse = await fetch('/api/test-submissions/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user?.token || ''}`,
+        },
+        body: JSON.stringify({
+          user_id: user?.id,
+          steam_id: user?.steam_id,
+          discord_id: discordId,
+          questions: questions.map((q) => q.question_text),
+          answers: questions.map((_, i) => answers[i] || ''),
+          submitted_at: timestamp,
+        }),
       });
 
-      if (dbError) throw dbError;
+      if (!dbResponse.ok) {
+        const errorData = await dbResponse.json();
+        throw new Error(errorData.message || 'Failed to submit test');
+      }
 
       try {
         const webhookUrl = import.meta.env.VITE_GOOGLE_SHEETS_WEBHOOK_URL;
