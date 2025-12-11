@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS rules (
 CREATE TABLE IF NOT EXISTS rules_questions (
   id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
   question_text TEXT NOT NULL,
-  correct_answer TEXT NOT NULL,
+  correct_answer TEXT DEFAULT NULL,
   incorrect_answers JSON DEFAULT NULL,
   category VARCHAR(255) DEFAULT NULL,
   difficulty ENUM('easy', 'medium', 'hard') DEFAULT 'medium',
