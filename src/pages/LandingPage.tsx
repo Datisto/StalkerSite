@@ -9,12 +9,10 @@ import { showAlert } from '../utils/modals';
 interface MediaVideo {
   id: string;
   title: string;
-  description: string;
-  video_url: string;
-  platform: 'youtube' | 'twitch';
+  url: string;
   thumbnail_url: string;
-  display_order: number;
-  is_visible: boolean;
+  order_index: number;
+  is_published: boolean;
 }
 
 function extractYouTubeId(url: string): string | null {
@@ -355,8 +353,8 @@ export default function LandingPage() {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {videos.map((video) => {
-                  const youtubeId = video.platform === 'youtube' ? extractYouTubeId(video.video_url) : null;
-                  const twitchId = video.platform === 'twitch' ? extractTwitchId(video.video_url) : null;
+                  const youtubeId = extractYouTubeId(video.url);
+                  const twitchId = extractTwitchId(video.url);
 
                   return (
                     <div
@@ -364,7 +362,7 @@ export default function LandingPage() {
                       className="bg-gray-800 bg-opacity-60 rounded-lg border border-gray-700 overflow-hidden hover:border-red-500 transition"
                     >
                       <div className="aspect-video bg-black">
-                        {video.platform === 'youtube' && youtubeId ? (
+                        {youtubeId ? (
                           <iframe
                             src={`https://www.youtube.com/embed/${youtubeId}`}
                             title={video.title}
@@ -372,7 +370,7 @@ export default function LandingPage() {
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                           />
-                        ) : video.platform === 'twitch' && twitchId ? (
+                        ) : twitchId ? (
                           <iframe
                             src={`https://player.twitch.tv/?video=${twitchId}&parent=${window.location.hostname}`}
                             title={video.title}
@@ -387,9 +385,6 @@ export default function LandingPage() {
                       </div>
                       <div className="p-4">
                         <h4 className="font-semibold text-lg mb-2">{video.title}</h4>
-                        {video.description && (
-                          <p className="text-sm text-gray-400">{video.description}</p>
-                        )}
                       </div>
                     </div>
                   );
