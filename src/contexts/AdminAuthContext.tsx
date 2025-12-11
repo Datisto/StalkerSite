@@ -6,6 +6,7 @@ interface Admin {
   username: string;
   role: 'super_admin' | 'moderator' | 'content_manager';
   permissions: string[];
+  token: string;
 }
 
 interface AdminAuthContextType {
@@ -27,12 +28,17 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   async function checkAdminSession() {
     const adminData = localStorage.getItem('admin_session');
-    const token = apiClient.getToken();
 
-    if (adminData && token) {
+    if (adminData) {
       try {
         const parsed = JSON.parse(adminData);
-        setAdmin(parsed);
+        if (parsed.token) {
+          apiClient.setToken(parsed.token);
+          setAdmin(parsed);
+        } else {
+          localStorage.removeItem('admin_session');
+          setAdmin(null);
+        }
       } catch (error) {
         localStorage.removeItem('admin_session');
         apiClient.setToken(null);
@@ -51,6 +57,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         username: response.admin.username,
         role: response.admin.role,
         permissions: response.admin.permissions || [],
+        token: response.token,
       };
 
       setAdmin(adminData);
