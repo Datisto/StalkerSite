@@ -23,9 +23,9 @@ router.post('/', authenticateAdmin, async (req, res) => {
       'INSERT INTO rules_questions (id, question_text, correct_answer, incorrect_answers, category, difficulty, is_active) VALUES (UUID(), ?, ?, ?, ?, ?, ?)',
       [
         question_text,
-        correct_answer,
-        JSON.stringify(incorrect_answers || []),
-        category,
+        correct_answer || null,
+        incorrect_answers ? JSON.stringify(incorrect_answers) : null,
+        category || null,
         difficulty || 'medium',
         is_active !== false
       ]
