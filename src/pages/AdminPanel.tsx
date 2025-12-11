@@ -68,14 +68,11 @@ interface User {
 interface MediaVideo {
   id: string;
   title: string;
-  description: string;
-  video_url: string;
-  platform: 'youtube' | 'twitch';
+  url: string;
   thumbnail_url: string;
-  display_order: number;
-  is_visible: boolean;
+  order_index: number;
+  is_published: boolean;
   created_at: string;
-  updated_at: string;
 }
 
 export default function AdminPanel() {
@@ -97,12 +94,10 @@ export default function AdminPanel() {
   const [isAddingVideo, setIsAddingVideo] = useState(false);
   const [videoFormData, setVideoFormData] = useState({
     title: '',
-    description: '',
-    video_url: '',
-    platform: 'youtube' as 'youtube' | 'twitch',
+    url: '',
     thumbnail_url: '',
-    display_order: 0,
-    is_visible: true,
+    order_index: 0,
+    is_published: true,
   });
 
   useEffect(() => {
@@ -565,12 +560,10 @@ export default function AdminPanel() {
     setEditingVideo(video);
     setVideoFormData({
       title: video.title,
-      description: video.description,
-      video_url: video.video_url,
-      platform: video.platform,
+      url: video.url,
       thumbnail_url: video.thumbnail_url,
-      display_order: video.display_order,
-      is_visible: video.is_visible,
+      order_index: video.order_index,
+      is_published: video.is_published,
     });
     setIsAddingVideo(true);
   }
@@ -580,12 +573,10 @@ export default function AdminPanel() {
     setIsAddingVideo(false);
     setVideoFormData({
       title: '',
-      description: '',
-      video_url: '',
-      platform: 'youtube',
+      url: '',
       thumbnail_url: '',
-      display_order: 0,
-      is_visible: true,
+      order_index: 0,
+      is_published: true,
     });
   }
 
@@ -1125,19 +1116,15 @@ export default function AdminPanel() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg mb-1">{video.title}</h3>
-                        <p className="text-sm text-gray-400 mb-2">{video.description}</p>
-                        <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-4 text-sm mt-2">
                           <span className="text-gray-500">
-                            Платформа: <span className="text-white">{video.platform}</span>
+                            Порядок: <span className="text-white">{video.order_index}</span>
                           </span>
-                          <span className="text-gray-500">
-                            Порядок: <span className="text-white">{video.display_order}</span>
-                          </span>
-                          <span className={video.is_visible ? 'text-green-400' : 'text-red-400'}>
-                            {video.is_visible ? 'Відображається' : 'Приховано'}
+                          <span className={video.is_published ? 'text-green-400' : 'text-red-400'}>
+                            {video.is_published ? 'Опубліковано' : 'Приховано'}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-2">URL: {video.video_url}</p>
+                        <p className="text-xs text-gray-500 mt-2">URL: {video.url}</p>
                       </div>
                       <div className="flex gap-2 ml-4">
                         <button
@@ -1533,41 +1520,14 @@ export default function AdminPanel() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Опис</label>
-                  <textarea
-                    value={videoFormData.description}
-                    onChange={(e) => setVideoFormData({ ...videoFormData, description: e.target.value })}
-                    rows={3}
-                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-                    placeholder="Введіть опис відео"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Платформа</label>
-                  <select
-                    value={videoFormData.platform}
-                    onChange={(e) => setVideoFormData({ ...videoFormData, platform: e.target.value as 'youtube' | 'twitch' })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                  >
-                    <option value="youtube">YouTube</option>
-                    <option value="twitch">Twitch</option>
-                  </select>
-                </div>
-
-                <div>
                   <label className="block text-sm font-medium mb-2">URL відео</label>
                   <input
                     type="text"
-                    value={videoFormData.video_url}
-                    onChange={(e) => setVideoFormData({ ...videoFormData, video_url: e.target.value })}
+                    value={videoFormData.url}
+                    onChange={(e) => setVideoFormData({ ...videoFormData, url: e.target.value })}
                     className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                    placeholder="https://www.youtube.com/watch?v=... або https://www.twitch.tv/videos/..."
+                    placeholder="https://www.youtube.com/watch?v=..."
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Для YouTube: https://www.youtube.com/watch?v=VIDEO_ID<br />
-                    Для Twitch: https://www.twitch.tv/videos/VIDEO_ID
-                  </p>
                 </div>
 
                 <div>
@@ -1585,8 +1545,8 @@ export default function AdminPanel() {
                   <label className="block text-sm font-medium mb-2">Порядок відображення</label>
                   <input
                     type="number"
-                    value={videoFormData.display_order}
-                    onChange={(e) => setVideoFormData({ ...videoFormData, display_order: parseInt(e.target.value) || 0 })}
+                    value={videoFormData.order_index}
+                    onChange={(e) => setVideoFormData({ ...videoFormData, order_index: parseInt(e.target.value) || 0 })}
                     className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                     placeholder="0"
                   />
@@ -1595,13 +1555,13 @@ export default function AdminPanel() {
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    id="is_visible"
-                    checked={videoFormData.is_visible}
-                    onChange={(e) => setVideoFormData({ ...videoFormData, is_visible: e.target.checked })}
+                    id="is_published"
+                    checked={videoFormData.is_published}
+                    onChange={(e) => setVideoFormData({ ...videoFormData, is_published: e.target.checked })}
                     className="w-4 h-4"
                   />
-                  <label htmlFor="is_visible" className="text-sm">
-                    Відображати на сайті
+                  <label htmlFor="is_published" className="text-sm">
+                    Опублікувати на сайті
                   </label>
                 </div>
 
