@@ -31,7 +31,7 @@ export async function authenticateUser(req, res, next) {
     req.user = user;
     next();
   } catch (error) {
-    console.error('Authentication error:', error);
+    console.error('Authentication error in authenticateUser:', error.message, error.code);
     return res.status(500).json({ error: 'Authentication failed' });
   }
 }

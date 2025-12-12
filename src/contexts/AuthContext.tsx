@@ -34,14 +34,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = apiClient.getToken();
 
       if (token) {
-        const userData = await apiClient.auth.getCurrentUser();
-        setUser({ ...userData, token });
+        try {
+          const userData = await apiClient.auth.getCurrentUser();
+          setUser({ ...userData, token });
+        } catch (error: any) {
+          if (error.message?.includes('401') || error.message?.includes('Invalid')) {
+            setUser(null);
+            apiClient.setToken(null);
+          } else {
+            throw error;
+          }
+        }
       } else {
         setUser(null);
       }
     } catch (error) {
       console.error('Error checking user:', error);
-      apiClient.setToken(null);
       setUser(null);
     } finally {
       setLoading(false);
