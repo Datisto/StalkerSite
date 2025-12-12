@@ -111,9 +111,10 @@ router.patch('/characters/:id', authenticateAdmin, async (req, res) => {
 
 router.get('/users', authenticateAdmin, async (req, res) => {
   try {
-    const users = await query('SELECT id, steam_id, steam_nickname, discord_username, is_banned, rules_passed, created_at, updated_at FROM users ORDER BY created_at DESC LIMIT 1000');
+    const users = await query('SELECT id, steam_id, steam_nickname, discord_username, discord_id, is_banned, ban_reason, rules_passed, created_at, last_login FROM users ORDER BY created_at DESC LIMIT 1000');
     res.json(users);
   } catch (error) {
+    console.error('Error loading users:', error);
     res.status(500).json({ error: error.message });
   }
 });
