@@ -104,7 +104,7 @@ export default function AdminLogin() {
             <code className="block mt-2 text-xs bg-black p-2 rounded text-green-400">
               INSERT INTO admins (username, password_hash, role, is_active)
               <br />
-              VALUES ('admin', 'admin123', 'super_admin', true);
+              VALUES ('admin', 'admin', 'super_admin', true);
             </code>
             <p className="text-xs text-gray-500 mt-2">
               Логін: <strong>admin</strong>, Пароль: <strong>admin123</strong>
