@@ -120,7 +120,7 @@ router.get('/users', authenticateAdmin, async (req, res) => {
 
 router.patch('/users/:id', authenticateAdmin, async (req, res) => {
   try {
-    const { is_banned, ban_reason } = req.body;
+    const { is_banned, ban_reason, discord_username, rules_passed } = req.body;
     const updates = [];
     const values = [];
 
@@ -132,6 +132,16 @@ router.patch('/users/:id', authenticateAdmin, async (req, res) => {
     if (ban_reason !== undefined) {
       updates.push('ban_reason = ?');
       values.push(ban_reason);
+    }
+
+    if (discord_username !== undefined) {
+      updates.push('discord_username = ?');
+      values.push(discord_username);
+    }
+
+    if (rules_passed !== undefined) {
+      updates.push('rules_passed = ?');
+      values.push(rules_passed);
     }
 
     if (updates.length === 0) {

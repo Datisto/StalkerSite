@@ -6,11 +6,16 @@ const router = express.Router();
 
 router.post('/', optionalAuth, async (req, res) => {
   try {
-    const { steam_id, answers, score } = req.body;
+    const { steam_id, discord_id, questions, answers, score } = req.body;
+
+    const submissionData = {
+      questions: questions || [],
+      answers: answers || []
+    };
 
     await query(
-      'INSERT INTO rules_test_submissions (id, user_id, steam_id, answers, score) VALUES (UUID(), ?, ?, ?, ?)',
-      [req.user?.id || null, steam_id, JSON.stringify(answers), score]
+      'INSERT INTO rules_test_submissions (id, user_id, steam_id, discord_id, answers, score) VALUES (UUID(), ?, ?, ?, ?, ?)',
+      [req.user?.id || null, steam_id, discord_id || null, JSON.stringify(submissionData), score || null]
     );
 
     res.status(201).json({ success: true });
