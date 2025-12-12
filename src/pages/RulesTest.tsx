@@ -35,7 +35,7 @@ export default function RulesTest() {
 
     setLoading(true);
     try {
-      const userResponse = await fetch(`/api/users/${user.id}`, {
+      const userResponse = await fetch(`/api/users/${user.steam_id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ export default function RulesTest() {
         return;
       }
 
-      const submissionsResponse = await fetch('/api/test-submissions/', {
+      const submissionsResponse = await fetch(`/api/test-submissions?steam_id=${user.steam_id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ export default function RulesTest() {
       }
 
       const submissions = await submissionsResponse.json();
-      const pendingSubmissions = Array.isArray(submissions) ? submissions.filter((s: any) => !s.reviewed && s.user_id === user.id) : [];
+      const pendingSubmissions = Array.isArray(submissions) ? submissions.filter((s: any) => s.approved === null && s.reviewed_at === null) : [];
 
       if (pendingSubmissions.length > 0) {
         await showAlert('У вас вже є здача правил на розгляді. Дочекайтесь результату перед новою спробою.', 'Попередження', 'warning');
