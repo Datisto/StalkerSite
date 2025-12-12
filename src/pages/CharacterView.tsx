@@ -91,6 +91,10 @@ export default function CharacterView() {
         return;
       }
 
+      if (data.character_traits && typeof data.character_traits === 'string') {
+        data.character_traits = JSON.parse(data.character_traits);
+      }
+
       console.log('CharacterView: Access granted');
       setCharacter(data);
     } catch (error) {

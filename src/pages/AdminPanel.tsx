@@ -131,7 +131,13 @@ export default function AdminPanel() {
 
       const data = await response.json();
       console.log('AdminPanel: Loaded characters:', data);
-      setCharacters(data || []);
+      const parsedData = (data || []).map((char: any) => ({
+        ...char,
+        character_traits: typeof char.character_traits === 'string'
+          ? JSON.parse(char.character_traits)
+          : char.character_traits,
+      }));
+      setCharacters(parsedData);
     } catch (error) {
       console.error('Error loading characters:', error);
     } finally {
@@ -847,7 +853,13 @@ export default function AdminPanel() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => {
-                              setSelectedCharacter(character);
+                              const charWithParsedTraits = {
+                                ...character,
+                                character_traits: typeof character.character_traits === 'string'
+                                  ? JSON.parse(character.character_traits)
+                                  : character.character_traits,
+                              };
+                              setSelectedCharacter(charWithParsedTraits);
                               setEditMode(false);
                             }}
                             className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition"
