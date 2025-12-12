@@ -38,12 +38,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const userData = await apiClient.auth.getCurrentUser();
           setUser({ ...userData, token });
         } catch (error: any) {
-          if (error.message?.includes('401') || error.message?.includes('Invalid')) {
-            setUser(null);
-            apiClient.setToken(null);
-          } else {
-            throw error;
-          }
+          setUser(null);
+          apiClient.setToken(null);
         }
       } else {
         setUser(null);

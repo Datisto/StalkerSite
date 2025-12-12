@@ -15,6 +15,10 @@ export async function authenticateUser(req, res, next) {
       return res.status(401).json({ error: 'Invalid token' });
     }
 
+    if (!decoded.steam_id) {
+      return res.status(401).json({ error: 'Invalid token type' });
+    }
+
     const [user] = await query(
       'SELECT * FROM users WHERE steam_id = ? LIMIT 1',
       [decoded.steam_id]
@@ -72,7 +76,7 @@ export function optionalAuth(req, res, next) {
 
   if (token) {
     const decoded = verifyToken(token);
-    if (decoded) {
+    if (decoded && decoded.steam_id) {
       query('SELECT * FROM users WHERE steam_id = ? LIMIT 1', [decoded.steam_id])
         .then(([user]) => {
           if (user && !user.is_banned) {
