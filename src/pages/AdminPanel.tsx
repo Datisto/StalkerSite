@@ -934,16 +934,16 @@ export default function AdminPanel() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-semibold">
-                          {test.users?.steam_nickname || 'Невідомий користувач'}
+                          {test.steam_nickname || 'Невідомий користувач'}
                         </p>
                         <p className="text-sm text-gray-400">Steam ID: {test.steam_id}</p>
                         <p className="text-sm text-gray-400">Discord ID: {test.discord_id}</p>
                         <p className="text-xs text-gray-500">
-                          {new Date(test.submitted_at).toLocaleString('uk-UA')}
+                          {new Date(test.created_at).toLocaleString('uk-UA')}
                         </p>
                       </div>
                       <div className="flex flex-col items-end gap-2">
-                        {test.reviewed ? (
+                        {test.reviewed_at ? (
                           test.approved ? (
                             <span className="px-3 py-1 bg-green-600 rounded text-sm">Схвалено</span>
                           ) : (
@@ -1595,7 +1595,7 @@ export default function AdminPanel() {
                   <p className="text-gray-400">Steam ID: {selectedTest.steam_id}</p>
                   <p className="text-gray-400">Discord ID: {selectedTest.discord_id}</p>
                   <p className="text-sm text-gray-500">
-                    Відправлено: {new Date(selectedTest.submitted_at).toLocaleString('uk-UA')}
+                    Відправлено: {new Date(selectedTest.created_at).toLocaleString('uk-UA')}
                   </p>
                 </div>
                 <button
@@ -1606,7 +1606,7 @@ export default function AdminPanel() {
                 </button>
               </div>
 
-              {!selectedTest.reviewed && (
+              {!selectedTest.reviewed_at && (
                 <div className="mb-6 bg-blue-900 bg-opacity-30 border border-blue-700 p-4 rounded">
                   <p className="text-blue-200 font-semibold mb-2">
                     Правильно: {questionGrades.filter(g => g === true).length}/{questionGrades.length}
@@ -1621,9 +1621,9 @@ export default function AdminPanel() {
                 {selectedTest.questions && selectedTest.questions.map((question: string, index: number) => (
                   <div
                     key={index}
-                    onClick={() => !selectedTest.reviewed && toggleQuestionGrade(index)}
+                    onClick={() => !selectedTest.reviewed_at && toggleQuestionGrade(index)}
                     className={`p-4 rounded border transition ${
-                      selectedTest.reviewed
+                      selectedTest.reviewed_at
                         ? 'bg-gray-900 bg-opacity-60 border-gray-700'
                         : questionGrades[index]
                         ? 'bg-green-900 bg-opacity-30 border-green-600 cursor-pointer hover:bg-green-900 hover:bg-opacity-40'
@@ -1632,12 +1632,12 @@ export default function AdminPanel() {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <p className="font-semibold">Питання {index + 1}:</p>
-                      {!selectedTest.reviewed && (
+                      {!selectedTest.reviewed_at && (
                         <span className={`text-lg font-bold ${questionGrades[index] ? 'text-green-400' : 'text-red-400'}`}>
                           {questionGrades[index] ? '✓' : '✗'}
                         </span>
                       )}
-                      {selectedTest.reviewed && selectedTest.question_grades && (
+                      {selectedTest.reviewed_at && selectedTest.question_grades && (
                         <span className={`text-lg font-bold ${selectedTest.question_grades[index] ? 'text-green-400' : 'text-red-400'}`}>
                           {selectedTest.question_grades[index] ? '✓' : '✗'}
                         </span>
@@ -1652,7 +1652,7 @@ export default function AdminPanel() {
                 ))}
               </div>
 
-              {!selectedTest.reviewed && (
+              {!selectedTest.reviewed_at && (
                 <div className="flex gap-4 pt-6 mt-6 border-t border-gray-700">
                   <button
                     onClick={() => saveTestReview(selectedTest.id, true)}
@@ -1678,7 +1678,7 @@ export default function AdminPanel() {
                 </div>
               )}
 
-              {selectedTest.reviewed && (
+              {selectedTest.reviewed_at && (
                 <div className="pt-6 mt-6 border-t border-gray-700">
                   <p className="text-center mb-4">
                     {selectedTest.approved ? (
@@ -1694,9 +1694,9 @@ export default function AdminPanel() {
                     <Trash2 className="w-5 h-5" />
                     Видалити здачу
                   </button>
-                  {selectedTest.review_notes && (
+                  {selectedTest.feedback && (
                     <p className="text-gray-400 text-sm text-center mt-2">
-                      Примітки: {selectedTest.review_notes}
+                      Примітки: {selectedTest.feedback}
                     </p>
                   )}
                 </div>

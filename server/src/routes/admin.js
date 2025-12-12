@@ -164,13 +164,19 @@ router.patch('/users/:id', authenticateAdmin, async (req, res) => {
 router.get('/test-submissions', authenticateAdmin, async (req, res) => {
   try {
     const submissions = await query(`
-      SELECT rts.id, rts.user_id, rts.steam_id, rts.score, rts.created_at, rts.reviewed_at, u.steam_nickname
+      SELECT rts.id, rts.user_id, rts.steam_id, rts.discord_id, rts.answers, rts.score, rts.created_at, rts.reviewed_at, rts.approved, rts.feedback, rts.question_grades, u.steam_nickname
       FROM rules_test_submissions rts
       LEFT JOIN users u ON rts.user_id = u.id
       ORDER BY rts.created_at DESC
       LIMIT 500
     `);
-    res.json(submissions);
+    const parsedSubmissions = submissions.map((sub) => ({
+      ...sub,
+      questions: sub.answers ? JSON.parse(sub.answers).questions : [],
+      answers: sub.answers ? JSON.parse(sub.answers).answers : [],
+      question_grades: sub.question_grades ? JSON.parse(sub.question_grades) : []
+    }));
+    res.json(parsedSubmissions);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
