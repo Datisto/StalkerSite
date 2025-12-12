@@ -1342,8 +1342,7 @@ export default function AdminPanel() {
                         <option value="">Виберіть фракцію</option>
                         <option value="Військовий">Військовий</option>
                         <option value="Учений">Учений</option>
-                        <option value="Мирний">Мирний</option>
-                        <option value="Приватний військовий">Приватний військовий</option>
+                        <option value="Сталкер">Сталкер</option>
                       </select>
                     </div>
                     <div>
