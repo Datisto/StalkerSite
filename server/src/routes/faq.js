@@ -19,7 +19,12 @@ async function refreshFaqCache() {
 router.get('/categories', async (req, res) => {
   try {
     await refreshFaqCache();
-    res.json(faqCache.categories);
+    const categories = faqCache.categories.map((cat) => ({
+      ...cat,
+      title: cat.name,
+      slug: cat.name.toLowerCase().replace(/\s+/g, '-'),
+    }));
+    res.json(categories);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -28,7 +33,11 @@ router.get('/categories', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     await refreshFaqCache();
-    res.json(faqCache.items);
+    const items = faqCache.items.map((item) => ({
+      ...item,
+      is_visible: item.is_published,
+    }));
+    res.json(items);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -36,11 +45,12 @@ router.get('/', async (req, res) => {
 
 router.post('/categories', authenticateAdmin, async (req, res) => {
   try {
-    const { name, order_index } = req.body;
+    const { name, title, order_index } = req.body;
+    const categoryName = title || name;
 
     await query(
       'INSERT INTO faq_categories (id, name, order_index) VALUES (UUID(), ?, ?)',
-      [name, order_index || 0]
+      [categoryName, order_index || 0]
     );
 
     faqCache.lastUpdate = 0;
@@ -50,13 +60,58 @@ router.post('/categories', authenticateAdmin, async (req, res) => {
   }
 });
 
+router.patch('/categories/:id', authenticateAdmin, async (req, res) => {
+  try {
+    const { name, title, order_index } = req.body;
+    const updates = [];
+    const values = [];
+
+    if (title !== undefined || name !== undefined) {
+      updates.push('name = ?');
+      values.push(title || name);
+    }
+
+    if (order_index !== undefined) {
+      updates.push('order_index = ?');
+      values.push(order_index);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    values.push(req.params.id);
+
+    await query(
+      `UPDATE faq_categories SET ${updates.join(', ')} WHERE id = ?`,
+      values
+    );
+
+    faqCache.lastUpdate = 0;
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete('/categories/:id', authenticateAdmin, async (req, res) => {
+  try {
+    await query('DELETE FROM faq_categories WHERE id = ?', [req.params.id]);
+    faqCache.lastUpdate = 0;
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.post('/', authenticateAdmin, async (req, res) => {
   try {
-    const { category_id, question, answer, order_index, is_published } = req.body;
+    const { category_id, question, answer, order_index, is_published, is_visible } = req.body;
+    const published = is_visible !== undefined ? is_visible : is_published !== false;
 
     await query(
       'INSERT INTO faq_items (id, category_id, question, answer, order_index, is_published) VALUES (UUID(), ?, ?, ?, ?, ?)',
-      [category_id, question, answer, order_index || 0, is_published !== false]
+      [category_id, question, answer, order_index || 0, published]
     );
 
     faqCache.lastUpdate = 0;
@@ -68,7 +123,7 @@ router.post('/', authenticateAdmin, async (req, res) => {
 
 router.patch('/:id', authenticateAdmin, async (req, res) => {
   try {
-    const { question, answer, order_index, is_published } = req.body;
+    const { question, answer, order_index, is_published, is_visible } = req.body;
     const updates = [];
     const values = [];
 
@@ -87,9 +142,9 @@ router.patch('/:id', authenticateAdmin, async (req, res) => {
       values.push(order_index);
     }
 
-    if (is_published !== undefined) {
+    if (is_visible !== undefined || is_published !== undefined) {
       updates.push('is_published = ?');
-      values.push(is_published);
+      values.push(is_visible !== undefined ? is_visible : is_published);
     }
 
     if (updates.length === 0) {

@@ -19,7 +19,12 @@ async function refreshRulesCache() {
 router.get('/categories', async (req, res) => {
   try {
     await refreshRulesCache();
-    res.json(rulesCache.categories);
+    const categories = rulesCache.categories.map((cat) => ({
+      ...cat,
+      title: cat.name,
+      slug: cat.name.toLowerCase().replace(/\s+/g, '-'),
+    }));
+    res.json(categories);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -36,15 +41,60 @@ router.get('/', async (req, res) => {
 
 router.post('/categories', authenticateAdmin, async (req, res) => {
   try {
-    const { name, order_index } = req.body;
+    const { name, title, order_index } = req.body;
+    const categoryName = title || name;
 
     await query(
       'INSERT INTO rules_categories (id, name, order_index) VALUES (UUID(), ?, ?)',
-      [name, order_index || 0]
+      [categoryName, order_index || 0]
     );
 
     rulesCache.lastUpdate = 0;
     res.status(201).json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.patch('/categories/:id', authenticateAdmin, async (req, res) => {
+  try {
+    const { name, title, order_index } = req.body;
+    const updates = [];
+    const values = [];
+
+    if (title !== undefined || name !== undefined) {
+      updates.push('name = ?');
+      values.push(title || name);
+    }
+
+    if (order_index !== undefined) {
+      updates.push('order_index = ?');
+      values.push(order_index);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    values.push(req.params.id);
+
+    await query(
+      `UPDATE rules_categories SET ${updates.join(', ')} WHERE id = ?`,
+      values
+    );
+
+    rulesCache.lastUpdate = 0;
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete('/categories/:id', authenticateAdmin, async (req, res) => {
+  try {
+    await query('DELETE FROM rules_categories WHERE id = ?', [req.params.id]);
+    rulesCache.lastUpdate = 0;
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
