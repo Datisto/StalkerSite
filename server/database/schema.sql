@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS characters (
   psychological_portrait TEXT,
   character_traits JSON DEFAULT NULL,
   phobias TEXT DEFAULT NULL,
-  values TEXT DEFAULT NULL,
+  character_values TEXT DEFAULT NULL,
   education TEXT DEFAULT NULL,
   scientific_profile TEXT DEFAULT NULL,
   research_motivation TEXT DEFAULT NULL,

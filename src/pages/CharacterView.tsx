@@ -27,7 +27,7 @@ interface Character {
   physical_features: string;
   character_traits: string[];
   phobias: string;
-  values: string;
+  character_values: string;
   faction: string;
   education: string;
   scientific_profile: string;
@@ -319,10 +319,10 @@ export default function CharacterView() {
                   </div>
                 </div>
               )}
-              {character.values && (
+              {character.character_values && (
                 <div className="bg-gray-900 p-4 rounded mb-4">
                   <p className="text-sm text-gray-400 mb-2">Життєві цінності</p>
-                  <p className="text-gray-300 whitespace-pre-wrap">{character.values}</p>
+                  <p className="text-gray-300 whitespace-pre-wrap">{character.character_values}</p>
                 </div>
               )}
               {character.phobias && (

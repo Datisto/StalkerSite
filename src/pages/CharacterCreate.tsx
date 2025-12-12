@@ -40,7 +40,7 @@ interface CharacterData {
   physical_features: string;
   character_traits: string[];
   phobias: string;
-  values: string;
+  character_values: string;
   faction: string;
   education: string;
   scientific_profile: string;
@@ -83,7 +83,7 @@ export default function CharacterCreate() {
     physical_features: '',
     character_traits: [],
     phobias: '',
-    values: '',
+    character_values: '',
     faction: '',
     education: '',
     scientific_profile: '',
@@ -164,7 +164,7 @@ export default function CharacterCreate() {
         physical_features: data.physical_features || '',
         character_traits: Array.isArray(data.character_traits) ? data.character_traits : (typeof data.character_traits === 'string' ? JSON.parse(data.character_traits) : []),
         phobias: data.phobias || '',
-        values: data.values || '',
+        character_values: data.character_values || '',
         faction: data.faction || '',
         education: data.education || '',
         scientific_profile: data.scientific_profile || '',
@@ -325,7 +325,7 @@ export default function CharacterCreate() {
         physical_features: formData.physical_features,
         character_traits: formData.character_traits,
         phobias: formData.phobias,
-        values: formData.values,
+        character_values: formData.character_values,
         faction: formData.faction,
         education: formData.education || null,
         scientific_profile: formData.scientific_profile || null,
@@ -823,8 +823,8 @@ export default function CharacterCreate() {
                   Життєві цінності / Переконання *
                 </label>
                 <textarea
-                  value={formData.values}
-                  onChange={(e) => updateField('values', e.target.value)}
+                  value={formData.character_values}
+                  onChange={(e) => updateField('character_values', e.target.value)}
                   rows={4}
                   className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
                   placeholder="У що вірить персонаж, що для нього важливо..."

@@ -1375,11 +1375,11 @@ export default function AdminPanel() {
                     </div>
                   )}
 
-                  {selectedCharacter.values && (
+                  {selectedCharacter.character_values && (
                     <div>
                       <p className="text-sm text-gray-400 mb-2">Життєві цінності</p>
                       <div className="bg-gray-900 p-3 rounded border border-gray-700">
-                        <p>{selectedCharacter.values}</p>
+                        <p>{selectedCharacter.character_values}</p>
                       </div>
                     </div>
                   )}
