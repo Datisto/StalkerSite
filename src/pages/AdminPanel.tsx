@@ -1208,8 +1208,8 @@ export default function AdminPanel() {
               </div>
 
               {editMode ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-2">Ім'я</label>
                       <input
@@ -1228,25 +1228,183 @@ export default function AdminPanel() {
                         className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                       />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">По батькові</label>
+                      <input
+                        type="text"
+                        value={editData.patronymic || ''}
+                        onChange={(e) => setEditData({ ...editData, patronymic: e.target.value })}
+                        className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Кличка</label>
+                      <input
+                        type="text"
+                        value={editData.nickname || ''}
+                        onChange={(e) => setEditData({ ...editData, nickname: e.target.value })}
+                        className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Discord ID</label>
+                      <input
+                        type="text"
+                        value={editData.discord_id || ''}
+                        onChange={(e) => setEditData({ ...editData, discord_id: e.target.value })}
+                        className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Вік</label>
+                      <input
+                        type="number"
+                        value={editData.age || ''}
+                        onChange={(e) => setEditData({ ...editData, age: parseInt(e.target.value) || 0 })}
+                        className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Стать</label>
+                      <select
+                        value={editData.gender || ''}
+                        onChange={(e) => setEditData({ ...editData, gender: e.target.value })}
+                        className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                      >
+                        <option value="male">Чоловік</option>
+                        <option value="female">Жінка</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Зріст (см)</label>
+                      <input
+                        type="number"
+                        value={editData.height || ''}
+                        onChange={(e) => setEditData({ ...editData, height: parseInt(e.target.value) || 0 })}
+                        className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Вага (кг)</label>
+                      <input
+                        type="number"
+                        value={editData.weight || ''}
+                        onChange={(e) => setEditData({ ...editData, weight: parseInt(e.target.value) || 0 })}
+                        className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Тип тіла</label>
+                      <input
+                        type="text"
+                        value={editData.body_type || ''}
+                        onChange={(e) => setEditData({ ...editData, body_type: e.target.value })}
+                        className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Колір волосся</label>
+                      <input
+                        type="text"
+                        value={editData.hair_color || ''}
+                        onChange={(e) => setEditData({ ...editData, hair_color: e.target.value })}
+                        className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Колір очей</label>
+                      <input
+                        type="text"
+                        value={editData.eye_color || ''}
+                        onChange={(e) => setEditData({ ...editData, eye_color: e.target.value })}
+                        className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Фракція</label>
+                      <select
+                        value={editData.faction || ''}
+                        onChange={(e) => setEditData({ ...editData, faction: e.target.value })}
+                        className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                      >
+                        <option value="">Виберіть фракцію</option>
+                        <option value="Військовий">Військовий</option>
+                        <option value="Учений">Учений</option>
+                        <option value="Мирний">Мирний</option>
+                        <option value="Приватний військовий">Приватний військовий</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Модель обличчя</label>
+                      <input
+                        type="text"
+                        value={editData.face_model || ''}
+                        onChange={(e) => setEditData({ ...editData, face_model: e.target.value })}
+                        className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                      />
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Кличка</label>
-                    <input
-                      type="text"
-                      value={editData.nickname || ''}
-                      onChange={(e) => setEditData({ ...editData, nickname: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                    <label className="block text-sm font-medium mb-2">Особливості обличчя</label>
+                    <textarea
+                      value={editData.special_features || ''}
+                      onChange={(e) => setEditData({ ...editData, special_features: e.target.value })}
+                      rows={3}
+                      className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Discord ID</label>
-                    <input
-                      type="text"
-                      value={editData.discord_id || ''}
-                      onChange={(e) => setEditData({ ...editData, discord_id: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                    <label className="block text-sm font-medium mb-2">Фізичні прикмети</label>
+                    <textarea
+                      value={editData.physical_features || ''}
+                      onChange={(e) => setEditData({ ...editData, physical_features: e.target.value })}
+                      rows={3}
+                      className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Риси характеру</label>
+                    <textarea
+                      value={Array.isArray(editData.character_traits) ? editData.character_traits.join(', ') : ''}
+                      onChange={(e) => setEditData({ ...editData, character_traits: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })}
+                      rows={3}
+                      className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
+                      placeholder="Розділіть комами"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Фобії / Слабкості</label>
+                    <textarea
+                      value={editData.phobias || ''}
+                      onChange={(e) => setEditData({ ...editData, phobias: e.target.value })}
+                      rows={3}
+                      className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Життєві цінності</label>
+                    <textarea
+                      value={editData.character_values || ''}
+                      onChange={(e) => setEditData({ ...editData, character_values: e.target.value })}
+                      rows={3}
+                      className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
                     />
                   </div>
 
@@ -1255,12 +1413,32 @@ export default function AdminPanel() {
                     <textarea
                       value={editData.backstory || ''}
                       onChange={(e) => setEditData({ ...editData, backstory: e.target.value })}
-                      rows={8}
+                      rows={6}
                       className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
                     />
                   </div>
 
-                  <div className="flex gap-2 pt-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Мотивація приходу в Зону</label>
+                    <textarea
+                      value={editData.zone_motivation || ''}
+                      onChange={(e) => setEditData({ ...editData, zone_motivation: e.target.value })}
+                      rows={4}
+                      className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Цілі персонажа</label>
+                    <textarea
+                      value={editData.character_goals || ''}
+                      onChange={(e) => setEditData({ ...editData, character_goals: e.target.value })}
+                      rows={4}
+                      className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
+                    />
+                  </div>
+
+                  <div className="flex gap-2 pt-4 sticky bottom-0 bg-gray-800 -mx-6 px-6 py-4">
                     <button
                       onClick={saveCharacterEdits}
                       className="flex-1 inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 py-3 rounded font-semibold transition"
