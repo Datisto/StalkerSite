@@ -49,7 +49,7 @@ router.post('/login', async (req, res) => {
 router.get('/characters', authenticateAdmin, async (req, res) => {
   try {
     const { status } = req.query;
-    let sql = 'SELECT c.id, c.user_id, c.steam_id, c.status, c.name, c.surname, c.patronymic, c.nickname, c.age, c.gender, c.face_model, c.origin_country, c.citizenship, c.faction, c.biography, c.appearance, c.psychological_portrait, c.character_traits, c.skills, c.inventory, c.rejection_reason, c.admin_notes, c.created_at, c.updated_at, c.submitted_at, c.approved_at, u.steam_nickname FROM characters c JOIN users u ON c.user_id = u.id';
+    let sql = 'SELECT c.id, c.user_id, c.steam_id, c.status, c.name, c.surname, c.patronymic, c.nickname, c.age, c.gender, c.face_model, c.origin_country, c.citizenship, c.faction, c.biography, c.appearance, c.psychological_portrait, c.character_traits, c.skills, c.inventory, c.rejection_reason, c.admin_notes, c.created_at, c.updated_at, c.submitted_at, c.approved_at, u.steam_nickname FROM characters c LEFT JOIN users u ON c.user_id = u.id';
     const params = [];
 
     if (status) {

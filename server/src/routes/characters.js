@@ -78,6 +78,15 @@ router.post('/', authenticateUser, async (req, res) => {
       }
     }
 
+    const [user] = await query(
+      'SELECT id FROM users WHERE steam_id = ? LIMIT 1',
+      [req.user.steam_id]
+    );
+
+    if (!user) {
+      return res.status(400).json({ error: 'User not found' });
+    }
+
     await query(
       `INSERT INTO characters (
         id, user_id, steam_id, status, name, surname, patronymic, nickname, age, gender,
@@ -85,7 +94,7 @@ router.post('/', authenticateUser, async (req, res) => {
         appearance, psychological_portrait, character_traits, skills, inventory
       ) VALUES (UUID(), ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        req.user.id || null,
+        user.id,
         req.user.steam_id,
         name || null,
         surname || null,
