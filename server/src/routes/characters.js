@@ -63,8 +63,14 @@ router.post('/', authenticateUser, async (req, res) => {
 
     const {
       name, surname, patronymic, nickname, age, gender, face_model,
+      hair_color, eye_color, beard_style, special_features,
+      height, weight, body_type, physical_features,
       origin_country, citizenship, faction, biography,
       appearance, psychological_portrait, character_traits,
+      phobias, values, discord_id,
+      education, scientific_profile, research_motivation,
+      military_experience, military_rank, military_join_reason,
+      backstory, zone_motivation, character_goals,
       skills, inventory
     } = req.body;
 
@@ -90,9 +96,16 @@ router.post('/', authenticateUser, async (req, res) => {
     await query(
       `INSERT INTO characters (
         id, user_id, steam_id, status, name, surname, patronymic, nickname, age, gender,
-        face_model, origin_country, citizenship, faction, biography,
-        appearance, psychological_portrait, character_traits, skills, inventory
-      ) VALUES (UUID(), ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        face_model, hair_color, eye_color, beard_style, special_features,
+        height, weight, body_type, physical_features,
+        origin_country, citizenship, faction, biography,
+        appearance, psychological_portrait, character_traits,
+        phobias, values, discord_id,
+        education, scientific_profile, research_motivation,
+        military_experience, military_rank, military_join_reason,
+        backstory, zone_motivation, character_goals,
+        skills, inventory
+      ) VALUES (UUID(), ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         user.id,
         req.user.steam_id,
@@ -103,6 +116,14 @@ router.post('/', authenticateUser, async (req, res) => {
         age || null,
         gender || null,
         face_model || null,
+        hair_color || null,
+        eye_color || null,
+        beard_style || null,
+        special_features || null,
+        height || null,
+        weight || null,
+        body_type || null,
+        physical_features || null,
         origin_country || null,
         citizenship || null,
         faction || null,
@@ -110,6 +131,18 @@ router.post('/', authenticateUser, async (req, res) => {
         appearance || null,
         psychological_portrait || null,
         JSON.stringify(character_traits || []),
+        phobias || null,
+        values || null,
+        discord_id || null,
+        education || null,
+        scientific_profile || null,
+        research_motivation || null,
+        military_experience || null,
+        military_rank || null,
+        military_join_reason || null,
+        backstory || null,
+        zone_motivation || null,
+        character_goals || null,
         JSON.stringify(skills || []),
         JSON.stringify(inventory || [])
       ]
@@ -142,8 +175,14 @@ router.patch('/:id', authenticateUser, async (req, res) => {
 
     const allowedFields = [
       'name', 'surname', 'patronymic', 'nickname', 'age', 'gender', 'face_model',
+      'hair_color', 'eye_color', 'beard_style', 'special_features',
+      'height', 'weight', 'body_type', 'physical_features',
       'origin_country', 'citizenship', 'faction', 'biography',
       'appearance', 'psychological_portrait', 'character_traits',
+      'phobias', 'values', 'discord_id',
+      'education', 'scientific_profile', 'research_motivation',
+      'military_experience', 'military_rank', 'military_join_reason',
+      'backstory', 'zone_motivation', 'character_goals',
       'skills', 'inventory', 'status', 'submitted_at'
     ];
 
