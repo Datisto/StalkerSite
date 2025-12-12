@@ -85,10 +85,10 @@ router.post('/', authenticateUser, async (req, res) => {
         appearance, psychological_portrait, character_traits, skills, inventory
       ) VALUES (UUID(), ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        req.user.id, req.user.steam_id, name, surname, patronymic, nickname, age, gender,
+        req.user.id || null, req.user.steam_id, name, surname, patronymic, nickname, age, gender,
         face_model, origin_country, citizenship, faction, biography,
         appearance, psychological_portrait,
-        JSON.stringify(character_traits), JSON.stringify(skills), JSON.stringify(inventory)
+        JSON.stringify(character_traits || []), JSON.stringify(skills || []), JSON.stringify(inventory || [])
       ]
     );
 
