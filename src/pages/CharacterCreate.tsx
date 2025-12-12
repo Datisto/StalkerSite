@@ -270,7 +270,7 @@ export default function CharacterCreate() {
       case 3:
         return formData.height && formData.weight && formData.body_type;
       case 4:
-        return formData.character_traits.length >= 3 && formData.values;
+        return formData.character_traits.length >= 3 && formData.character_values;
       case 5:
         if (formData.faction === 'Учений') {
           return (
