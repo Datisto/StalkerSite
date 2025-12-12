@@ -271,7 +271,7 @@ export default function RulesTest() {
                 <ul className="space-y-2 text-gray-300">
                   <li className="flex items-start gap-2">
                     <span className="text-red-500 mt-1">•</span>
-                    <span>Вам буде надано <strong>10 випадкових питань</strong> з банку правил</span>
+                    <span>Вам буде надано <strong>15 випадкових питань</strong> з банку правил</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-red-500 mt-1">•</span>
