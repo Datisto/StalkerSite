@@ -170,14 +170,44 @@ router.get('/test-submissions', authenticateAdmin, async (req, res) => {
       ORDER BY rts.created_at DESC
       LIMIT 500
     `);
-    const parsedSubmissions = submissions.map((sub) => ({
-      ...sub,
-      questions: sub.answers ? JSON.parse(sub.answers).questions : [],
-      answers: sub.answers ? JSON.parse(sub.answers).answers : [],
-      question_grades: sub.question_grades ? JSON.parse(sub.question_grades) : []
-    }));
+    const parsedSubmissions = submissions.map((sub) => {
+      let parsedAnswers = { questions: [], answers: [] };
+      try {
+        if (sub.answers) {
+          parsedAnswers = JSON.parse(sub.answers);
+        }
+      } catch (e) {
+        console.error('Error parsing answers for submission', sub.id, e);
+      }
+
+      let parsedQuestionGrades = [];
+      try {
+        if (sub.question_grades) {
+          parsedQuestionGrades = JSON.parse(sub.question_grades);
+        }
+      } catch (e) {
+        console.error('Error parsing question_grades for submission', sub.id, e);
+      }
+
+      return {
+        id: sub.id,
+        user_id: sub.user_id,
+        steam_id: sub.steam_id,
+        discord_id: sub.discord_id,
+        steam_nickname: sub.steam_nickname,
+        questions: parsedAnswers.questions || [],
+        answers: parsedAnswers.answers || [],
+        question_grades: parsedQuestionGrades,
+        score: sub.score,
+        created_at: sub.created_at,
+        reviewed_at: sub.reviewed_at,
+        approved: sub.approved,
+        feedback: sub.feedback
+      };
+    });
     res.json(parsedSubmissions);
   } catch (error) {
+    console.error('Error loading test submissions:', error);
     res.status(500).json({ error: error.message });
   }
 });
