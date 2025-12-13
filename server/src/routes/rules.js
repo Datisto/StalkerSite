@@ -11,10 +11,20 @@ let migrationDone = false;
 async function ensureNumberColumn() {
   if (migrationDone) return;
   try {
-    await query(`ALTER TABLE rules ADD COLUMN IF NOT EXISTS number VARCHAR(50) DEFAULT NULL AFTER id`);
+    const result = await query(
+      `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_NAME='rules' AND COLUMN_NAME='number' AND TABLE_SCHEMA=DATABASE()`
+    );
     migrationDone = true;
+    if (result.length === 0) {
+      try {
+        await query(`ALTER TABLE rules ADD COLUMN number VARCHAR(50) DEFAULT NULL AFTER id`);
+      } catch (e) {
+        if (!e.message.includes('Duplicate column')) throw e;
+      }
+    }
   } catch (error) {
-    console.error('Migration error (might already exist):', error.message);
+    console.error('Migration error:', error.message);
   }
 }
 
