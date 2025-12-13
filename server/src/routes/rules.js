@@ -6,30 +6,8 @@ const router = express.Router();
 
 let rulesCache = { rules: [], categories: [], lastUpdate: 0 };
 const CACHE_TTL = 5 * 60 * 1000;
-let migrationDone = false;
-
-async function ensureNumberColumn() {
-  if (migrationDone) return;
-  try {
-    const result = await query(
-      `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
-       WHERE TABLE_NAME='rules' AND COLUMN_NAME='number' AND TABLE_SCHEMA=DATABASE()`
-    );
-    migrationDone = true;
-    if (result.length === 0) {
-      try {
-        await query(`ALTER TABLE rules ADD COLUMN number VARCHAR(50) DEFAULT NULL AFTER id`);
-      } catch (e) {
-        if (!e.message.includes('Duplicate column')) throw e;
-      }
-    }
-  } catch (error) {
-    console.error('Migration error:', error.message);
-  }
-}
 
 async function refreshRulesCache() {
-  await ensureNumberColumn();
   const now = Date.now();
   if (now - rulesCache.lastUpdate > CACHE_TTL) {
     rulesCache.categories = await query('SELECT * FROM rules_categories ORDER BY order_index ASC');
@@ -124,7 +102,6 @@ router.delete('/categories/:id', authenticateAdmin, async (req, res) => {
 
 router.post('/', authenticateAdmin, async (req, res) => {
   try {
-    await ensureNumberColumn();
     const { category_id, number, title, content, order_index, is_published } = req.body;
 
     await query(
@@ -141,7 +118,6 @@ router.post('/', authenticateAdmin, async (req, res) => {
 
 router.patch('/:id', authenticateAdmin, async (req, res) => {
   try {
-    await ensureNumberColumn();
     const { number, title, content, order_index, is_published } = req.body;
     const updates = [];
     const values = [];
