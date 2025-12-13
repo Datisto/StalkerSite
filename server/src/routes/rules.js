@@ -6,8 +6,20 @@ const router = express.Router();
 
 let rulesCache = { rules: [], categories: [], lastUpdate: 0 };
 const CACHE_TTL = 5 * 60 * 1000;
+let migrationDone = false;
+
+async function ensureNumberColumn() {
+  if (migrationDone) return;
+  try {
+    await query(`ALTER TABLE rules ADD COLUMN IF NOT EXISTS number VARCHAR(50) DEFAULT NULL AFTER id`);
+    migrationDone = true;
+  } catch (error) {
+    console.error('Migration error (might already exist):', error.message);
+  }
+}
 
 async function refreshRulesCache() {
+  await ensureNumberColumn();
   const now = Date.now();
   if (now - rulesCache.lastUpdate > CACHE_TTL) {
     rulesCache.categories = await query('SELECT * FROM rules_categories ORDER BY order_index ASC');
@@ -102,11 +114,12 @@ router.delete('/categories/:id', authenticateAdmin, async (req, res) => {
 
 router.post('/', authenticateAdmin, async (req, res) => {
   try {
-    const { category_id, title, content, order_index, is_published } = req.body;
+    await ensureNumberColumn();
+    const { category_id, number, title, content, order_index, is_published } = req.body;
 
     await query(
-      'INSERT INTO rules (id, category_id, title, content, order_index, is_published) VALUES (UUID(), ?, ?, ?, ?, ?)',
-      [category_id, title, content, order_index || 0, is_published !== false]
+      'INSERT INTO rules (id, category_id, number, title, content, order_index, is_published) VALUES (UUID(), ?, ?, ?, ?, ?, ?)',
+      [category_id, number || null, title, content, order_index || 0, is_published !== false]
     );
 
     rulesCache.lastUpdate = 0;
@@ -118,9 +131,15 @@ router.post('/', authenticateAdmin, async (req, res) => {
 
 router.patch('/:id', authenticateAdmin, async (req, res) => {
   try {
-    const { title, content, order_index, is_published } = req.body;
+    await ensureNumberColumn();
+    const { number, title, content, order_index, is_published } = req.body;
     const updates = [];
     const values = [];
+
+    if (number !== undefined) {
+      updates.push('number = ?');
+      values.push(number || null);
+    }
 
     if (title !== undefined) {
       updates.push('title = ?');
