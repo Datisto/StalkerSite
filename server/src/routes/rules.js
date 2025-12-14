@@ -7,11 +7,34 @@ const router = express.Router();
 let rulesCache = { rules: [], categories: [], lastUpdate: 0 };
 const CACHE_TTL = 5 * 60 * 1000;
 
+function buildRuleTree(rules) {
+  const ruleMap = new Map();
+  const rootRules = [];
+
+  rules.forEach(rule => {
+    ruleMap.set(rule.id, { ...rule, subitems: [] });
+  });
+
+  rules.forEach(rule => {
+    if (rule.parent_id) {
+      const parent = ruleMap.get(rule.parent_id);
+      if (parent) {
+        parent.subitems.push(ruleMap.get(rule.id));
+      }
+    } else {
+      rootRules.push(ruleMap.get(rule.id));
+    }
+  });
+
+  return rootRules;
+}
+
 async function refreshRulesCache() {
   const now = Date.now();
   if (now - rulesCache.lastUpdate > CACHE_TTL) {
     rulesCache.categories = await query('SELECT * FROM rules_categories ORDER BY order_index ASC');
-    rulesCache.rules = await query('SELECT * FROM rules WHERE is_published = TRUE ORDER BY category_id, order_index ASC');
+    const allRules = await query('SELECT * FROM rules WHERE is_published = TRUE ORDER BY category_id, order_index ASC');
+    rulesCache.rules = buildRuleTree(allRules);
     rulesCache.lastUpdate = now;
   }
 }
@@ -102,11 +125,11 @@ router.delete('/categories/:id', authenticateAdmin, async (req, res) => {
 
 router.post('/', authenticateAdmin, async (req, res) => {
   try {
-    const { category_id, number, title, content, order_index, is_published } = req.body;
+    const { category_id, parent_id, number, title, content, order_index, is_published } = req.body;
 
     await query(
-      'INSERT INTO rules (id, category_id, number, title, content, order_index, is_published) VALUES (UUID(), ?, ?, ?, ?, ?, ?)',
-      [category_id, number || null, title, content, order_index || 0, is_published !== false]
+      'INSERT INTO rules (id, category_id, parent_id, number, title, content, order_index, is_published) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?)',
+      [category_id, parent_id || null, number || null, title, content, order_index || 0, is_published !== false]
     );
 
     rulesCache.lastUpdate = 0;
@@ -118,9 +141,14 @@ router.post('/', authenticateAdmin, async (req, res) => {
 
 router.patch('/:id', authenticateAdmin, async (req, res) => {
   try {
-    const { number, title, content, order_index, is_published } = req.body;
+    const { parent_id, number, title, content, order_index, is_published } = req.body;
     const updates = [];
     const values = [];
+
+    if (parent_id !== undefined) {
+      updates.push('parent_id = ?');
+      values.push(parent_id || null);
+    }
 
     if (number !== undefined) {
       updates.push('number = ?');

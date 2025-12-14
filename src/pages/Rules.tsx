@@ -17,10 +17,12 @@ interface RuleCategory {
 interface Rule {
   id: string;
   category_id: string;
+  parent_id?: string | null;
   number: string;
   title: string;
   content: string;
   order_index: number;
+  subitems?: Rule[];
 }
 
 export default function Rules() {
@@ -162,6 +164,7 @@ export default function Rules() {
           <div className="space-y-4">
             {categories.map((category) => {
               const categoryRules = rules.filter((r) => r.category_id === category.id);
+              const mainRules = categoryRules.filter((r) => !r.parent_id);
               const isExpanded = expandedCategories.has(category.id);
 
               return (
@@ -177,7 +180,7 @@ export default function Rules() {
                     <h2 className="text-xl font-semibold text-left">{category.title}</h2>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-400">
-                        {categoryRules.length} {categoryRules.length === 1 ? 'правило' : 'правил'}
+                        {mainRules.length} {mainRules.length === 1 ? 'правило' : 'правил'}
                       </span>
                       {isExpanded ? (
                         <ChevronUp className="w-5 h-5" />
@@ -189,28 +192,64 @@ export default function Rules() {
 
                   {isExpanded && (
                     <div className="px-6 py-4 border-t border-gray-700 space-y-4">
-                      {categoryRules.map((rule) => (
-                        <div
-                          key={rule.id}
-                          id={`rule-${rule.number}`}
-                          className="bg-gray-900 p-4 rounded border border-gray-700 rule-item"
-                        >
-                          <div className="flex items-start justify-between gap-4 mb-2">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-red-500 font-bold">{rule.number}</span>
-                                <h3 className="font-semibold">{rule.title}</h3>
+                      {categoryRules
+                        .filter((r) => !r.parent_id)
+                        .map((rule) => (
+                        <div key={rule.id}>
+                          <div
+                            id={`rule-${rule.number}`}
+                            className="bg-gray-900 p-4 rounded border border-gray-700 rule-item"
+                          >
+                            <div className="flex items-start justify-between gap-4 mb-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-red-500 font-bold">{rule.number}</span>
+                                  <h3 className="font-semibold">{rule.title}</h3>
+                                </div>
                               </div>
+                              <button
+                                onClick={() => copyRuleLink(rule.number)}
+                                className="p-2 hover:bg-gray-800 rounded transition"
+                                title="Скопіювати посилання"
+                              >
+                                <LinkIcon className="w-4 h-4 text-gray-400" />
+                              </button>
                             </div>
-                            <button
-                              onClick={() => copyRuleLink(rule.number)}
-                              className="p-2 hover:bg-gray-800 rounded transition"
-                              title="Скопіювати посилання"
-                            >
-                              <LinkIcon className="w-4 h-4 text-gray-400" />
-                            </button>
+                            <p className="text-gray-300 leading-relaxed">{rule.content}</p>
                           </div>
-                          <p className="text-gray-300 leading-relaxed">{rule.content}</p>
+
+                          {rule.subitems && rule.subitems.length > 0 && (
+                            <div className="ml-4 mt-2 space-y-2">
+                              {rule.subitems.map((subitem) => (
+                                <div
+                                  key={subitem.id}
+                                  id={`rule-${subitem.number}`}
+                                  className="bg-gray-850 p-3 rounded border border-gray-600 rule-item"
+                                >
+                                  <div className="flex items-start justify-between gap-4 mb-2">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-orange-500 font-semibold text-sm">
+                                          {subitem.number}
+                                        </span>
+                                        <h4 className="font-medium text-sm">{subitem.title}</h4>
+                                      </div>
+                                    </div>
+                                    <button
+                                      onClick={() => copyRuleLink(subitem.number)}
+                                      className="p-2 hover:bg-gray-700 rounded transition"
+                                      title="Скопіювати посилання"
+                                    >
+                                      <LinkIcon className="w-4 h-4 text-gray-500" />
+                                    </button>
+                                  </div>
+                                  <p className="text-gray-400 text-sm leading-relaxed">
+                                    {subitem.content}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
