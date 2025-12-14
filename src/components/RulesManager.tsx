@@ -513,23 +513,69 @@ export default function RulesManager() {
                           )}
                         </div>
                       ))}
-                      <button
-                        onClick={() => {
-                          setNewRule({ category_id: category.id, parent_id: rule.id, number: '', title: '', content: '' });
-                          setShowAddRule(rule.id);
-                        }}
-                        className="text-xs text-gray-500 hover:text-gray-300 inline-flex items-center gap-1 ml-2"
-                      >
-                        <Plus className="w-3 h-3" />
-                        Додати підпункт
-                      </button>
+                      {showAddRule === rule.id && newRule.parent_id === rule.id ? (
+                        <div className="bg-gray-800 p-3 rounded border border-gray-700 mt-2">
+                          <h5 className="font-semibold text-sm mb-2">Новий підпункт</h5>
+                          <div className="space-y-2">
+                            <input
+                              type="text"
+                              placeholder="Номер (наприклад: 1.1)"
+                              value={newRule.number}
+                              onChange={(e) => setNewRule({ ...newRule, number: e.target.value })}
+                              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Назва підпункту"
+                              value={newRule.title}
+                              onChange={(e) => setNewRule({ ...newRule, title: e.target.value })}
+                              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm"
+                            />
+                            <textarea
+                              placeholder="Опис підпункту"
+                              value={newRule.content}
+                              onChange={(e) => setNewRule({ ...newRule, content: e.target.value })}
+                              rows={2}
+                              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm"
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={handleAddRule}
+                                className="bg-green-600 hover:bg-green-500 px-3 py-1 rounded text-xs"
+                              >
+                                Додати
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setShowAddRule(null);
+                                  setNewRule({ category_id: '', parent_id: '', number: '', title: '', content: '' });
+                                }}
+                                className="bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded text-xs"
+                              >
+                                Скасувати
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setNewRule({ category_id: category.id, parent_id: rule.id, number: '', title: '', content: '' });
+                            setShowAddRule(rule.id);
+                          }}
+                          className="text-xs text-gray-500 hover:text-gray-300 inline-flex items-center gap-1 ml-2"
+                        >
+                          <Plus className="w-3 h-3" />
+                          Додати підпункт
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
               ))}
           </div>
 
-          {showAddRule === category.id ? (
+          {showAddRule === category.id && !newRule.parent_id ? (
             <div className="bg-gray-900 p-3 rounded border border-gray-700">
               <h4 className="font-semibold mb-2">Нове правило</h4>
               <div className="space-y-2">
@@ -576,7 +622,7 @@ export default function RulesManager() {
           ) : (
             <button
               onClick={() => {
-                setNewRule({ ...newRule, category_id: category.id });
+                setNewRule({ category_id: category.id, parent_id: '', number: '', title: '', content: '' });
                 setShowAddRule(category.id);
               }}
               className="text-sm text-gray-400 hover:text-white inline-flex items-center gap-1"
