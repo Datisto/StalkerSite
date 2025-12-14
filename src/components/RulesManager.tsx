@@ -383,26 +383,24 @@ export default function RulesManager() {
                           <div className="text-sm text-gray-300">{rule.content}</div>
                         </div>
                         <div className="flex gap-2">
-                          {rule.subitems && rule.subitems.length > 0 && (
-                            <button
-                              onClick={() => {
-                                const newSet = new Set(expandedRules);
-                                if (newSet.has(rule.id)) {
-                                  newSet.delete(rule.id);
-                                } else {
-                                  newSet.add(rule.id);
-                                }
-                                setExpandedRules(newSet);
-                              }}
-                              className="p-1 hover:bg-gray-800 rounded"
-                            >
-                              <ChevronRight
-                                className={`w-4 h-4 transition-transform ${
-                                  expandedRules.has(rule.id) ? 'rotate-90' : ''
-                                }`}
-                              />
-                            </button>
-                          )}
+                          <button
+                            onClick={() => {
+                              const newSet = new Set(expandedRules);
+                              if (newSet.has(rule.id)) {
+                                newSet.delete(rule.id);
+                              } else {
+                                newSet.add(rule.id);
+                              }
+                              setExpandedRules(newSet);
+                            }}
+                            className="p-1 hover:bg-gray-800 rounded"
+                          >
+                            <ChevronRight
+                              className={`w-4 h-4 transition-transform ${
+                                expandedRules.has(rule.id) ? 'rotate-90' : ''
+                              }`}
+                            />
+                          </button>
                           <button
                             onClick={() => setEditingRule(rule.id)}
                             className="p-1 hover:bg-gray-800 rounded"
