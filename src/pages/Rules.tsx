@@ -226,22 +226,11 @@ export default function Rules() {
                                   id={`rule-${subitem.number}`}
                                   className="bg-gray-850 p-3 rounded border border-gray-600 rule-item"
                                 >
-                                  <div className="flex items-start justify-between gap-4 mb-2">
-                                    <div className="flex-1">
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-orange-500 font-semibold text-sm">
-                                          {subitem.number}
-                                        </span>
-                                        <h4 className="font-medium text-sm">{subitem.title}</h4>
-                                      </div>
-                                    </div>
-                                    <button
-                                      onClick={() => copyRuleLink(subitem.number)}
-                                      className="p-2 hover:bg-gray-700 rounded transition"
-                                      title="Скопіювати посилання"
-                                    >
-                                      <LinkIcon className="w-4 h-4 text-gray-500" />
-                                    </button>
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-orange-500 font-semibold text-sm">
+                                      {subitem.number}
+                                    </span>
+                                    <h4 className="font-medium text-sm">{subitem.title}</h4>
                                   </div>
                                   <p className="text-gray-400 text-sm leading-relaxed">
                                     {subitem.content}
