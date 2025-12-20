@@ -534,6 +534,22 @@ export default function CharacterCreate() {
                   className="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2 text-gray-400 cursor-not-allowed"
                   placeholder="Не заповнено"
                 />
+                {!formData.discord_id && (
+                  <div className="mt-4 space-y-3">
+                    <div className="bg-gray-900 p-3 rounded border border-gray-700">
+                      <p className="text-xs text-gray-400 mb-2">Де знайти свій Discord ID:</p>
+                      <img src="/discordid.png" alt="Як знайти Discord ID" className="w-full rounded" />
+                    </div>
+                    <a
+                      href="https://discord.gg/eternalzone"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-center bg-red-600 hover:bg-red-500 px-4 py-2 rounded font-semibold transition"
+                    >
+                      Приєднатись до Discord
+                    </a>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-3 gap-4">
