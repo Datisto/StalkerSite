@@ -106,9 +106,6 @@ export default function AdminLogin() {
               <br />
               VALUES ('admin', 'admin', 'super_admin', true);
             </code>
-            <p className="text-xs text-gray-500 mt-2">
-              Логін: <strong>admin</strong>, Пароль: <strong>admin123</strong>
-            </p>
           </div>
         </div>
       </div>
