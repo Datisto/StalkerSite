@@ -621,18 +621,6 @@ CREATE POLICY "Admins can manage server info"
 -- INITIAL DATA: Default Admin Account
 -- ============================================
 
--- Default admin account
--- Username: admin
--- Password: admin123 (CHANGE THIS IMMEDIATELY!)
-INSERT INTO admins (username, password_hash, role, permissions, is_active)
-VALUES (
-  'admin',
-  'admin123',
-  'super_admin',
-  ARRAY['manage_characters', 'manage_questions', 'manage_rules', 'manage_admins'],
-  true
-) ON CONFLICT (username) DO NOTHING;
-
 -- ============================================
 -- END OF BACKUP
 -- ============================================
