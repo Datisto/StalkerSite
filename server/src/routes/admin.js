@@ -1,6 +1,6 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
-import { query } from '../config/database.js';
+import { query, getConnection } from '../config/database.js';
 import { generateAdminToken } from '../utils/jwt.js';
 import { authenticateAdmin } from '../middleware/auth.js';
 
@@ -68,7 +68,7 @@ router.get('/characters', authenticateAdmin, async (req, res) => {
 
 router.patch('/characters/:id', authenticateAdmin, async (req, res) => {
   try {
-    const { status, rejection_reason, admin_notes, approved_at } = req.body;
+    const { status, rejection_reason, admin_notes, approved_at, playerspawn } = req.body;
     const updates = [];
     const values = [];
 
@@ -96,12 +96,119 @@ router.patch('/characters/:id', authenticateAdmin, async (req, res) => {
       return res.status(400).json({ error: 'No fields to update' });
     }
 
-    values.push(req.params.id);
+    if (playerspawn && status === 'approved') {
+      const { spawnset, profid, doors_groups } = playerspawn;
 
-    await query(
-      `UPDATE characters SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-      values
+      const [character] = await query(
+        'SELECT steam_id, face_model, discord_id FROM characters WHERE id = ? LIMIT 1',
+        [req.params.id]
+      );
+
+      if (!character) {
+        return res.status(404).json({ error: 'Character not found' });
+      }
+
+      const connection = await getConnection();
+      try {
+        await connection.beginTransaction();
+
+        const charUpdateValues = [...values, req.params.id];
+        await connection.execute(
+          `UPDATE characters SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+          charUpdateValues
+        );
+
+        const [existingRows] = await connection.execute(
+          'SELECT ID FROM playerspawn WHERE steamid = ? LIMIT 1',
+          [character.steam_id]
+        );
+
+        if (existingRows.length > 0) {
+          await connection.execute(
+            'UPDATE playerspawn SET face = ?, spawnset = ?, profid = ?, discordid = ?, doors_groups = ? WHERE steamid = ?',
+            [character.face_model || '', spawnset, profid, character.discord_id || null, doors_groups || '', character.steam_id]
+          );
+        } else {
+          await connection.execute(
+            "INSERT INTO playerspawn (steamid, face, spawnset, blood, coordinates, profid, discordid, doors_groups) VALUES (?, ?, ?, 0, '', ?, ?, ?)",
+            [character.steam_id, character.face_model || '', spawnset, profid, character.discord_id || null, doors_groups || '']
+          );
+        }
+
+        if (character.face_model) {
+          await connection.execute(
+            'UPDATE face_models SET is_active = FALSE WHERE name = ?',
+            [character.face_model]
+          );
+        }
+
+        await connection.commit();
+      } catch (err) {
+        await connection.rollback();
+        throw err;
+      } finally {
+        connection.release();
+      }
+    } else if (status === 'dead') {
+      const [character] = await query(
+        'SELECT face_model FROM characters WHERE id = ? LIMIT 1',
+        [req.params.id]
+      );
+
+      if (!character) {
+        return res.status(404).json({ error: 'Character not found' });
+      }
+
+      const connection = await getConnection();
+      try {
+        await connection.beginTransaction();
+
+        const charUpdateValues = [...values, req.params.id];
+        await connection.execute(
+          `UPDATE characters SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+          charUpdateValues
+        );
+
+        if (character.face_model) {
+          await connection.execute(
+            'UPDATE face_models SET is_active = TRUE WHERE name = ?',
+            [character.face_model]
+          );
+        }
+
+        await connection.commit();
+      } catch (err) {
+        await connection.rollback();
+        throw err;
+      } finally {
+        connection.release();
+      }
+    } else {
+      values.push(req.params.id);
+      await query(
+        `UPDATE characters SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        values
+      );
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete('/characters/:id', authenticateAdmin, async (req, res) => {
+  try {
+    const [character] = await query(
+      'SELECT id FROM characters WHERE id = ? LIMIT 1',
+      [req.params.id]
     );
+
+    if (!character) {
+      return res.status(404).json({ error: 'Character not found' });
+    }
+
+    await query('DELETE FROM characters WHERE id = ?', [req.params.id]);
 
     res.json({ success: true });
   } catch (error) {

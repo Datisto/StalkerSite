@@ -252,6 +252,8 @@ export default function CharacterCreate() {
     });
   };
 
+  const [checkingNickname, setCheckingNickname] = useState(false);
+
   const canProceed = () => {
     switch (step) {
       case 1:
@@ -303,6 +305,32 @@ export default function CharacterCreate() {
         return false;
     }
   };
+
+  async function handleNext() {
+    if (step === 1 && formData.nickname) {
+      setCheckingNickname(true);
+      try {
+        const params = new URLSearchParams({ nickname: formData.nickname });
+        if (id) params.set('excludeId', id);
+        const response = await fetch(`/api/characters/check-nickname?${params.toString()}`);
+        const data = await response.json() as { taken: boolean };
+        if (data.taken) {
+          await showAlert(
+            `Позивний "${formData.nickname}" вже зайнятий. Будь ласка, оберіть інший позивний.`,
+            'Позивний недоступний',
+            'error'
+          );
+          return;
+        }
+      } catch {
+        await showAlert('Помилка перевірки позивного. Спробуйте ще раз.', 'Помилка', 'error');
+        return;
+      } finally {
+        setCheckingNickname(false);
+      }
+    }
+    setStep((step + 1) as Step);
+  }
 
   const saveCharacter = async (status: 'draft' | 'pending') => {
     if (!user) return;
@@ -1135,11 +1163,11 @@ export default function CharacterCreate() {
 
               {step < 7 ? (
                 <button
-                  onClick={() => setStep((step + 1) as Step)}
-                  disabled={!canProceed()}
+                  onClick={handleNext}
+                  disabled={!canProceed() || checkingNickname}
                   className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 px-4 py-2 rounded transition disabled:opacity-50"
                 >
-                  Далі
+                  {checkingNickname ? 'Перевірка...' : 'Далі'}
                   <ChevronRight className="w-5 h-5" />
                 </button>
               ) : null}

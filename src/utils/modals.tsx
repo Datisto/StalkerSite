@@ -13,7 +13,11 @@ export function showAlert(
 
     const handleClose = () => {
       root.unmount();
-      document.body.removeChild(container);
+      setTimeout(() => {
+        if (document.body.contains(container)) {
+          document.body.removeChild(container);
+        }
+      }, 0);
       resolve();
     };
 
@@ -45,7 +49,11 @@ export function showConfirm(
 
     const handleClose = (result: boolean) => {
       root.unmount();
-      document.body.removeChild(container);
+      setTimeout(() => {
+        if (document.body.contains(container)) {
+          document.body.removeChild(container);
+        }
+      }, 0);
       resolve(result);
     };
 
@@ -80,7 +88,11 @@ export function showPrompt(
 
     const handleClose = (result: string | null) => {
       root.unmount();
-      document.body.removeChild(container);
+      setTimeout(() => {
+        if (document.body.contains(container)) {
+          document.body.removeChild(container);
+        }
+      }, 0);
       resolve(result);
     };
 

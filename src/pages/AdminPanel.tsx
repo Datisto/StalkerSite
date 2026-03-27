@@ -126,6 +126,10 @@ export default function AdminPanel() {
     is_published: true,
   });
 
+  const [approvingCharacter, setApprovingCharacter] = useState<Character | null>(null);
+  const [approveForm, setApproveForm] = useState<{ spawnset: number; profid: number; doors_groups: string }>({ spawnset: 1, profid: 0, doors_groups: '' });
+  const [approveSubmitting, setApproveSubmitting] = useState(false);
+
   useEffect(() => {
     loadCharacters();
   }, [filter]);
@@ -225,6 +229,44 @@ export default function AdminPanel() {
     } catch (error) {
       console.error('Error saving character:', error);
       await showAlert('Помилка при збереженні', 'Помилка', 'error');
+    }
+  }
+
+  function openApproveModal(character: Character) {
+    setApprovingCharacter(character);
+    setApproveForm({ spawnset: 1, profid: 0, doors_groups: '' });
+  }
+
+  async function submitApproval() {
+    if (!approvingCharacter || approveSubmitting) return;
+    setApproveSubmitting(true);
+    try {
+      const response = await fetch(`/api/admin/characters/${approvingCharacter.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${admin?.token}`,
+        },
+        body: JSON.stringify({
+          status: 'approved',
+          approved_at: new Date().toISOString(),
+          playerspawn: {
+            spawnset: approveForm.spawnset,
+            profid: approveForm.profid,
+            doors_groups: approveForm.doors_groups,
+          },
+        }),
+      });
+      if (!response.ok) throw new Error('Failed to approve character');
+      setApprovingCharacter(null);
+      setSelectedCharacter(null);
+      await loadCharacters();
+      await showAlert('Персонаж схвалено', 'Успіх', 'success');
+    } catch (error) {
+      console.error('Error approving character:', error);
+      await showAlert('Помилка при схваленні персонажа', 'Помилка', 'error');
+    } finally {
+      setApproveSubmitting(false);
     }
   }
 
@@ -404,7 +446,7 @@ export default function AdminPanel() {
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`/api/characters/${characterId}`, {
+      const response = await fetch(`/api/admin/characters/${characterId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${admin?.token}`,
@@ -413,10 +455,10 @@ export default function AdminPanel() {
 
       if (!response.ok) throw new Error('Failed to delete character');
 
-      await showAlert('Персонажа видалено', 'Успіх', 'success');
-      await loadCharacters();
       setSelectedCharacter(null);
       setEditMode(false);
+      await loadCharacters();
+      await showAlert('Персонажа видалено', 'Успіх', 'success');
     } catch (error) {
       console.error('Error deleting character:', error);
       await showAlert('Помилка при видаленні персонажа', 'Помилка', 'error');
@@ -896,7 +938,7 @@ export default function AdminPanel() {
                           {character.status === 'pending' && (
                             <>
                               <button
-                                onClick={() => updateCharacterStatus(character.id, 'approved')}
+                                onClick={() => openApproveModal(character)}
                                 className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 px-4 py-2 rounded transition"
                               >
                                 <CheckCircle className="w-4 h-4" />
@@ -1675,9 +1717,7 @@ export default function AdminPanel() {
                   {selectedCharacter.status === 'pending' && (
                     <div className="flex gap-2 pt-4">
                       <button
-                        onClick={() => {
-                          updateCharacterStatus(selectedCharacter.id, 'approved');
-                        }}
+                        onClick={() => openApproveModal(selectedCharacter)}
                         className="flex-1 bg-green-600 hover:bg-green-500 py-3 rounded font-semibold transition"
                       >
                         Схвалити персонажа
@@ -1916,6 +1956,89 @@ export default function AdminPanel() {
                   )}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {approvingCharacter && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-[60]">
+          <div className="bg-gray-800 rounded-lg max-w-md w-full">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-xl font-bold">Схвалення персонажа</h2>
+                <button
+                  onClick={() => setApprovingCharacter(null)}
+                  disabled={approveSubmitting}
+                  className="text-gray-400 hover:text-white disabled:opacity-50"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">
+                {approvingCharacter.name} {approvingCharacter.surname}
+                {approvingCharacter.nickname && ` "${approvingCharacter.nickname}"`}
+              </p>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Спавн-сет (Фракція)</label>
+                  <select
+                    value={approveForm.spawnset}
+                    onChange={(e) => setApproveForm({ ...approveForm, spawnset: parseInt(e.target.value) })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                  >
+                    <option value={1}>Новачок</option>
+                    <option value={2}>Сталкер</option>
+                    <option value={5}>Воля</option>
+                    <option value={6}>Обовязок</option>
+                    <option value={7}>Нейтрали</option>
+                    <option value={8}>Бандити</option>
+                    <option value={9}>Науковець</option>
+                    <option value={10}>Військові</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Професія</label>
+                  <select
+                    value={approveForm.profid}
+                    onChange={(e) => setApproveForm({ ...approveForm, profid: parseInt(e.target.value) })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                  >
+                    <option value={0}>PROFESSION_NONE</option>
+                    <option value={1}>PROFESSION_GUNSMITH</option>
+                    <option value={2}>PROFESSION_TAILOR</option>
+                    <option value={4}>PROFESSION_ELECTROMECHANIC</option>
+                    <option value={8}>PROFESSION_MEDASSISTANT</option>
+                    <option value={16}>PROFESSION_DOCTOR</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Групи дверей (doors_groups)</label>
+                  <input
+                    type="text"
+                    value={approveForm.doors_groups}
+                    onChange={(e) => setApproveForm({ ...approveForm, doors_groups: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                    placeholder=""
+                  />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button
+                    onClick={submitApproval}
+                    disabled={approveSubmitting}
+                    className="flex-1 bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded font-semibold transition"
+                  >
+                    {approveSubmitting ? 'Схвалення...' : 'Схвалити'}
+                  </button>
+                  <button
+                    onClick={() => setApprovingCharacter(null)}
+                    disabled={approveSubmitting}
+                    className="flex-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 py-3 rounded font-semibold transition"
+                  >
+                    Скасувати
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

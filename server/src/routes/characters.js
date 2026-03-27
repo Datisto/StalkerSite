@@ -34,6 +34,26 @@ router.get('/', optionalAuth, async (req, res) => {
   }
 });
 
+router.get('/check-nickname', async (req, res) => {
+  try {
+    const { nickname, excludeId } = req.query;
+    if (!nickname) {
+      return res.status(400).json({ error: 'nickname is required' });
+    }
+    let sql = 'SELECT id FROM characters WHERE nickname = ? AND status != ?';
+    const params = [nickname, 'dead'];
+    if (excludeId) {
+      sql += ' AND id != ?';
+      params.push(excludeId);
+    }
+    sql += ' LIMIT 1';
+    const [existing] = await query(sql, params);
+    res.json({ taken: !!existing });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
     const [character] = await query(
