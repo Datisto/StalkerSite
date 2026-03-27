@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../lib/api-client';
-import { Plus, User, Edit, CheckCircle, XCircle, Clock, BookOpen, RefreshCw, Ban } from 'lucide-react';
+import { Plus, User, Edit, CheckCircle, XCircle, Clock, BookOpen, RefreshCw, Ban, Send } from 'lucide-react';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 import { DiscordSetupModal } from '../components/DiscordSetupModal';
+import { showAlert, showConfirm } from '../utils/modals';
 
 interface Character {
   id: string;
@@ -28,6 +29,7 @@ export default function PlayerCabinet() {
   const [showDiscordModal, setShowDiscordModal] = useState(false);
   const [discordLoading, setDiscordLoading] = useState(false);
   const [discordError, setDiscordError] = useState('');
+  const [submittingCharacterId, setSubmittingCharacterId] = useState<string | null>(null);
 
   useEffect(() => {
     const updateTimer = () => {
@@ -104,6 +106,38 @@ export default function PlayerCabinet() {
       setDiscordError(error instanceof Error ? error.message : 'Помилка збереження Discord ID');
     } finally {
       setDiscordLoading(false);
+    }
+  }
+
+  async function handleSubmitCharacter(characterId: string) {
+    const confirmed = await showConfirm(
+      'Після відправки анкета буде заблокована для редагування та піде на розгляд адміністрації. Продовжити?',
+      'Відправити персонажа',
+      { type: 'warning', confirmText: 'Відправити', cancelText: 'Скасувати' }
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setSubmittingCharacterId(characterId);
+      await apiClient.patch<{ success: boolean }>(`/characters/${characterId}`, {
+        status: 'pending',
+        submitted_at: new Date().toISOString(),
+      });
+
+      await showAlert('Персонажа відправлено на розгляд', 'Успіх', 'success');
+      await loadCharacters();
+    } catch (error) {
+      console.error('Error submitting character:', error);
+      await showAlert(
+        error instanceof Error ? error.message : 'Помилка при відправці персонажа',
+        'Помилка',
+        'error'
+      );
+    } finally {
+      setSubmittingCharacterId(null);
     }
   }
 
@@ -316,6 +350,16 @@ export default function PlayerCabinet() {
                       <Edit className="w-4 h-4" />
                       Редагувати
                     </a>
+                  )}
+                  {character.status === 'draft' && (
+                    <button
+                      onClick={() => handleSubmitCharacter(character.id)}
+                      disabled={submittingCharacterId === character.id}
+                      className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 px-4 py-2 rounded transition text-sm disabled:opacity-50"
+                    >
+                      <Send className="w-4 h-4" />
+                      {submittingCharacterId === character.id ? 'Відправка...' : 'Відправити'}
+                    </button>
                   )}
                   <a
                     href={`/character/${character.id}`}

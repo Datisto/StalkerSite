@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, Save, Send, Copy } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Save, Copy } from 'lucide-react';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 import { showAlert } from '../utils/modals';
 import FaceModelSelector from '../components/FaceModelSelector';
@@ -1103,8 +1103,8 @@ export default function CharacterCreate() {
 
               <div className="bg-yellow-900 bg-opacity-30 border border-yellow-700 p-4 rounded">
                 <p className="text-sm text-yellow-300">
-                  Після відправки анкета буде заблокована для редагування та відправлена на
-                  розгляд адміністрації. Переконайтесь, що всі дані заповнені правильно.
+                  На цьому етапі анкета зберігається як чернетка. Відправити її на розгляд
+                  можна буде зі списку персонажів у кабінеті.
                 </p>
               </div>
             </div>
@@ -1124,16 +1124,14 @@ export default function CharacterCreate() {
             </div>
 
             <div className="flex gap-2">
-              {step < 7 && (
-                <button
-                  onClick={() => saveCharacter('draft')}
-                  disabled={saving}
-                  className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition disabled:opacity-50"
-                >
-                  <Save className="w-5 h-5" />
-                  Зберегти
-                </button>
-              )}
+              <button
+                onClick={() => saveCharacter('draft')}
+                disabled={saving}
+                className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition disabled:opacity-50"
+              >
+                <Save className="w-5 h-5" />
+                {step === 7 ? 'Зберегти чернетку' : 'Зберегти'}
+              </button>
 
               {step < 7 ? (
                 <button
@@ -1144,16 +1142,7 @@ export default function CharacterCreate() {
                   Далі
                   <ChevronRight className="w-5 h-5" />
                 </button>
-              ) : (
-                <button
-                  onClick={() => saveCharacter('pending')}
-                  disabled={!canProceed() || saving}
-                  className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 px-4 py-2 rounded transition disabled:opacity-50"
-                >
-                  <Send className="w-5 h-5" />
-                  Відправити на розгляд
-                </button>
-              )}
+              ) : null}
             </div>
           </div>
         </div>

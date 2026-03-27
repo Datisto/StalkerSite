@@ -3,88 +3,71 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft, User, Heart, Brain, Sword, Send, Edit } from 'lucide-react';
 import { showAlert, showConfirm } from '../utils/modals';
+import { apiClient } from '../lib/api-client';
 
 interface Character {
   id: string;
-  user_id: string;
+  user_id?: string;
   steam_id: string;
   name: string;
   surname: string;
-  patronymic: string;
-  nickname: string;
-  discord_id: string;
-  age: number;
-  gender: string;
-  face_model: string;
-  hair_color: string;
-  eye_color: string;
-  beard_style: string;
-  special_features: string;
-  height: number;
-  weight: number;
-  body_type: string;
-  physical_features: string;
-  character_traits: string[];
-  phobias: string;
-  character_values: string;
+  patronymic?: string | null;
+  nickname?: string | null;
+  discord_id?: string | null;
+  age?: number | null;
+  gender?: string | null;
+  face_model?: string | null;
+  hair_color?: string | null;
+  eye_color?: string | null;
+  beard_style?: string | null;
+  special_features?: string | null;
+  height?: number | null;
+  weight?: number | null;
+  body_type?: string | null;
+  physical_features?: string | null;
+  character_traits?: string[] | string;
+  phobias?: string | null;
+  character_values?: string | null;
   faction: string;
-  education: string;
-  scientific_profile: string;
-  research_motivation: string;
-  military_experience: string;
-  military_rank: string;
-  military_join_reason: string;
-  backstory: string;
-  zone_motivation: string;
-  character_goals: string;
+  education?: string | null;
+  scientific_profile?: string | null;
+  research_motivation?: string | null;
+  military_experience?: string | null;
+  military_rank?: string | null;
+  military_join_reason?: string | null;
+  backstory?: string | null;
+  zone_motivation?: string | null;
+  character_goals?: string | null;
   status: string;
-  created_at: string;
-  rejection_reason: string;
+  created_at?: string;
+  rejection_reason?: string | null;
 }
 
 export default function CharacterView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [character, setCharacter] = useState<Character | null>(null);
   const [loading, setLoading] = useState(true);
   const isAdmin = localStorage.getItem('admin_logged_in') === 'true';
 
   useEffect(() => {
-    if (id) {
+    if (id && !authLoading) {
       loadCharacter();
     }
-  }, [id]);
+  }, [id, authLoading, user?.token]);
 
   async function loadCharacter() {
     try {
-      console.log('CharacterView: Loading character with id:', id);
-      console.log('CharacterView: Current user steam_id:', user?.steam_id);
-
-      const response = await fetch(`/api/characters/${id}`, {
-        headers: user?.token ? { 'Authorization': `Bearer ${user.token}` } : {},
-      });
-
-      if (!response.ok) {
-        console.error('CharacterView: Error loading character');
-        throw new Error('Character not found');
-      }
-
-      const data = await response.json();
+      const data = await apiClient.characters.get(id!);
 
       if (!data) {
-        console.log('CharacterView: Character not found');
         await showAlert('Персонаж не знайдено', 'Помилка', 'error');
         navigate('/cabinet');
         return;
       }
 
-      console.log('CharacterView: Character steam_id:', data.steam_id);
-      console.log('CharacterView: Is admin:', isAdmin);
-
       if (!isAdmin && user && data.steam_id !== user.steam_id) {
-        console.warn('CharacterView: Steam ID mismatch!');
-        console.warn('Expected:', user.steam_id, 'Got:', data.steam_id);
         await showAlert('Ви не маєте доступу до цього персонажа', 'Помилка', 'error');
         navigate('/cabinet');
         return;
@@ -94,7 +77,6 @@ export default function CharacterView() {
         data.character_traits = JSON.parse(data.character_traits);
       }
 
-      console.log('CharacterView: Access granted');
       setCharacter(data);
     } catch (error) {
       console.error('Error loading character:', error);
@@ -306,11 +288,11 @@ export default function CharacterView() {
                 <Brain className="w-6 h-6 text-red-500" />
                 <h2 className="text-2xl font-bold">Характер</h2>
               </div>
-              {character.character_traits && character.character_traits.length > 0 && (
+              {Array.isArray(character.character_traits) && character.character_traits.length > 0 && (
                 <div className="bg-gray-900 p-4 rounded mb-4">
                   <p className="text-sm text-gray-400 mb-3">Риси характеру</p>
                   <div className="flex flex-wrap gap-2">
-                    {character.character_traits.map((trait, i) => (
+                    {character.character_traits.map((trait: string, i: number) => (
                       <span key={i} className="bg-red-900 bg-opacity-30 px-3 py-1 rounded text-sm">
                         {trait}
                       </span>
