@@ -220,7 +220,18 @@ export default function AdminPanel() {
         body: JSON.stringify(editData),
       });
 
-      if (!response.ok) throw new Error('Failed to save character');
+      if (!response.ok) {
+        let message = 'Failed to save character';
+        try {
+          const errorData = await response.json();
+          if (errorData?.error) {
+            message = errorData.error;
+          }
+        } catch {
+          // Keep default message if response body is not JSON.
+        }
+        throw new Error(message);
+      }
 
       await showAlert('Зміни збережено', 'Успіх', 'success');
       setEditMode(false);
@@ -228,7 +239,7 @@ export default function AdminPanel() {
       setSelectedCharacter(null);
     } catch (error) {
       console.error('Error saving character:', error);
-      await showAlert('Помилка при збереженні', 'Помилка', 'error');
+      await showAlert(`Помилка при збереженні: ${error instanceof Error ? error.message : 'Невідома помилка'}`, 'Помилка', 'error');
     }
   }
 

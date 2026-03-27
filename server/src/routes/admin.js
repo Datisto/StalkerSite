@@ -69,8 +69,28 @@ router.get('/characters', authenticateAdmin, async (req, res) => {
 router.patch('/characters/:id', authenticateAdmin, async (req, res) => {
   try {
     const { status, rejection_reason, admin_notes, approved_at, playerspawn } = req.body;
+    const editableCharacterFields = [
+      'name', 'surname', 'patronymic', 'nickname', 'age', 'gender', 'face_model',
+      'hair_color', 'eye_color', 'beard_style', 'special_features',
+      'height', 'weight', 'body_type', 'physical_features',
+      'origin_country', 'citizenship', 'faction', 'biography',
+      'appearance', 'psychological_portrait', 'character_traits',
+      'phobias', 'character_values', 'discord_id',
+      'education', 'scientific_profile', 'research_motivation',
+      'military_experience', 'military_rank', 'military_join_reason',
+      'backstory', 'zone_motivation', 'character_goals',
+      'skills', 'inventory'
+    ];
+    const jsonFields = new Set(['character_traits', 'skills', 'inventory']);
     const updates = [];
     const values = [];
+
+    for (const field of editableCharacterFields) {
+      if (req.body[field] !== undefined) {
+        updates.push(`${field} = ?`);
+        values.push(jsonFields.has(field) ? JSON.stringify(req.body[field]) : req.body[field]);
+      }
+    }
 
     if (status) {
       updates.push('status = ?');
