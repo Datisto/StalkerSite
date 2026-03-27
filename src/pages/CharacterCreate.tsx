@@ -7,7 +7,6 @@ import { showAlert } from '../utils/modals';
 import FaceModelSelector from '../components/FaceModelSelector';
 import {
   FACTIONS,
-  FACE_MODELS,
   HAIR_COLORS,
   EYE_COLORS,
   BODY_TYPES,
@@ -20,6 +19,7 @@ import {
 } from '../data/characterConstants';
 
 type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+type TraitCategory = keyof typeof CHARACTER_TRAITS;
 
 interface CharacterData {
   steam_id: string;
@@ -51,6 +51,10 @@ interface CharacterData {
   backstory: string;
   zone_motivation: string;
   character_goals: string;
+}
+
+interface CharacterStatusRecord {
+  status: string;
 }
 
 export default function CharacterCreate() {
@@ -197,8 +201,8 @@ export default function CharacterCreate() {
         return;
       }
 
-      const characters = await response.json();
-      const hasActive = characters.some((char: any) => ['pending', 'approved', 'active'].includes(char.status));
+      const characters = (await response.json()) as CharacterStatusRecord[];
+      const hasActive = characters.some((char) => ['pending', 'approved', 'active'].includes(char.status));
       if (hasActive) {
         setHasExistingCharacter(true);
       }
@@ -228,18 +232,18 @@ export default function CharacterCreate() {
     }
   }
 
-  const updateField = (field: keyof CharacterData, value: any) => {
+  const updateField = <K extends keyof CharacterData>(field: K, value: CharacterData[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const toggleTrait = (trait: string, category: keyof typeof CHARACTER_TRAITS) => {
+  const toggleTrait = (trait: string, category: TraitCategory) => {
     setFormData((prev) => {
       const traits = prev.character_traits;
       if (traits.includes(trait)) {
         return { ...prev, character_traits: traits.filter((t) => t !== trait) };
       } else {
-        const categoryTraits = CHARACTER_TRAITS[category];
-        const selectedInCategory = traits.filter((t) => categoryTraits.includes(t as any));
+        const categoryTraits = CHARACTER_TRAITS[category] as readonly string[];
+        const selectedInCategory = traits.filter((t) => categoryTraits.includes(t));
         if (selectedInCategory.length < 3) {
           return { ...prev, character_traits: [...traits, trait] };
         }
@@ -780,9 +784,9 @@ export default function CharacterCreate() {
                   </span>
                 </label>
                 <div className="bg-gray-900 border border-gray-700 rounded p-4 max-h-96 overflow-y-auto space-y-4">
-                  {(Object.keys(CHARACTER_TRAITS) as Array<keyof typeof CHARACTER_TRAITS>).map((category) => {
-                    const categoryTraits = CHARACTER_TRAITS[category];
-                    const selectedInCategory = formData.character_traits.filter((t) => categoryTraits.includes(t as any));
+                  {(Object.keys(CHARACTER_TRAITS) as TraitCategory[]).map((category) => {
+                    const categoryTraits = CHARACTER_TRAITS[category] as readonly string[];
+                    const selectedInCategory = formData.character_traits.filter((t) => categoryTraits.includes(t));
 
                     return (
                       <div key={category}>
@@ -794,8 +798,8 @@ export default function CharacterCreate() {
                         </h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                         {CHARACTER_TRAITS[category].map((trait) => {
-                          const categoryTraits = CHARACTER_TRAITS[category];
-                          const selectedInCategory = formData.character_traits.filter((t) => categoryTraits.includes(t as any));
+                          const categoryTraits = CHARACTER_TRAITS[category] as readonly string[];
+                          const selectedInCategory = formData.character_traits.filter((t) => categoryTraits.includes(t));
                           const isSelected = formData.character_traits.includes(trait);
                           const isDisabled = !isSelected && selectedInCategory.length >= 3;
 

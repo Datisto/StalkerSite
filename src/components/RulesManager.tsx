@@ -71,9 +71,13 @@ export default function RulesManager() {
 
       setEditingCategory(null);
       loadCategories();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving category:', error);
-      await showAlert('Помилка збереження: ' + error.message, 'Помилка', 'error');
+      await showAlert(
+        'Помилка збереження: ' + (error instanceof Error ? error.message : 'Невідома помилка'),
+        'Помилка',
+        'error'
+      );
     }
   }
 
@@ -115,9 +119,13 @@ export default function RulesManager() {
 
       setEditingRule(null);
       loadRules();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving rule:', error);
-      await showAlert('Помилка збереження: ' + error.message, 'Помилка', 'error');
+      await showAlert(
+        'Помилка збереження: ' + (error instanceof Error ? error.message : 'Невідома помилка'),
+        'Помилка',
+        'error'
+      );
     }
   }
 

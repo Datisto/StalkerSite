@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../lib/api-client';
 
@@ -7,11 +7,7 @@ export default function SteamAuth() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    handleSteamCallback();
-  }, []);
-
-  async function handleSteamCallback() {
+  const handleSteamCallback = useCallback(async () => {
     try {
       const urlParams = new URLSearchParams(window.location.search);
 
@@ -34,12 +30,16 @@ export default function SteamAuth() {
       }
 
       navigate('/cabinet');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Steam auth error:', error);
-      setError(`Помилка авторизації: ${error?.message || 'Невідома помилка'}`);
+      setError(`Помилка авторизації: ${error instanceof Error ? error.message : 'Невідома помилка'}`);
       setLoading(false);
     }
-  }
+  }, [navigate]);
+
+  useEffect(() => {
+    handleSteamCallback();
+  }, [handleSteamCallback]);
 
   if (loading) {
     return (

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { apiClient } from '../lib/api-client';
-import { ChevronDown, ChevronUp, BookOpen, Home, Link as LinkIcon, FileCheck } from 'lucide-react';
+import { ChevronDown, ChevronUp, BookOpen, Link as LinkIcon, FileCheck } from 'lucide-react';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 import { AlertModal } from '../components/Modal';
 import { useAlertModal } from '../hooks/useModal';
@@ -27,7 +27,6 @@ interface Rule {
 
 export default function Rules() {
   const { slug, ruleNumber } = useParams<{ slug?: string; ruleNumber?: string }>();
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { isOpen: isAlertOpen, config: alertConfig, showAlert, close: closeAlert } = useAlertModal();
   const [categories, setCategories] = useState<RuleCategory[]>([]);

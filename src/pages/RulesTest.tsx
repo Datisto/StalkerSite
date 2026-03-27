@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { apiClient } from '../lib/api-client';
 import { ArrowLeft, Send, BookOpen, AlertCircle } from 'lucide-react';
 import { showAlert, showConfirm } from '../utils/modals';
 
 interface Question {
   id: string;
   question_text: string;
+  is_active?: boolean;
+}
+
+interface TestSubmissionStatus {
+  approved: boolean | null;
+  reviewed_at: string | null;
 }
 
 export default function RulesTest() {
@@ -67,8 +72,10 @@ export default function RulesTest() {
         throw new Error('Failed to fetch submissions');
       }
 
-      const submissions = await submissionsResponse.json();
-      const pendingSubmissions = Array.isArray(submissions) ? submissions.filter((s: any) => s.approved === null && s.reviewed_at === null) : [];
+      const submissions = (await submissionsResponse.json()) as TestSubmissionStatus[];
+      const pendingSubmissions = Array.isArray(submissions)
+        ? submissions.filter((submission) => submission.approved === null && submission.reviewed_at === null)
+        : [];
 
       if (pendingSubmissions.length > 0) {
         await showAlert('У вас вже є здача правил на розгляді. Дочекайтесь результату перед новою спробою.', 'Попередження', 'warning');
@@ -86,8 +93,10 @@ export default function RulesTest() {
         throw new Error('Failed to fetch questions');
       }
 
-      const allQuestions = await questionsResponse.json();
-      const activeQuestions = Array.isArray(allQuestions) ? allQuestions.filter((q: any) => q.is_active) : [];
+      const allQuestions = (await questionsResponse.json()) as Question[];
+      const activeQuestions = Array.isArray(allQuestions)
+        ? allQuestions.filter((question) => question.is_active)
+        : [];
 
       if (!activeQuestions || activeQuestions.length < 15) {
         await showAlert('Недостатньо питань для проходження тесту. Зверніться до адміністрації.', 'Помилка', 'error');

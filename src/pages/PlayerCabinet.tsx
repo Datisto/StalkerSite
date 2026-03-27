@@ -10,13 +10,13 @@ interface Character {
   id: string;
   name: string;
   surname: string;
-  patronymic: string | null;
-  nickname: string | null;
+  patronymic?: string | null;
+  nickname?: string | null;
   age: number;
   faction: string;
   status: 'draft' | 'pending' | 'approved' | 'rejected' | 'active' | 'archived' | 'dead';
-  created_at: string;
-  rejection_reason: string | null;
+  created_at?: string;
+  rejection_reason?: string | null;
 }
 
 export default function PlayerCabinet() {
@@ -99,9 +99,9 @@ export default function PlayerCabinet() {
       await refreshUser();
 
       setShowDiscordModal(false);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving Discord ID:', error);
-      setDiscordError(error?.message || 'Помилка збереження Discord ID');
+      setDiscordError(error instanceof Error ? error.message : 'Помилка збереження Discord ID');
     } finally {
       setDiscordLoading(false);
     }

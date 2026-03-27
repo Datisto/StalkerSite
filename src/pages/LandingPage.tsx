@@ -4,7 +4,6 @@ import { Users, Shield, BookOpen, Play, Map, Kanban } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { apiClient } from '../lib/api-client';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
-import { showAlert } from '../utils/modals';
 
 interface MediaVideo {
   id: string;

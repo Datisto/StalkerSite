@@ -63,9 +63,13 @@ export default function FAQManager() {
       setShowCategoryForm(false);
       setCategoryForm({ title: '', slug: '' });
       await loadData();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving category:', error);
-      await showAlert('Помилка збереження: ' + error.message, 'Помилка', 'error');
+      await showAlert(
+        'Помилка збереження: ' + (error instanceof Error ? error.message : 'Невідома помилка'),
+        'Помилка',
+        'error'
+      );
     }
   }
 
@@ -118,9 +122,13 @@ export default function FAQManager() {
       setShowItemForm(false);
       setItemForm({ category_id: '', question: '', answer: '', is_visible: true });
       await loadData();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving FAQ item:', error);
-      await showAlert('Помилка збереження: ' + error.message, 'Помилка', 'error');
+      await showAlert(
+        'Помилка збереження: ' + (error instanceof Error ? error.message : 'Невідома помилка'),
+        'Помилка',
+        'error'
+      );
     }
   }
 

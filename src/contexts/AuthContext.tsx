@@ -5,8 +5,8 @@ interface User {
   id: string;
   steam_id: string;
   steam_nickname: string;
-  discord_id?: string;
-  discord_username?: string;
+  discord_id?: string | null;
+  discord_username?: string | null;
   is_banned: boolean;
   rules_passed?: boolean;
   token?: string;
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const userData = await apiClient.auth.getCurrentUser();
           setUser({ ...userData, token });
-        } catch (error: any) {
+        } catch {
           setUser(null);
         }
       } else {

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
-import { apiClient } from '../lib/api-client';
 import QuestionsManager from '../components/QuestionsManager';
 import RulesManager from '../components/RulesManager';
 import FAQManager from '../components/FAQManager';
@@ -15,7 +14,6 @@ import {
   Edit,
   LogOut,
   BookOpen,
-  Settings,
   Save,
   X,
   Trash2,
@@ -30,27 +28,40 @@ import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 
 interface Character {
   id: string;
+  user_id: string;
+  steam_id: string;
   name: string;
   surname: string;
-  patronymic: string;
-  nickname: string;
-  discord_id: string;
+  patronymic: string | null;
+  nickname: string | null;
+  discord_id: string | null;
   age: number;
-  gender: string;
-  faction: string;
-  backstory: string;
-  zone_motivation: string;
-  status: string;
-  created_at: string;
-  user_id: string;
-  height: number;
-  weight: number;
-  body_type: string;
-  character_traits: string[];
+  gender: 'male' | 'female';
   face_model: string;
   hair_color: string;
   eye_color: string;
-  beard_style: string;
+  beard_style: string | null;
+  special_features: string | null;
+  height: number;
+  weight: number;
+  body_type: string;
+  physical_features: string | null;
+  character_traits: string[];
+  phobias: string | null;
+  character_values: string | null;
+  faction: string;
+  education: string | null;
+  scientific_profile: string | null;
+  research_motivation: string | null;
+  military_experience: string | null;
+  military_rank: string | null;
+  military_join_reason: string | null;
+  backstory: string;
+  zone_motivation: string;
+  character_goals: string | null;
+  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'active' | 'archived' | 'dead';
+  created_at: string;
+  rejection_reason: string | null;
 }
 
 interface User {
@@ -75,6 +86,21 @@ interface MediaVideo {
   created_at: string;
 }
 
+interface TestSubmission {
+  id: string;
+  user_id: string | null;
+  steam_id: string;
+  steam_nickname: string | null;
+  discord_id: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+  approved: boolean | null;
+  feedback?: string | null;
+  question_grades?: boolean[] | null;
+  questions?: string[];
+  answers?: string[];
+}
+
 export default function AdminPanel() {
   const { admin, logout } = useAdminAuth();
   const [activeTab, setActiveTab] = useState<'characters' | 'questions' | 'rules' | 'tests' | 'users' | 'media' | 'faq'>('characters');
@@ -85,8 +111,8 @@ export default function AdminPanel() {
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState<Partial<Character>>({});
-  const [tests, setTests] = useState<any[]>([]);
-  const [selectedTest, setSelectedTest] = useState<any>(null);
+  const [tests, setTests] = useState<TestSubmission[]>([]);
+  const [selectedTest, setSelectedTest] = useState<TestSubmission | null>(null);
   const [questionGrades, setQuestionGrades] = useState<boolean[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [mediaVideos, setMediaVideos] = useState<MediaVideo[]>([]);
@@ -129,12 +155,12 @@ export default function AdminPanel() {
         throw new Error('Failed to load characters');
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as Character[];
       console.log('AdminPanel: Loaded characters:', data);
-      const parsedData = (data || []).map((char: any) => ({
+      const parsedData = (data || []).map((char) => ({
         ...char,
         character_traits: typeof char.character_traits === 'string'
-          ? JSON.parse(char.character_traits)
+          ? (JSON.parse(char.character_traits) as string[])
           : char.character_traits,
       }));
       setCharacters(parsedData);
@@ -147,11 +173,11 @@ export default function AdminPanel() {
 
   async function updateCharacterStatus(
     characterId: string,
-    status: 'approved' | 'rejected',
+    status: Character['status'],
     rejectionReason?: string
   ) {
     try {
-      const updates: any = {
+      const updates: { status: Character['status']; approved_at?: string; rejection_reason?: string } = {
         status,
         ...(status === 'approved' && { approved_at: new Date().toISOString() }),
         ...(status === 'rejected' && { rejection_reason: rejectionReason }),
@@ -217,7 +243,7 @@ export default function AdminPanel() {
       });
 
       if (!response.ok) throw new Error('Failed to load tests');
-      const data = await response.json();
+      const data = (await response.json()) as TestSubmission[];
       setTests(data || []);
     } catch (error) {
       console.error('Error loading tests:', error);
@@ -286,9 +312,9 @@ export default function AdminPanel() {
     setQuestionGrades(newGrades);
   }
 
-  function openTestReview(test: any) {
+  function openTestReview(test: TestSubmission) {
     setSelectedTest(test);
-    if (test.question_grades && test.question_grades.length > 0) {
+    if (Array.isArray(test.question_grades) && test.question_grades.length > 0) {
       setQuestionGrades(test.question_grades);
     } else {
       setQuestionGrades(new Array(test.questions?.length || 15).fill(false));
@@ -1274,7 +1300,7 @@ export default function AdminPanel() {
                       <label className="block text-sm font-medium mb-2">Стать</label>
                       <select
                         value={editData.gender || ''}
-                        onChange={(e) => setEditData({ ...editData, gender: e.target.value })}
+                        onChange={(e) => setEditData({ ...editData, gender: e.target.value as Character['gender'] })}
                         className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                       >
                         <option value="male">Чоловік</option>

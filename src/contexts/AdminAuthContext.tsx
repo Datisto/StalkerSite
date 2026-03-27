@@ -39,7 +39,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
           localStorage.removeItem('admin_session');
           setAdmin(null);
         }
-      } catch (error) {
+      } catch {
         localStorage.removeItem('admin_session');
         apiClient.setToken(null);
         setAdmin(null);
