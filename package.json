@@ -4,6 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start": "node server/src/index.js",
+    "postinstall": "npm --prefix server install",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",

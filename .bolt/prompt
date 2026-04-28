@@ -4,10 +4,10 @@ DONT USE BOLT DATABASE or supabase
 this project is hyper host wtih: apache, MySql
 
 
-DB_HOST=185.174.173.12
-DB_USER=h74551c_eternalzone
+DB_HOST=78.142.63.18
+DB_USER=dayzstal_eternalzone
 DB_PASSWORD=7cXl^;-IK2FSd2xF
-DB_NAME=h74551c_eternalzone
+DB_NAME=dayzstal_eternalzone
 
 PORT=3000
 FRONTEND_URL=https://dayzstalker.win
