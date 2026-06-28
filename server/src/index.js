@@ -24,12 +24,27 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.disable('x-powered-by');
+
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true
 }));
 
-app.use(express.json());
+app.use((req, res, next) => {
+  try {
+    decodeURI(req.url);
+    next();
+  } catch (error) {
+    if (error instanceof URIError) {
+      console.warn('Rejected malformed request URL:', req.url);
+      return res.status(400).json({ error: 'Bad request' });
+    }
+    next(error);
+  }
+});
+
+app.use(express.json({ limit: '256kb' }));
 
 app.get('/api', async (req, res) => {
   let dbStatus = 'unknown';
@@ -97,6 +112,19 @@ app.get('*', (req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
+  if (err instanceof URIError) {
+    console.warn('Rejected malformed request URL:', req.url);
+    return res.status(400).json({ error: 'Bad request' });
+  }
+
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ error: 'Request body too large' });
+  }
+
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ error: 'Invalid JSON' });
+  }
+
   console.error(err.stack);
   res.status(500).json({ error: 'Internal server error' });
 });

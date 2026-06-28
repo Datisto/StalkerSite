@@ -6,20 +6,38 @@ import { generateToken } from '../utils/jwt.js';
 const router = express.Router();
 
 const STEAM_OPENID_URL = 'https://steamcommunity.com/openid/login';
+const FETCH_TIMEOUT_MS = 8000;
+
+async function fetchWithTimeout(url, options = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 router.get('/login', (req, res) => {
-  const returnUrl = req.query.return_url || `${process.env.FRONTEND_URL}/steam-callback`;
+  try {
+    const defaultReturnUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/steam-callback`;
+    const returnUrl = req.query.return_url || defaultReturnUrl;
+    const parsedReturnUrl = new URL(returnUrl);
 
-  const params = new URLSearchParams({
-    'openid.ns': 'http://specs.openid.net/auth/2.0',
-    'openid.mode': 'checkid_setup',
-    'openid.return_to': returnUrl,
-    'openid.realm': new URL(returnUrl).origin,
-    'openid.identity': 'http://specs.openid.net/auth/2.0/identifier_select',
-    'openid.claimed_id': 'http://specs.openid.net/auth/2.0/identifier_select',
-  });
+    const params = new URLSearchParams({
+      'openid.ns': 'http://specs.openid.net/auth/2.0',
+      'openid.mode': 'checkid_setup',
+      'openid.return_to': parsedReturnUrl.toString(),
+      'openid.realm': parsedReturnUrl.origin,
+      'openid.identity': 'http://specs.openid.net/auth/2.0/identifier_select',
+      'openid.claimed_id': 'http://specs.openid.net/auth/2.0/identifier_select',
+    });
 
-  res.redirect(`${STEAM_OPENID_URL}?${params.toString()}`);
+    res.redirect(`${STEAM_OPENID_URL}?${params.toString()}`);
+  } catch (error) {
+    res.status(400).json({ error: 'Invalid return_url' });
+  }
 });
 
 router.get('/verify', async (req, res) => {
@@ -45,7 +63,7 @@ router.get('/verify', async (req, res) => {
     }
     verifyParams.set('openid.mode', 'check_authentication');
 
-    const verifyResponse = await fetch(STEAM_OPENID_URL, {
+    const verifyResponse = await fetchWithTimeout(STEAM_OPENID_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: verifyParams.toString(),
@@ -64,7 +82,7 @@ router.get('/verify', async (req, res) => {
 
     if (apiKey) {
       const steamApiUrl = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${apiKey}&steamids=${steamId}`;
-      const steamApiResponse = await fetch(steamApiUrl);
+      const steamApiResponse = await fetchWithTimeout(steamApiUrl);
       const steamData = await steamApiResponse.json();
 
       if (steamData.response?.players?.length > 0) {
@@ -128,6 +146,9 @@ router.get('/verify', async (req, res) => {
     });
   } catch (error) {
     console.error('Steam auth error:', error);
+    if (error.name === 'AbortError') {
+      return res.status(408).json({ error: 'Steam request timed out' });
+    }
     res.status(500).json({ error: error.message });
   }
 });
