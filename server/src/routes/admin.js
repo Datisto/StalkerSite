@@ -118,6 +118,7 @@ router.patch('/characters/:id', authenticateAdmin, async (req, res) => {
 
     if (playerspawn && status === 'approved') {
       const { spawnset, profid, doors_groups } = playerspawn;
+      const coordinates = '3525.59 33.4357 1049.81';
 
       const [character] = await query(
         'SELECT steam_id, face_model, discord_id FROM characters WHERE id = ? LIMIT 1',
@@ -145,13 +146,13 @@ router.patch('/characters/:id', authenticateAdmin, async (req, res) => {
 
         if (existingRows.length > 0) {
           await connection.execute(
-            'UPDATE playerspawn SET face = ?, spawnset = ?, profid = ?, discordid = ?, doors_groups = ? WHERE steamid = ?',
-            [character.face_model || '', spawnset, profid, character.discord_id || null, doors_groups || '', character.steam_id]
+            'UPDATE playerspawn SET face = ?, spawnset = ?, coordinates = ?, profid = ?, discordid = ?, doors_groups = ? WHERE steamid = ?',
+            [character.face_model || '', spawnset, coordinates, profid, character.discord_id || null, doors_groups || '', character.steam_id]
           );
         } else {
           await connection.execute(
-            "INSERT INTO playerspawn (steamid, face, spawnset, blood, coordinates, profid, discordid, doors_groups) VALUES (?, ?, ?, 0, '', ?, ?, ?)",
-            [character.steam_id, character.face_model || '', spawnset, profid, character.discord_id || null, doors_groups || '']
+            'INSERT INTO playerspawn (steamid, face, spawnset, blood, coordinates, profid, discordid, doors_groups) VALUES (?, ?, ?, 0, ?, ?, ?, ?)',
+            [character.steam_id, character.face_model || '', spawnset, coordinates, profid, character.discord_id || null, doors_groups || '']
           );
         }
 
