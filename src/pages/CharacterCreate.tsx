@@ -13,6 +13,7 @@ import {
   MILITARY_EXPERIENCE,
   CHARACTER_TRAITS,
   TRAIT_CATEGORIES,
+  ZONE_ENTRY_REASONS,
   generateHeightOptions,
   generateWeightOptions,
   generateAgeOptions,
@@ -99,6 +100,10 @@ export default function CharacterCreate() {
     zone_motivation: '',
     character_goals: '',
   });
+
+  const selectedZoneReason = ZONE_ENTRY_REASONS.find(
+    (reason) => `${reason.title}: ${reason.description}` === formData.zone_motivation
+  );
 
   useEffect(() => {
     if (user) {
@@ -1006,37 +1011,44 @@ export default function CharacterCreate() {
 
               <div className="bg-gray-900 p-4 rounded border border-gray-700">
                 <label className="block text-sm font-medium mb-3">Оберіть тип анкети *</label>
-                <div className="space-y-2">
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="questType"
-                      checked={questType === 'short'}
-                      onChange={() => setQuestType('short')}
-                      className="mt-1"
-                    />
-                    <div>
-                      <div className="font-medium">Коротка анкета (до 500 символів)</div>
-                      <div className="text-xs text-gray-400">
-                        Основні відомості про персонажа без детальної історії
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                  <div className="space-y-2 sm:flex-1">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="questType"
+                        checked={questType === 'short'}
+                        onChange={() => setQuestType('short')}
+                        className="mt-1"
+                      />
+                      <div>
+                        <div className="font-medium">Коротка анкета (до 500 символів)</div>
+                        <div className="text-xs text-gray-400">
+                          Основні відомості про персонажа без детальної історії
+                        </div>
                       </div>
-                    </div>
-                  </label>
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="questType"
-                      checked={questType === 'full'}
-                      onChange={() => setQuestType('full')}
-                      className="mt-1"
-                    />
-                    <div>
-                      <div className="font-medium">Повна квента (більше 500 символів)</div>
-                      <div className="text-xs text-gray-400">
-                        Детальна біографія та історія персонажа
+                    </label>
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="questType"
+                        checked={questType === 'full'}
+                        onChange={() => setQuestType('full')}
+                        className="mt-1"
+                      />
+                      <div>
+                        <div className="font-medium">Повна квента (більше 500 символів)</div>
+                        <div className="text-xs text-gray-400">
+                          Детальна біографія та історія персонажа
+                        </div>
                       </div>
-                    </div>
-                  </label>
+                    </label>
+                  </div>
+                  {questType === 'full' && (
+                    <p role="alert" className="text-lg sm:text-xl font-bold text-red-500 sm:flex-1">
+                      НЕ ОБИРАЙТЕ КВЕНТУ ЯКЩО НЕ РОЗУМІЄТЕ ДЛЯ ЧОГО ВОНА!!!
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -1067,16 +1079,45 @@ export default function CharacterCreate() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Мотивація приходу в Зону *
+                <label htmlFor="zone-entry-reason" className="block text-sm font-medium mb-2">
+                  {questType === 'short' ? 'Причина походу в Зону' : 'Мотивація приходу в Зону'} *
                 </label>
-                <textarea
-                  value={formData.zone_motivation}
-                  onChange={(e) => updateField('zone_motivation', e.target.value)}
-                  rows={5}
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-                  placeholder="Чому ваш персонаж прийшов до Зони? Що він шукає?"
-                />
+                {questType === 'short' ? (
+                  <>
+                    <select
+                      id="zone-entry-reason"
+                      value={formData.zone_motivation}
+                      onChange={(e) => updateField('zone_motivation', e.target.value)}
+                      required
+                      aria-describedby={formData.zone_motivation ? 'zone-entry-description' : undefined}
+                      className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
+                    >
+                      <option value="">Оберіть причину походу в Зону</option>
+                      {formData.zone_motivation && !selectedZoneReason && (
+                        <option value={formData.zone_motivation}>Раніше збережена причина</option>
+                      )}
+                      {ZONE_ENTRY_REASONS.map((reason, index) => (
+                        <option key={reason.title} value={`${reason.title}: ${reason.description}`}>
+                          {index + 1}. {reason.title}
+                        </option>
+                      ))}
+                    </select>
+                    {formData.zone_motivation && (
+                      <p id="zone-entry-description" className="text-sm text-gray-400 mt-2 whitespace-pre-wrap">
+                        {selectedZoneReason?.description || formData.zone_motivation}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <textarea
+                    id="zone-entry-reason"
+                    value={formData.zone_motivation}
+                    onChange={(e) => updateField('zone_motivation', e.target.value)}
+                    rows={5}
+                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
+                    placeholder="Чому ваш персонаж прийшов до Зони? Що він шукає?"
+                  />
+                )}
               </div>
 
               <div>
@@ -1125,6 +1166,9 @@ export default function CharacterCreate() {
                   </p>
                   <p>
                     <strong>Біографія:</strong> {formData.backstory.length} символів
+                  </p>
+                  <p>
+                    <strong>{questType === 'short' ? 'Причина походу в Зону:' : 'Мотивація приходу в Зону:'}</strong> {formData.zone_motivation}
                   </p>
                 </div>
               </div>
