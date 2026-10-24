@@ -1,0 +1,66 @@
+{
+  "server_version": "11.8.9-MariaDB",
+  "connection": "127.0.0.1:33318",
+  "schema_source": "User-provided structure export; synthetic rows only",
+  "migration_sha256": "f101a486ea5fe0024ad734f676d583224bdda705145d2038e6be991961c54f83",
+  "production_contacted": false,
+  "scenarios_passed": 14,
+  "scenarios": [
+    {
+      "scenario": "Fresh migration preserves all original rows, column definitions, indexes, foreign keys and JSON checks",
+      "status": "passed"
+    },
+    {
+      "scenario": "Repeated migration leaves existing Ukrainian/English data and all metadata unchanged",
+      "status": "passed"
+    },
+    {
+      "scenario": "Migration after the previous six-column SQL preserves previous translations",
+      "status": "passed"
+    },
+    {
+      "scenario": "Incompatible existing English type: preflight rejects before any migration change, even with client --force",
+      "status": "passed"
+    },
+    {
+      "scenario": "Incompatible existing English default: preflight rejects before any migration change, even with client --force",
+      "status": "passed"
+    },
+    {
+      "scenario": "Changed original column type: preflight rejects before any migration change, even with client --force",
+      "status": "passed"
+    },
+    {
+      "scenario": "Missing required table: preflight rejects before any migration change, even with client --force",
+      "status": "passed"
+    },
+    {
+      "scenario": "Unexpected storage engine: preflight rejects before any migration change, even with client --force",
+      "status": "passed"
+    },
+    {
+      "scenario": "First-table metadata lock times out after five seconds without adding columns",
+      "status": "passed"
+    },
+    {
+      "scenario": "Later metadata lock stops the block; rerun resumes partial DDL without changing original data",
+      "status": "passed"
+    },
+    {
+      "scenario": "Existing transaction is rejected without committing the caller's uncommitted data",
+      "status": "passed"
+    },
+    {
+      "scenario": "Original session metadata-lock timeout is restored after success",
+      "status": "passed"
+    },
+    {
+      "scenario": "Original session metadata-lock timeout is restored after a preflight error",
+      "status": "passed"
+    },
+    {
+      "scenario": "Missing target database cannot redirect migration into another selected database",
+      "status": "passed"
+    }
+  ]
+}

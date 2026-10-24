@@ -1,0 +1,53 @@
+﻿ФАЙЛИ ОНОВЛЕННЯ UA / EN — ЛИШЕ ЗМІНЕНЕ
+
+У dist/ залишено лише 3 файли:
+- assets/index-DA43swEU.js
+- assets/index-EJShdDsJ.css
+- index.html
+Картинки, іконки та інші незмінені ресурси прибрано з папки завантаження.
+Вони вже мають залишатися на хості.
+
+У server/ лише 9 файлів оновлення:
+- src/routes/admin.js
+- src/routes/characters.js
+- src/routes/face-models.js
+- src/routes/faq.js
+- src/routes/media-videos.js
+- src/routes/questions.js
+- src/routes/rules.js
+- src/routes/test-submissions.js
+- src/utils/content-translations.js
+Це не повна копія сервера. Докопіюйте ці файли у відповідні наявні папки із заміною.
+Стару папку server/, решту її файлів, .env та node_modules не видаляйте.
+
+ПОРЯДОК
+1. Якщо SQL цього оновлення ще не виконано, спочатку імпортуйте 01_database.sql.
+2. Завантажте 9 серверних файлів у відповідні місця існуючого backend.
+3. Перезапустіть наявну Node.js-програму.
+4. Завантажте нові JS/CSS з assets/, а index.html — останнім.
+Старі файли assets/ і зображення залиште на хості.
+
+КУДИ ЗАВАНТАЖИТИ
+Варіант A — сайт у public_html, Node.js окремо:
+- Вміст dist/ — у корінь сайту, наприклад public_html/.
+- Вміст server/ — у наявну папку backend, де вже є src/.
+  Якщо startup file = src/index.js, це Application Root у cPanel.
+  Якщо startup file = server/src/index.js, це наявна папка server/ проєкту.
+  Серверні файли не завантажуйте у public_html/.
+Варіант B — Node.js віддає і сайт, і API:
+- dist/ — у наявну <проєкт>/dist/.
+- server/ — у наявну <проєкт>/server/.
+Копіюйте з об'єднанням папок і заміною відповідних файлів, без видалення решти.
+
+SQL
+01_database.sql призначено для MariaDB 11.8.x і бази dayzstal_eternalzone.
+Перед імпортом збережіть резервну копію структури й даних бази та замінюваних файлів.
+Імпортуйте весь файл через HeidiSQL або phpMyAdmin з підтримкою DELIMITER.
+Потрібні autocommit=1 та відсутність відкритої транзакції.
+Успіх: migration_status=OK. При помилці не переходьте до оновлення backend.
+Якщо саме цей SQL уже виконано з OK, повторно виконувати його не потрібно.
+SQL та цю інструкцію не завантажуйте в public_html/ або dist/.
+
+Поточні .env, .htaccess, проксування /api та параметри запуску залиште на хості.
+Залежності не змінювалися: npm install для цього оновлення не потрібен.
+На хостинг автоматично нічого не завантажено, робочу базу не змінено.

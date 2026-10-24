@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS face_models (
   id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
   name VARCHAR(255) UNIQUE NOT NULL,
+  name_en VARCHAR(255) DEFAULT NULL,
   gender ENUM('male', 'female') NOT NULL,
   image_url TEXT,
   is_unique BOOLEAN DEFAULT FALSE,
@@ -100,6 +101,7 @@ CREATE TABLE IF NOT EXISTS admins (
 CREATE TABLE IF NOT EXISTS rules_categories (
   id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
   name VARCHAR(255) NOT NULL,
+  name_en VARCHAR(255) DEFAULT NULL,
   order_index INT DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -109,7 +111,9 @@ CREATE TABLE IF NOT EXISTS rules (
   id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
   category_id VARCHAR(36) NOT NULL,
   title VARCHAR(255) NOT NULL,
+  title_en VARCHAR(255) DEFAULT NULL,
   content TEXT NOT NULL,
+  content_en TEXT DEFAULT NULL,
   order_index INT DEFAULT 0,
   is_published BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -121,9 +125,11 @@ CREATE TABLE IF NOT EXISTS rules (
 CREATE TABLE IF NOT EXISTS rules_questions (
   id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
   question_text TEXT NOT NULL,
+  question_text_en TEXT DEFAULT NULL,
   correct_answer TEXT DEFAULT NULL,
   incorrect_answers JSON DEFAULT NULL,
   category VARCHAR(255) DEFAULT NULL,
+  category_en VARCHAR(255) DEFAULT NULL,
   difficulty ENUM('easy', 'medium', 'hard') DEFAULT 'medium',
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -135,6 +141,7 @@ CREATE TABLE IF NOT EXISTS rules_test_submissions (
   id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
   user_id VARCHAR(36) DEFAULT NULL,
   steam_id VARCHAR(255) NOT NULL,
+  language VARCHAR(2) NOT NULL DEFAULT 'uk',
   answers JSON DEFAULT NULL,
   question_grades JSON DEFAULT NULL,
   score INT DEFAULT NULL,
@@ -151,6 +158,7 @@ CREATE TABLE IF NOT EXISTS rules_test_submissions (
 CREATE TABLE IF NOT EXISTS faq_categories (
   id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
   name VARCHAR(255) NOT NULL,
+  name_en VARCHAR(255) DEFAULT NULL,
   order_index INT DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -160,7 +168,9 @@ CREATE TABLE IF NOT EXISTS faq_items (
   id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
   category_id VARCHAR(36) NOT NULL,
   question TEXT NOT NULL,
+  question_en TEXT DEFAULT NULL,
   answer TEXT NOT NULL,
+  answer_en TEXT DEFAULT NULL,
   order_index INT DEFAULT 0,
   is_published BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -172,6 +182,7 @@ CREATE TABLE IF NOT EXISTS faq_items (
 CREATE TABLE IF NOT EXISTS media_videos (
   id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
   title VARCHAR(255) NOT NULL,
+  title_en VARCHAR(255) DEFAULT NULL,
   url TEXT NOT NULL,
   thumbnail_url TEXT DEFAULT NULL,
   order_index INT DEFAULT 0,

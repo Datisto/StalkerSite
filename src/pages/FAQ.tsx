@@ -1,3 +1,7 @@
+import { useTranslation } from '../hooks/useTranslation';
+import { localizedText } from '../i18n/content';
+import LanguageSwitcher from '../components/LanguageSwitcher';
+import { useLanguage } from '../contexts/language';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiClient } from '../lib/api-client';
@@ -7,6 +11,7 @@ import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 interface FAQCategory {
   id: string;
   title: string;
+  title_en?: string | null;
   slug: string;
   order_index: number;
 }
@@ -15,12 +20,16 @@ interface FAQItem {
   id: string;
   category_id: string;
   question: string;
+  question_en?: string | null;
   answer: string;
+  answer_en?: string | null;
   order_index: number;
   is_visible: boolean;
 }
 
 export default function FAQ() {
+  const tx = useTranslation();
+  const { t, language } = useLanguage();
   const [categories, setCategories] = useState<FAQCategory[]>([]);
   const [items, setItems] = useState<FAQItem[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
@@ -81,7 +90,7 @@ export default function FAQ() {
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100">
       <header className="border-b border-gray-700 bg-black bg-opacity-90 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <Link to="/" className="inline-flex items-center gap-3 hover:opacity-80 transition">
               <img src={logoIcon} alt="Eternal ZONE" className="w-10 h-10 object-contain" />
               <span className="text-xl font-bold font-stalker">Eternal ZONE</span>
@@ -92,9 +101,10 @@ export default function FAQ() {
                 className="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-white transition"
               >
                 <Home className="w-4 h-4" />
-                Головна
+                {t('home')}
               </Link>
             </div>
+            <LanguageSwitcher />
           </div>
         </div>
       </header>
@@ -103,17 +113,17 @@ export default function FAQ() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-4 font-stalker flex items-center gap-3">
             <HelpCircle className="w-10 h-10 text-red-500" />
-            FAQ - Часті питання
+            {t('faqTitle')}
           </h1>
           <p className="text-gray-400 text-lg">
-            Відповіді на найпоширеніші питання про сервер
+            {t('faqDescription')}
           </p>
         </div>
 
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto"></div>
-            <p className="text-gray-400 mt-4">Завантаження...</p>
+            <p className="text-gray-400 mt-4">{t('loading')}</p>
           </div>
         ) : (
           <>
@@ -122,13 +132,13 @@ export default function FAQ() {
                 onClick={expandAll}
                 className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded transition text-sm"
               >
-                Розгорнути все
+                {t('expandAll')}
               </button>
               <button
                 onClick={collapseAll}
                 className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded transition text-sm"
               >
-                Згорнути все
+                {t('collapseAll')}
               </button>
             </div>
 
@@ -149,9 +159,9 @@ export default function FAQ() {
                       onClick={() => toggleCategory(category.id)}
                       className="w-full flex items-center justify-between p-6 hover:bg-gray-700 hover:bg-opacity-30 transition"
                     >
-                      <h2 className="text-2xl font-bold font-stalker text-left">{category.title}</h2>
+                      <h2 className="text-2xl font-bold font-stalker text-left">{localizedText(category.title, category.title_en, language)}</h2>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-400">{categoryItems.length} питань</span>
+                        <span className="text-sm text-gray-400">{categoryItems.length} {tx(" питань")}</span>
                         {isExpanded ? (
                           <ChevronUp className="w-6 h-6 text-red-500" />
                         ) : (
@@ -174,7 +184,7 @@ export default function FAQ() {
                                 onClick={() => toggleItem(item.id)}
                                 className="w-full flex items-center justify-between p-4 hover:bg-gray-700 hover:bg-opacity-30 transition text-left"
                               >
-                                <h3 className="text-lg font-semibold pr-4">{item.question}</h3>
+                                <h3 className="text-lg font-semibold pr-4">{localizedText(item.question, item.question_en, language)}</h3>
                                 {isItemExpanded ? (
                                   <ChevronUp className="w-5 h-5 text-red-500 flex-shrink-0" />
                                 ) : (
@@ -188,7 +198,7 @@ export default function FAQ() {
                                     <div
                                       className="prose prose-invert max-w-none prose-headings:text-gray-100 prose-p:text-gray-300 prose-a:text-red-400 prose-strong:text-gray-200 prose-ul:text-gray-300 prose-ol:text-gray-300"
                                       dangerouslySetInnerHTML={{
-                                        __html: item.answer.replace(/\n/g, '<br />'),
+                                        __html: localizedText(item.answer, item.answer_en, language).replace(/\n/g, '<br />'),
                                       }}
                                     />
                                   </div>
@@ -207,7 +217,7 @@ export default function FAQ() {
             {categories.length === 0 && (
               <div className="text-center py-12 bg-gray-800 bg-opacity-60 rounded-lg border border-gray-700">
                 <HelpCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400 text-lg">FAQ поки що порожній</p>
+                <p className="text-gray-400 text-lg">{tx("FAQ поки що порожній")}</p>
               </div>
             )}
           </>

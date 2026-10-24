@@ -1,3 +1,5 @@
+import { useTranslation } from '../hooks/useTranslation';
+import BilingualTextField from './BilingualTextField';
 import { useEffect, useState } from 'react';
 import { apiClient } from '../lib/api-client';
 import { Plus, Edit, Trash2, Save, X, ChevronUp, ChevronDown } from 'lucide-react';
@@ -6,6 +8,7 @@ import { showAlert, showConfirm } from '../utils/modals';
 interface FAQCategory {
   id: string;
   title: string;
+  title_en?: string | null;
   slug: string;
   order_index: number;
 }
@@ -14,23 +17,28 @@ interface FAQItem {
   id: string;
   category_id: string;
   question: string;
+  question_en?: string | null;
   answer: string;
+  answer_en?: string | null;
   order_index: number;
   is_visible: boolean;
 }
 
 export default function FAQManager() {
+  const tx = useTranslation();
   const [categories, setCategories] = useState<FAQCategory[]>([]);
   const [items, setItems] = useState<FAQItem[]>([]);
   const [editingCategory, setEditingCategory] = useState<FAQCategory | null>(null);
   const [editingItem, setEditingItem] = useState<FAQItem | null>(null);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showItemForm, setShowItemForm] = useState(false);
-  const [categoryForm, setCategoryForm] = useState({ title: '', slug: '' });
+  const [categoryForm, setCategoryForm] = useState({ title: '', title_en: '', slug: '' });
   const [itemForm, setItemForm] = useState({
     category_id: '',
     question: '',
+    question_en: '',
     answer: '',
+    answer_en: '',
     is_visible: true,
   });
 
@@ -42,7 +50,7 @@ export default function FAQManager() {
     try {
       const [categoriesData, itemsData] = await Promise.all([
         apiClient.faq.categories.list(),
-        apiClient.faq.list(),
+        apiClient.faq.manage(),
       ]);
       setCategories(categoriesData);
       setItems(itemsData);
@@ -61,20 +69,20 @@ export default function FAQManager() {
       }
       setEditingCategory(null);
       setShowCategoryForm(false);
-      setCategoryForm({ title: '', slug: '' });
+      setCategoryForm({ title: '', title_en: '', slug: '' });
       await loadData();
     } catch (error) {
       console.error('Error saving category:', error);
       await showAlert(
-        'Помилка збереження: ' + (error instanceof Error ? error.message : 'Невідома помилка'),
-        'Помилка',
+        tx("Помилка збереження: ") + (error instanceof Error ? tx(error.message) : tx("Невідома помилка")),
+        tx("Помилка"),
         'error'
       );
     }
   }
 
   async function handleDeleteCategory(id: string) {
-    const confirmed = await showConfirm('Видалити категорію та всі FAQ в ній?', 'Підтвердження', { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' });
+    const confirmed = await showConfirm(tx("Видалити категорію та всі FAQ в ній?"), tx("Підтвердження"), { type: 'danger', confirmText: tx("Видалити"), cancelText: tx("Скасувати") });
     if (!confirmed) return;
     try {
       await apiClient.faq.categories.delete(id);
@@ -107,7 +115,7 @@ export default function FAQManager() {
   async function handleSaveItem() {
     try {
       if (!itemForm.category_id || !itemForm.question || !itemForm.answer) {
-        await showAlert('Заповніть всі поля', 'Помилка', 'warning');
+        await showAlert(tx("Заповніть всі поля"), tx("Помилка"), 'warning');
         return;
       }
 
@@ -120,20 +128,20 @@ export default function FAQManager() {
       }
       setEditingItem(null);
       setShowItemForm(false);
-      setItemForm({ category_id: '', question: '', answer: '', is_visible: true });
+      setItemForm({ category_id: '', question: '', question_en: '', answer: '', answer_en: '', is_visible: true });
       await loadData();
     } catch (error) {
       console.error('Error saving FAQ item:', error);
       await showAlert(
-        'Помилка збереження: ' + (error instanceof Error ? error.message : 'Невідома помилка'),
-        'Помилка',
+        tx("Помилка збереження: ") + (error instanceof Error ? tx(error.message) : tx("Невідома помилка")),
+        tx("Помилка"),
         'error'
       );
     }
   }
 
   async function handleDeleteItem(id: string) {
-    const confirmed = await showConfirm('Видалити цей FAQ?', 'Підтвердження', { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' });
+    const confirmed = await showConfirm(tx("Видалити цей FAQ?"), tx("Підтвердження"), { type: 'danger', confirmText: tx("Видалити"), cancelText: tx("Скасувати") });
     if (!confirmed) return;
     try {
       await apiClient.faq.delete(id);
@@ -171,33 +179,33 @@ export default function FAQManager() {
     <div className="space-y-8">
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold">Категорії FAQ</h3>
+          <h3 className="text-xl font-bold">{tx("Категорії FAQ")}</h3>
           <button
             onClick={() => {
               setEditingCategory(null);
-              setCategoryForm({ title: '', slug: '' });
+              setCategoryForm({ title: '', title_en: '', slug: '' });
               setShowCategoryForm(true);
             }}
             className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 px-3 py-2 rounded text-sm transition"
           >
             <Plus className="w-4 h-4" />
-            Додати категорію
-          </button>
+            {tx("Додати категорію")}</button>
         </div>
 
         {(showCategoryForm || editingCategory) && (
           <div className="bg-gray-900 bg-opacity-60 p-4 rounded border border-gray-700 mb-4">
             <div className="grid gap-3">
-              <input
-                type="text"
-                placeholder="Назва категорії"
+              <BilingualTextField
+                label={tx("Назва категорії")}
                 value={categoryForm.title}
-                onChange={(e) => setCategoryForm({ ...categoryForm, title: e.target.value })}
-                className="bg-gray-800 border border-gray-600 rounded px-3 py-2"
+                englishValue={categoryForm.title_en}
+                onChange={(value) => setCategoryForm({ ...categoryForm, title: value })}
+                onEnglishChange={(value) => setCategoryForm({ ...categoryForm, title_en: value })}
+                required
               />
               <input
                 type="text"
-                placeholder="Slug (наприклад: general)"
+                placeholder={tx("Slug (наприклад: general)")}
                 value={categoryForm.slug}
                 onChange={(e) => setCategoryForm({ ...categoryForm, slug: e.target.value })}
                 className="bg-gray-800 border border-gray-600 rounded px-3 py-2"
@@ -208,19 +216,17 @@ export default function FAQManager() {
                   className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 px-4 py-2 rounded transition"
                 >
                   <Save className="w-4 h-4" />
-                  Зберегти
-                </button>
+                  {tx("Зберегти")}</button>
                 <button
                   onClick={() => {
                     setEditingCategory(null);
                     setShowCategoryForm(false);
-                    setCategoryForm({ title: '', slug: '' });
+                    setCategoryForm({ title: '', title_en: '', slug: '' });
                   }}
                   className="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded transition"
                 >
                   <X className="w-4 h-4" />
-                  Скасувати
-                </button>
+                  {tx("Скасувати")}</button>
               </div>
             </div>
           </div>
@@ -253,7 +259,7 @@ export default function FAQManager() {
                     onClick={() => {
                       setEditingCategory(category);
                       setShowCategoryForm(true);
-                      setCategoryForm({ title: category.title, slug: category.slug });
+                      setCategoryForm({ title: category.title, title_en: category.title_en ?? '', slug: category.slug });
                     }}
                     className="p-1 hover:bg-gray-700 rounded"
                   >
@@ -271,18 +277,17 @@ export default function FAQManager() {
 
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold">FAQ Питання</h3>
+          <h3 className="text-xl font-bold">{tx("FAQ Питання")}</h3>
           <button
             onClick={() => {
               setEditingItem(null);
               setShowItemForm(true);
-              setItemForm({ category_id: '', question: '', answer: '', is_visible: true });
+              setItemForm({ category_id: '', question: '', question_en: '', answer: '', answer_en: '', is_visible: true });
             }}
             className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 px-3 py-2 rounded text-sm transition"
           >
             <Plus className="w-4 h-4" />
-            Додати FAQ
-          </button>
+            {tx("Додати FAQ")}</button>
         </div>
 
         {(showItemForm || editingItem) && (
@@ -293,26 +298,28 @@ export default function FAQManager() {
                 onChange={(e) => setItemForm({ ...itemForm, category_id: e.target.value })}
                 className="bg-gray-800 border border-gray-600 rounded px-3 py-2"
               >
-                <option value="">Виберіть категорію</option>
+                <option value="">{tx("Виберіть категорію")}</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.title}
                   </option>
                 ))}
               </select>
-              <input
-                type="text"
-                placeholder="Питання"
+              <BilingualTextField
+                label={tx("Питання")}
                 value={itemForm.question}
-                onChange={(e) => setItemForm({ ...itemForm, question: e.target.value })}
-                className="bg-gray-800 border border-gray-600 rounded px-3 py-2"
+                englishValue={itemForm.question_en}
+                onChange={(value) => setItemForm({ ...itemForm, question: value })}
+                onEnglishChange={(value) => setItemForm({ ...itemForm, question_en: value })}
+                required
               />
-              <textarea
-                placeholder="Відповідь (підтримує Markdown)"
+              <BilingualTextField
+                label={tx("Відповідь")}
                 value={itemForm.answer}
-                onChange={(e) => setItemForm({ ...itemForm, answer: e.target.value })}
-                rows={6}
-                className="bg-gray-800 border border-gray-600 rounded px-3 py-2 resize-none"
+                englishValue={itemForm.answer_en}
+                onChange={(value) => setItemForm({ ...itemForm, answer: value })}
+                onEnglishChange={(value) => setItemForm({ ...itemForm, answer_en: value })}
+                multiline
               />
               <label className="flex items-center gap-2">
                 <input
@@ -321,7 +328,7 @@ export default function FAQManager() {
                   onChange={(e) => setItemForm({ ...itemForm, is_visible: e.target.checked })}
                   className="w-4 h-4"
                 />
-                <span>Відображати на сайті</span>
+                <span>{tx("Відображати на сайті")}</span>
               </label>
               <div className="flex gap-2">
                 <button
@@ -329,19 +336,17 @@ export default function FAQManager() {
                   className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 px-4 py-2 rounded transition"
                 >
                   <Save className="w-4 h-4" />
-                  Зберегти
-                </button>
+                  {tx("Зберегти")}</button>
                 <button
                   onClick={() => {
                     setEditingItem(null);
                     setShowItemForm(false);
-                    setItemForm({ category_id: '', question: '', answer: '', is_visible: true });
+                    setItemForm({ category_id: '', question: '', question_en: '', answer: '', answer_en: '', is_visible: true });
                   }}
                   className="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded transition"
                 >
                   <X className="w-4 h-4" />
-                  Скасувати
-                </button>
+                  {tx("Скасувати")}</button>
               </div>
             </div>
           </div>
@@ -362,7 +367,7 @@ export default function FAQManager() {
                         <div className="flex-1">
                           <h5 className="font-medium mb-1">{item.question}</h5>
                           <p className="text-sm text-gray-400 line-clamp-2">{item.answer}</p>
-                          {!item.is_visible && <span className="text-xs text-red-400 mt-1 inline-block">Приховано</span>}
+                          {!item.is_visible && <span className="text-xs text-red-400 mt-1 inline-block">{tx("Приховано")}</span>}
                         </div>
                         <div className="flex items-center gap-2">
                           <button
@@ -386,7 +391,9 @@ export default function FAQManager() {
                               setItemForm({
                                 category_id: item.category_id,
                                 question: item.question,
+                                question_en: item.question_en ?? '',
                                 answer: item.answer,
+                                answer_en: item.answer_en ?? '',
                                 is_visible: item.is_visible,
                               });
                             }}

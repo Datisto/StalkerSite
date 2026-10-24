@@ -1,10 +1,14 @@
+import { useTranslation } from '../hooks/useTranslation';
 import { useCallback, useEffect, useState } from 'react';
 import { apiClient } from '../lib/api-client';
+import { useLanguage } from '../contexts/language';
+import { localizedText } from '../i18n/content';
 import { CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface FaceModel {
   id: string;
   name: string;
+  name_en?: string | null;
   image_url: string;
   is_unique: boolean;
   display_order: number;
@@ -46,6 +50,8 @@ export default function FaceModelSelector({
   currentCharacterId,
   gender,
 }: FaceModelSelectorProps) {
+  const tx = useTranslation();
+  const { language } = useLanguage();
   const [faceModels, setFaceModels] = useState<FaceModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [unavailableModels, setUnavailableModels] = useState<Set<string>>(new Set());
@@ -66,7 +72,7 @@ export default function FaceModelSelector({
 
       if (!models || models.length === 0) {
         console.warn('No face models found in database');
-        setError('Моделі облич не знайдені в базі даних');
+        setError("Моделі облич не знайдені в базі даних");
         setFaceModels([]);
         return;
       }
@@ -97,7 +103,7 @@ export default function FaceModelSelector({
       setFaceModels(models || []);
     } catch (error) {
       console.error('Error loading face models:', error);
-      setError(error instanceof Error ? error.message : 'Не вдалося завантажити моделі облич');
+      setError(error instanceof Error ? error.message : "Не вдалося завантажити моделі облич");
     } finally {
       setLoading(false);
     }
@@ -141,7 +147,7 @@ export default function FaceModelSelector({
   if (loading) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-400">Завантаження моделей...</p>
+        <p className="text-gray-400">{tx("Завантаження моделей...")}</p>
       </div>
     );
   }
@@ -149,13 +155,12 @@ export default function FaceModelSelector({
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-400">{error}</p>
+        <p className="text-red-400">{tx(error)}</p>
         <button
           onClick={loadFaceModels}
           className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded"
         >
-          Спробувати знову
-        </button>
+          {tx("Спробувати знову")}</button>
       </div>
     );
   }
@@ -163,7 +168,7 @@ export default function FaceModelSelector({
   if (faceModels.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-400">Немає доступних моделей облич</p>
+        <p className="text-gray-400">{tx("Немає доступних моделей облич")}</p>
       </div>
     );
   }
@@ -186,11 +191,10 @@ export default function FaceModelSelector({
           className="inline-flex items-center gap-2 rounded border border-gray-600 px-3 py-2 text-sm text-gray-200 transition hover:border-gray-500 hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <ChevronLeft className="h-4 w-4" />
-          Попередня
-        </button>
+          {tx("Попередня")}</button>
 
         <p className="text-sm text-gray-400">
-          Сторінка {currentPage + 1} з {totalPages}
+          {tx("Сторінка ")}{currentPage + 1} {tx(" з ")}{totalPages}
         </p>
 
         <button
@@ -199,8 +203,7 @@ export default function FaceModelSelector({
           disabled={currentPage >= totalPages - 1}
           className="inline-flex items-center gap-2 rounded border border-gray-600 px-3 py-2 text-sm text-gray-200 transition hover:border-gray-500 hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Наступна
-          <ChevronRight className="h-4 w-4" />
+          {tx("Наступна")}<ChevronRight className="h-4 w-4" />
         </button>
       </div>
     );
@@ -233,13 +236,13 @@ export default function FaceModelSelector({
           >
             <img
               src={model.image_url}
-              alt={model.name}
+              alt={localizedText(model.name, model.name_en, language)}
               className={`w-full aspect-square object-cover ${isUnavailable ? 'grayscale' : ''}`}
             />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-2">
-              <p className="text-center text-sm font-medium text-white">{model.name}</p>
+              <p className="text-center text-sm font-medium text-white">{localizedText(model.name, model.name_en, language)}</p>
               {isUnavailable && (
-                <p className="mt-1 text-center text-xs text-red-400">Зайнято</p>
+                <p className="mt-1 text-center text-xs text-red-400">{tx("Зайнято")}</p>
               )}
             </div>
             {isSelected && (
@@ -249,8 +252,7 @@ export default function FaceModelSelector({
             )}
             {isUniqueSection && !isUnavailable && (
               <div className="absolute left-2 top-2 rounded bg-red-600 px-2 py-1 text-xs font-semibold text-white">
-                УНІКАЛЬНЕ
-              </div>
+                {tx("УНІКАЛЬНЕ")}</div>
             )}
           </button>
         );
@@ -261,18 +263,16 @@ export default function FaceModelSelector({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold mb-4">Стандартні моделі</h3>
+        <h3 className="text-lg font-semibold mb-4">{tx("Стандартні моделі")}</h3>
         {renderModelGrid(regularPageModels, false)}
         {renderPagination(regularPage, regularTotalPages, setRegularPage)}
       </div>
 
       {uniqueModels.length > 0 && (
         <div>
-          <h3 className="text-lg font-semibold mb-2">Унікальні обличчя</h3>
+          <h3 className="text-lg font-semibold mb-2">{tx("Унікальні обличчя")}</h3>
           <p className="text-sm text-gray-400 mb-4">
-            Унікальні обличчя можуть використовуватись тільки одним живим персонажем. Після
-            смерті персонажа обличчя стає доступним іншим гравцям.
-          </p>
+            {tx("Унікальні обличчя можуть використовуватись тільки одним живим персонажем. Після смерті персонажа обличчя стає доступним іншим гравцям.")}</p>
           {renderModelGrid(uniquePageModels, true)}
           {renderPagination(uniquePage, uniqueTotalPages, setUniquePage)}
         </div>

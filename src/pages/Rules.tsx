@@ -1,3 +1,7 @@
+import { useTranslation } from '../hooks/useTranslation';
+import LanguageSwitcher from '../components/LanguageSwitcher';
+import { useLanguage } from '../contexts/language';
+import { localizedText } from '../i18n/content';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { apiClient } from '../lib/api-client';
@@ -10,6 +14,7 @@ import { useAuth } from '../contexts/AuthContext';
 interface RuleCategory {
   id: string;
   title: string;
+  title_en?: string | null;
   slug: string;
   order_index: number;
 }
@@ -20,12 +25,16 @@ interface Rule {
   parent_id?: string | null;
   number: string;
   title: string;
+  title_en?: string | null;
   content: string;
+  content_en?: string | null;
   order_index: number;
   subitems?: Rule[];
 }
 
 export default function Rules() {
+  const tx = useTranslation();
+  const { t, language } = useLanguage();
   const { slug, ruleNumber } = useParams<{ slug?: string; ruleNumber?: string }>();
   const { user } = useAuth();
   const { isOpen: isAlertOpen, config: alertConfig, showAlert, close: closeAlert } = useAlertModal();
@@ -103,13 +112,13 @@ export default function Rules() {
   function copyRuleLink(ruleNumber: string) {
     const url = `${window.location.origin}/rules/rule/${ruleNumber}`;
     navigator.clipboard.writeText(url);
-    showAlert(`Посилання на правило ${ruleNumber} скопійовано!`, 'Успіх', 'success');
+    showAlert(tx("Посилання на правило {0} скопійовано!", [ruleNumber]), tx("Успіх"), 'success');
   }
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100 flex items-center justify-center">
-        <p>Завантаження...</p>
+        <p>{t('loading')}</p>
       </div>
     );
   }
@@ -126,25 +135,26 @@ export default function Rules() {
       <div className="relative">
         <header className="border-b border-gray-700 bg-black bg-opacity-98 backdrop-blur-sm sticky top-0 z-10">
           <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <Link to="/" className="inline-flex items-center gap-3 hover:opacity-80 transition">
                 <img src={logoIcon} alt="Eternal ZONE" className="w-10 h-10 object-contain" />
                 <span className="text-xl font-bold font-stalker">Eternal ZONE</span>
               </Link>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={expandAll}
                   className="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm transition"
                 >
-                  Розгорнути все
+                  {t('expandAll')}
                 </button>
                 <button
                   onClick={collapseAll}
                   className="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm transition"
                 >
-                  Згорнути все
+                  {t('collapseAll')}
                 </button>
               </div>
+              <LanguageSwitcher />
             </div>
           </div>
         </header>
@@ -153,11 +163,10 @@ export default function Rules() {
           <div className="mb-8 text-center">
             <div className="inline-flex items-center gap-3 mb-4">
               <BookOpen className="w-10 h-10 text-red-500" />
-              <h1 className="text-4xl font-bold">Правила сервера</h1>
+              <h1 className="text-4xl font-bold">{tx("Правила сервера")}</h1>
             </div>
             <p className="text-gray-400">
-              Ознайомтесь з правилами перед грою. Натисніть на категорію для розгортання.
-            </p>
+              {tx("Ознайомтесь з правилами перед грою. Натисніть на категорію для розгортання.")}</p>
           </div>
 
           <div className="space-y-4">
@@ -176,10 +185,10 @@ export default function Rules() {
                     onClick={() => toggleCategory(category.id)}
                     className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-700 transition"
                   >
-                    <h2 className="text-xl font-semibold text-left">{category.title}</h2>
+                    <h2 className="text-xl font-semibold text-left">{localizedText(category.title, category.title_en, language)}</h2>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-400">
-                        {mainRules.length} {mainRules.length === 1 ? 'правило' : 'правил'}
+                        {mainRules.length} {mainRules.length === 1 ? tx("правило") : tx("правил")}
                       </span>
                       {isExpanded ? (
                         <ChevronUp className="w-5 h-5" />
@@ -203,18 +212,18 @@ export default function Rules() {
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
                                   <span className="text-red-500 font-bold">{rule.number}</span>
-                                  <h3 className="font-semibold">{rule.title}</h3>
+                                  <h3 className="font-semibold">{localizedText(rule.title, rule.title_en, language)}</h3>
                                 </div>
                               </div>
                               <button
                                 onClick={() => copyRuleLink(rule.number)}
                                 className="p-2 hover:bg-gray-800 rounded transition"
-                                title="Скопіювати посилання"
+                                title={t('copyLink')}
                               >
                                 <LinkIcon className="w-4 h-4 text-gray-400" />
                               </button>
                             </div>
-                            <p className="text-gray-300 leading-relaxed">{rule.content}</p>
+                            <p className="text-gray-300 leading-relaxed">{localizedText(rule.content, rule.content_en, language)}</p>
                           </div>
 
                           {rule.subitems && rule.subitems.length > 0 && (
@@ -229,10 +238,10 @@ export default function Rules() {
                                     <span className="text-orange-500 font-semibold text-sm">
                                       {subitem.number}
                                     </span>
-                                    <h4 className="font-medium text-sm">{subitem.title}</h4>
+                                    <h4 className="font-medium text-sm">{localizedText(subitem.title, subitem.title_en, language)}</h4>
                                   </div>
                                   <p className="text-gray-400 text-sm leading-relaxed">
-                                    {subitem.content}
+                                    {localizedText(subitem.content, subitem.content_en, language)}
                                   </p>
                                 </div>
                               ))}
@@ -248,11 +257,9 @@ export default function Rules() {
           </div>
 
           <div className="mt-8 p-6 bg-gray-800 bg-opacity-80 rounded-lg border border-gray-700">
-            <h3 className="text-lg font-semibold mb-2">Важливо</h3>
+            <h3 className="text-lg font-semibold mb-2">{tx("Важливо")}</h3>
             <p className="text-gray-300 leading-relaxed mb-4">
-              Незнання правил не звільняє від відповідальності. Якщо у вас є питання щодо
-              правил, звертайтесь до адміністрації сервера в Discord.
-            </p>
+              {tx("Незнання правил не звільняє від відповідальності. Якщо у вас є питання щодо правил, звертайтесь до адміністрації сервера в Discord.")}</p>
             {user && (
               <div className="mt-4 text-center">
                 <Link
@@ -260,20 +267,19 @@ export default function Rules() {
                   className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 px-6 py-3 rounded font-semibold transition"
                 >
                   <FileCheck className="w-5 h-5" />
-                  Здати тест на знання правил
+                  {t('takeTest')}
                 </Link>
               </div>
             )}
             {!user && (
               <div className="mt-4 text-center">
                 <p className="text-gray-400 text-sm mb-2">
-                  Для здачі тесту на правила увійдіть через Steam
-                </p>
+                  {tx("Для здачі тесту на правила увійдіть через Steam")}</p>
                 <Link
                   to="/"
                   className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded font-semibold transition"
                 >
-                  На головну
+                  {t('goHome')}
                 </Link>
               </div>
             )}

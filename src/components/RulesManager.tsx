@@ -1,3 +1,5 @@
+import { useTranslation } from '../hooks/useTranslation';
+import BilingualTextField from './BilingualTextField';
 import { useEffect, useState } from 'react';
 import { apiClient } from '../lib/api-client';
 import { Plus, Edit, Trash2, Save, X, ChevronUp, ChevronDown, ChevronRight } from 'lucide-react';
@@ -6,6 +8,7 @@ import { showAlert, showConfirm } from '../utils/modals';
 interface RuleCategory {
   id: string;
   title: string;
+  title_en?: string | null;
   slug: string;
   order_index: number;
 }
@@ -16,23 +19,28 @@ interface Rule {
   parent_id?: string | null;
   number: string;
   title: string;
+  title_en?: string | null;
   content: string;
+  content_en?: string | null;
   order_index: number;
   subitems?: Rule[];
 }
 
 export default function RulesManager() {
+  const tx = useTranslation();
   const [categories, setCategories] = useState<RuleCategory[]>([]);
   const [rules, setRules] = useState<Rule[]>([]);
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editingRule, setEditingRule] = useState<string | null>(null);
-  const [newCategory, setNewCategory] = useState({ title: '', slug: '' });
+  const [newCategory, setNewCategory] = useState({ title: '', title_en: '', slug: '' });
   const [newRule, setNewRule] = useState({
     category_id: '',
     parent_id: '',
     number: '',
     title: '',
+    title_en: '',
     content: '',
+    content_en: '',
   });
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [showAddRule, setShowAddRule] = useState<string | null>(null);
@@ -65,6 +73,7 @@ export default function RulesManager() {
     try {
       await apiClient.rules.categories.update(category.id, {
         title: category.title,
+        title_en: category.title_en ?? null,
         slug: category.slug,
         updated_at: new Date().toISOString(),
       });
@@ -74,8 +83,8 @@ export default function RulesManager() {
     } catch (error) {
       console.error('Error saving category:', error);
       await showAlert(
-        'Помилка збереження: ' + (error instanceof Error ? error.message : 'Невідома помилка'),
-        'Помилка',
+        tx("Помилка збереження: ") + (error instanceof Error ? tx(error.message) : tx("Невідома помилка")),
+        tx("Помилка"),
         'error'
       );
     }
@@ -89,7 +98,7 @@ export default function RulesManager() {
         order_index: maxOrder + 1,
       });
 
-      setNewCategory({ title: '', slug: '' });
+      setNewCategory({ title: '', title_en: '', slug: '' });
       setShowAddCategory(false);
       loadCategories();
     } catch (error) {
@@ -98,7 +107,7 @@ export default function RulesManager() {
   }
 
   async function handleDeleteCategory(id: string) {
-    const confirmed = await showConfirm('Видалити категорію та всі правила в ній?', 'Підтвердження', { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' });
+    const confirmed = await showConfirm(tx("Видалити категорію та всі правила в ній?"), tx("Підтвердження"), { type: 'danger', confirmText: tx("Видалити"), cancelText: tx("Скасувати") });
     if (!confirmed) return;
     try {
       await apiClient.rules.categories.delete(id);
@@ -108,12 +117,23 @@ export default function RulesManager() {
     }
   }
 
+  function updateRule(id: string, changes: Partial<Rule>) {
+    const updateTree = (items: Rule[]): Rule[] => items.map((item) => ({
+      ...item,
+      ...(item.id === id ? changes : {}),
+      subitems: item.subitems ? updateTree(item.subitems) : undefined,
+    }));
+    setRules((current) => updateTree(current));
+  }
+
   async function handleSaveRule(rule: Rule) {
     try {
       await apiClient.rules.update(rule.id, {
         number: rule.number,
         title: rule.title,
+        title_en: rule.title_en ?? null,
         content: rule.content,
+        content_en: rule.content_en ?? null,
         updated_at: new Date().toISOString(),
       });
 
@@ -122,8 +142,8 @@ export default function RulesManager() {
     } catch (error) {
       console.error('Error saving rule:', error);
       await showAlert(
-        'Помилка збереження: ' + (error instanceof Error ? error.message : 'Невідома помилка'),
-        'Помилка',
+        tx("Помилка збереження: ") + (error instanceof Error ? tx(error.message) : tx("Невідома помилка")),
+        tx("Помилка"),
         'error'
       );
     }
@@ -139,7 +159,7 @@ export default function RulesManager() {
         order_index: maxOrder + 1,
       });
 
-      setNewRule({ category_id: '', parent_id: '', number: '', title: '', content: '' });
+      setNewRule({ category_id: '', parent_id: '', number: '', title: '', title_en: '', content: '', content_en: '' });
       setShowAddRule(null);
       loadRules();
     } catch (error) {
@@ -148,7 +168,7 @@ export default function RulesManager() {
   }
 
   async function handleDeleteRule(id: string) {
-    const confirmed = await showConfirm('Видалити це правило?', 'Підтвердження', { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' });
+    const confirmed = await showConfirm(tx("Видалити це правило?"), tx("Підтвердження"), { type: 'danger', confirmText: tx("Видалити"), cancelText: tx("Скасувати") });
     if (!confirmed) return;
     try {
       await apiClient.rules.delete(id);
@@ -188,31 +208,31 @@ export default function RulesManager() {
 
   return (
     <div className="space-y-6">
+      <p className="text-sm text-gray-400">{tx("Українська — основна мова. Англійські поля можна заповнювати поступово; порожнє поле означає, що перекладу ще немає.")}</p>
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Управління правилами</h2>
+        <h2 className="text-2xl font-bold">{tx("Управління правилами")}</h2>
         <button
           onClick={() => setShowAddCategory(true)}
           className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded inline-flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
-          Додати категорію
-        </button>
+          {tx("Додати категорію")}</button>
       </div>
 
       {showAddCategory && (
         <div className="bg-gray-800 p-4 rounded border border-gray-700">
-          <h3 className="font-semibold mb-3">Нова категорія</h3>
+          <h3 className="font-semibold mb-3">{tx("Нова категорія")}</h3>
           <div className="space-y-3">
-            <input
-              type="text"
-              placeholder="Назва категорії"
+            <BilingualTextField
+              label={tx("Назва категорії")}
               value={newCategory.title}
-              onChange={(e) => setNewCategory({ ...newCategory, title: e.target.value })}
-              className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2"
+              englishValue={newCategory.title_en}
+              onChange={(value) => setNewCategory({ ...newCategory, title: value })}
+              onEnglishChange={(value) => setNewCategory({ ...newCategory, title_en: value })}
             />
             <input
               type="text"
-              placeholder="URL (slug, наприклад: main-rules)"
+              placeholder={tx("URL (slug, наприклад: main-rules)")}
               value={newCategory.slug}
               onChange={(e) => setNewCategory({ ...newCategory, slug: e.target.value })}
               className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2"
@@ -222,17 +242,15 @@ export default function RulesManager() {
                 onClick={handleAddCategory}
                 className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded"
               >
-                Зберегти
-              </button>
+                {tx("Зберегти")}</button>
               <button
                 onClick={() => {
                   setShowAddCategory(false);
-                  setNewCategory({ title: '', slug: '' });
+                  setNewCategory({ title: '', title_en: '', slug: '' });
                 }}
                 className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded"
               >
-                Скасувати
-              </button>
+                {tx("Скасувати")}</button>
             </div>
           </div>
         </div>
@@ -242,15 +260,12 @@ export default function RulesManager() {
         <div key={category.id} className="bg-gray-800 p-4 rounded border border-gray-700">
           {editingCategory === category.id ? (
             <div className="space-y-3 mb-4">
-              <input
-                type="text"
+              <BilingualTextField
+                label={tx("Назва категорії")}
                 value={category.title}
-                onChange={(e) => {
-                  const updated = [...categories];
-                  updated[catIndex].title = e.target.value;
-                  setCategories(updated);
-                }}
-                className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2"
+                englishValue={category.title_en}
+                onChange={(value) => setCategories((current) => current.map((item) => item.id === category.id ? { ...item, title: value } : item))}
+                onEnglishChange={(value) => setCategories((current) => current.map((item) => item.id === category.id ? { ...item, title_en: value } : item))}
               />
               <input
                 type="text"
@@ -268,8 +283,7 @@ export default function RulesManager() {
                   className="bg-green-600 hover:bg-green-500 px-3 py-1 rounded inline-flex items-center gap-1"
                 >
                   <Save className="w-4 h-4" />
-                  Зберегти
-                </button>
+                  {tx("Зберегти")}</button>
                 <button
                   onClick={() => {
                     setEditingCategory(null);
@@ -278,8 +292,7 @@ export default function RulesManager() {
                   className="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded inline-flex items-center gap-1"
                 >
                   <X className="w-4 h-4" />
-                  Скасувати
-                </button>
+                  {tx("Скасувати")}</button>
               </div>
             </div>
           ) : (
@@ -287,6 +300,7 @@ export default function RulesManager() {
               <div>
                 <h3 className="text-xl font-semibold">{category.title}</h3>
                 <p className="text-sm text-gray-400">/{category.slug}</p>
+                <p className="text-sm text-gray-400" lang="en">EN: {category.title_en || tx("Переклад відсутній")}</p>
               </div>
               <div className="flex gap-2">
                 <button
@@ -330,46 +344,31 @@ export default function RulesManager() {
                         <input
                           type="text"
                           value={rule.number}
-                          onChange={(e) => {
-                            const updated = [...rules];
-                            const idx = updated.findIndex((r) => r.id === rule.id);
-                            updated[idx].number = e.target.value;
-                            setRules(updated);
-                          }}
-                          placeholder="Номер правила"
+                          onChange={(e) => updateRule(rule.id, { number: e.target.value })}
+                          placeholder={tx("Номер правила")}
                           className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2"
                         />
-                        <input
-                          type="text"
+                        <BilingualTextField
+                          label={tx("Назва")}
                           value={rule.title}
-                          onChange={(e) => {
-                            const updated = [...rules];
-                            const idx = updated.findIndex((r) => r.id === rule.id);
-                            updated[idx].title = e.target.value;
-                            setRules(updated);
-                          }}
-                          placeholder="Назва правила"
-                          className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2"
+                          englishValue={rule.title_en}
+                          onChange={(value) => updateRule(rule.id, { title: value })}
+                          onEnglishChange={(value) => updateRule(rule.id, { title_en: value })}
                         />
-                        <textarea
+                        <BilingualTextField
+                          label={tx("Текст")}
                           value={rule.content}
-                          onChange={(e) => {
-                            const updated = [...rules];
-                            const idx = updated.findIndex((r) => r.id === rule.id);
-                            updated[idx].content = e.target.value;
-                            setRules(updated);
-                          }}
-                          placeholder="Опис правила"
-                          rows={3}
-                          className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2"
+                          englishValue={rule.content_en}
+                          onChange={(value) => updateRule(rule.id, { content: value })}
+                          onEnglishChange={(value) => updateRule(rule.id, { content_en: value })}
+                          multiline
                         />
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleSaveRule(rule)}
                             className="bg-green-600 hover:bg-green-500 px-3 py-1 rounded text-sm"
                           >
-                            Зберегти
-                          </button>
+                            {tx("Зберегти")}</button>
                           <button
                             onClick={() => {
                               setEditingRule(null);
@@ -377,8 +376,7 @@ export default function RulesManager() {
                             }}
                             className="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm"
                           >
-                            Скасувати
-                          </button>
+                            {tx("Скасувати")}</button>
                         </div>
                       </div>
                     ) : (
@@ -389,6 +387,7 @@ export default function RulesManager() {
                           </div>
                           <div className="font-medium mb-1">{rule.title}</div>
                           <div className="text-sm text-gray-300">{rule.content}</div>
+                          <p className="mt-2 text-xs text-gray-400">EN: {rule.title_en?.trim() && rule.content_en?.trim() ? tx("Переклад готовий") : rule.title_en?.trim() || rule.content_en?.trim() ? tx("Частковий переклад") : tx("Переклад відсутній")}</p>
                         </div>
                         <div className="flex gap-2">
                           <button
@@ -437,52 +436,31 @@ export default function RulesManager() {
                                   <input
                                     type="text"
                                     value={subitem.number}
-                                    onChange={(e) => {
-                                      const updated = [...rules];
-                                      const idx = updated.findIndex((r) => r.id === subitem.id);
-                                      if (idx !== -1) {
-                                        updated[idx].number = e.target.value;
-                                        setRules(updated);
-                                      }
-                                    }}
-                                    placeholder="Номер підпункту"
+                                    onChange={(e) => updateRule(subitem.id, { number: e.target.value })}
+                                    placeholder={tx("Номер підпункту")}
                                     className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm"
                                   />
-                                  <input
-                                    type="text"
+                                  <BilingualTextField
+                                    label={tx("Назва")}
                                     value={subitem.title}
-                                    onChange={(e) => {
-                                      const updated = [...rules];
-                                      const idx = updated.findIndex((r) => r.id === subitem.id);
-                                      if (idx !== -1) {
-                                        updated[idx].title = e.target.value;
-                                        setRules(updated);
-                                      }
-                                    }}
-                                    placeholder="Назва підпункту"
-                                    className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm"
+                                    englishValue={subitem.title_en}
+                                    onChange={(value) => updateRule(subitem.id, { title: value })}
+                                    onEnglishChange={(value) => updateRule(subitem.id, { title_en: value })}
                                   />
-                                  <textarea
+                                  <BilingualTextField
+                                    label={tx("Текст")}
                                     value={subitem.content}
-                                    onChange={(e) => {
-                                      const updated = [...rules];
-                                      const idx = updated.findIndex((r) => r.id === subitem.id);
-                                      if (idx !== -1) {
-                                        updated[idx].content = e.target.value;
-                                        setRules(updated);
-                                      }
-                                    }}
-                                    placeholder="Опис підпункту"
-                                    rows={2}
-                                    className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm"
+                                    englishValue={subitem.content_en}
+                                    onChange={(value) => updateRule(subitem.id, { content: value })}
+                                    onEnglishChange={(value) => updateRule(subitem.id, { content_en: value })}
+                                    multiline
                                   />
                                   <div className="flex gap-2">
                                     <button
                                       onClick={() => handleSaveRule(subitem)}
                                       className="bg-green-600 hover:bg-green-500 px-3 py-1 rounded text-sm"
                                     >
-                                      Зберегти
-                                    </button>
+                                      {tx("Зберегти")}</button>
                                     <button
                                       onClick={() => {
                                         setEditingRule(null);
@@ -490,8 +468,7 @@ export default function RulesManager() {
                                       }}
                                       className="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm"
                                     >
-                                      Скасувати
-                                    </button>
+                                      {tx("Скасувати")}</button>
                                   </div>
                                 </div>
                               ) : (
@@ -502,6 +479,7 @@ export default function RulesManager() {
                                     </div>
                                     <div className="font-medium text-sm mb-1">{subitem.title}</div>
                                     <div className="text-xs text-gray-400">{subitem.content}</div>
+                                    <p className="mt-2 text-xs text-gray-400">EN: {subitem.title_en?.trim() && subitem.content_en?.trim() ? tx("Переклад готовий") : subitem.title_en?.trim() || subitem.content_en?.trim() ? tx("Частковий переклад") : tx("Переклад відсутній")}</p>
                                   </div>
                                   <div className="flex gap-2">
                                     <button
@@ -525,59 +503,57 @@ export default function RulesManager() {
                       )}
                       {showAddRule === rule.id && newRule.parent_id === rule.id ? (
                         <div className="bg-gray-800 p-3 rounded border border-gray-700 mt-2">
-                          <h5 className="font-semibold text-sm mb-2">Новий підпункт</h5>
+                          <h5 className="font-semibold text-sm mb-2">{tx("Новий підпункт")}</h5>
                           <div className="space-y-2">
                             <input
                               type="text"
-                              placeholder="Номер (наприклад: 1.1)"
+                              placeholder={tx("Номер (наприклад: 1.1)")}
                               value={newRule.number}
                               onChange={(e) => setNewRule({ ...newRule, number: e.target.value })}
                               className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm"
                             />
-                            <input
-                              type="text"
-                              placeholder="Назва підпункту"
+                            <BilingualTextField
+                              label={tx("Назва")}
                               value={newRule.title}
-                              onChange={(e) => setNewRule({ ...newRule, title: e.target.value })}
-                              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm"
+                              englishValue={newRule.title_en}
+                              onChange={(value) => setNewRule({ ...newRule, title: value })}
+                              onEnglishChange={(value) => setNewRule({ ...newRule, title_en: value })}
                             />
-                            <textarea
-                              placeholder="Опис підпункту"
+                            <BilingualTextField
+                              label={tx("Текст")}
                               value={newRule.content}
-                              onChange={(e) => setNewRule({ ...newRule, content: e.target.value })}
-                              rows={2}
-                              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm"
+                              englishValue={newRule.content_en}
+                              onChange={(value) => setNewRule({ ...newRule, content: value })}
+                              onEnglishChange={(value) => setNewRule({ ...newRule, content_en: value })}
+                              multiline
                             />
                             <div className="flex gap-2">
                               <button
                                 onClick={handleAddRule}
                                 className="bg-green-600 hover:bg-green-500 px-3 py-1 rounded text-xs"
                               >
-                                Додати
-                              </button>
+                                {tx("Додати")}</button>
                               <button
                                 onClick={() => {
                                   setShowAddRule(null);
-                                  setNewRule({ category_id: '', parent_id: '', number: '', title: '', content: '' });
+                                  setNewRule({ category_id: '', parent_id: '', number: '', title: '', title_en: '', content: '', content_en: '' });
                                 }}
                                 className="bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded text-xs"
                               >
-                                Скасувати
-                              </button>
+                                {tx("Скасувати")}</button>
                             </div>
                           </div>
                         </div>
                       ) : (
                         <button
                           onClick={() => {
-                            setNewRule({ category_id: category.id, parent_id: rule.id, number: '', title: '', content: '' });
+                            setNewRule({ category_id: category.id, parent_id: rule.id, number: '', title: '', title_en: '', content: '', content_en: '' });
                             setShowAddRule(rule.id);
                           }}
                           className="text-xs text-gray-500 hover:text-gray-300 inline-flex items-center gap-1"
                         >
                           <Plus className="w-3 h-3" />
-                          Додати підпункт
-                        </button>
+                          {tx("Додати підпункт")}</button>
                       )}
                     </div>
                   )}
@@ -587,59 +563,57 @@ export default function RulesManager() {
 
           {showAddRule === category.id && !newRule.parent_id ? (
             <div className="bg-gray-900 p-3 rounded border border-gray-700">
-              <h4 className="font-semibold mb-2">Нове правило</h4>
+              <h4 className="font-semibold mb-2">{tx("Нове правило")}</h4>
               <div className="space-y-2">
                 <input
                   type="text"
-                  placeholder="Номер (наприклад: 1.1)"
+                  placeholder={tx("Номер (наприклад: 1.1)")}
                   value={newRule.number}
                   onChange={(e) => setNewRule({ ...newRule, number: e.target.value })}
                   className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2"
                 />
-                <input
-                  type="text"
-                  placeholder="Назва правила"
+                <BilingualTextField
+                  label={tx("Назва")}
                   value={newRule.title}
-                  onChange={(e) => setNewRule({ ...newRule, title: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2"
+                  englishValue={newRule.title_en}
+                  onChange={(value) => setNewRule({ ...newRule, title: value })}
+                  onEnglishChange={(value) => setNewRule({ ...newRule, title_en: value })}
                 />
-                <textarea
-                  placeholder="Опис правила"
+                <BilingualTextField
+                  label={tx("Текст")}
                   value={newRule.content}
-                  onChange={(e) => setNewRule({ ...newRule, content: e.target.value })}
-                  rows={3}
-                  className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2"
+                  englishValue={newRule.content_en}
+                  onChange={(value) => setNewRule({ ...newRule, content: value })}
+                  onEnglishChange={(value) => setNewRule({ ...newRule, content_en: value })}
+                  multiline
                 />
                 <div className="flex gap-2">
                   <button
                     onClick={handleAddRule}
                     className="bg-green-600 hover:bg-green-500 px-3 py-1 rounded text-sm"
                   >
-                    Додати
-                  </button>
+                    {tx("Додати")}</button>
                   <button
                     onClick={() => {
                       setShowAddRule(null);
-                      setNewRule({ category_id: '', parent_id: '', number: '', title: '', content: '' });
+                      setNewRule({ category_id: '', parent_id: '', number: '', title: '', title_en: '', content: '', content_en: '' });
                     }}
                     className="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm"
                   >
-                    Скасувати
-                  </button>
+                    {tx("Скасувати")}</button>
                 </div>
               </div>
             </div>
           ) : (
             <button
               onClick={() => {
-                setNewRule({ category_id: category.id, parent_id: '', number: '', title: '', content: '' });
+                setNewRule({ category_id: category.id, parent_id: '', number: '', title: '', title_en: '', content: '', content_en: '' });
                 setShowAddRule(category.id);
               }}
               className="text-sm text-gray-400 hover:text-white inline-flex items-center gap-1"
             >
               <Plus className="w-4 h-4" />
-              Додати правило
-            </button>
+              {tx("Додати правило")}</button>
           )}
         </div>
       ))}

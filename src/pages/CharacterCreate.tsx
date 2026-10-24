@@ -1,3 +1,7 @@
+import { translateZoneReason } from '../i18n/character';
+import { useTranslation } from '../hooks/useTranslation';
+import LanguageSwitcher from '../components/LanguageSwitcher';
+import { useLanguage } from '../contexts/language';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -59,6 +63,8 @@ interface CharacterStatusRecord {
 }
 
 export default function CharacterCreate() {
+  const tx = useTranslation();
+  const { t } = useLanguage();
   const { user } = useAuth();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -141,7 +147,7 @@ export default function CharacterCreate() {
       });
 
       if (!response.ok) {
-        await showAlert('Персонаж не знайдено', 'Помилка', 'error');
+        await showAlert(tx("Персонаж не знайдено"), tx("Помилка"), 'error');
         navigate('/cabinet');
         return;
       }
@@ -149,7 +155,7 @@ export default function CharacterCreate() {
       const data = await response.json();
 
       if (data.status !== 'draft' && data.status !== 'rejected') {
-        await showAlert('Цей персонаж не може бути відредагований', 'Помилка', 'warning');
+        await showAlert(tx("Цей персонаж не може бути відредагований"), tx("Помилка"), 'warning');
         navigate('/cabinet');
         return;
       }
@@ -187,7 +193,7 @@ export default function CharacterCreate() {
       });
     } catch (error) {
       console.error('Error loading character:', error);
-      await showAlert('Помилка завантаження персонажа', 'Помилка', 'error');
+      await showAlert(tx("Помилка завантаження персонажа"), tx("Помилка"), 'error');
       navigate('/cabinet');
     }
   }
@@ -321,14 +327,14 @@ export default function CharacterCreate() {
         const data = await response.json() as { taken: boolean };
         if (data.taken) {
           await showAlert(
-            `Позивний "${formData.nickname}" вже зайнятий. Будь ласка, оберіть інший позивний.`,
-            'Позивний недоступний',
+            tx("Позивний \"{0}\" вже зайнятий. Будь ласка, оберіть інший позивний.", [formData.nickname]),
+            tx("Позивний недоступний"),
             'error'
           );
           return;
         }
       } catch {
-        await showAlert('Помилка перевірки позивного. Спробуйте ще раз.', 'Помилка', 'error');
+        await showAlert(tx("Помилка перевірки позивного. Спробуйте ще раз."), tx("Помилка"), 'error');
         return;
       } finally {
         setCheckingNickname(false);
@@ -404,17 +410,17 @@ export default function CharacterCreate() {
 
       await showAlert(
         isEditMode
-          ? 'Зміни збережено'
+          ? tx("Зміни збережено")
           : status === 'draft'
-          ? 'Персонажа збережено як чернетку'
-          : 'Персонажа відправлено на розгляд',
-        'Успіх',
+          ? tx("Персонажа збережено як чернетку")
+          : tx("Персонажа відправлено на розгляд"),
+        tx("Успіх"),
         'success'
       );
       navigate('/cabinet');
     } catch (error) {
       console.error('Error saving character:', error);
-      await showAlert('Помилка при збереженні персонажа', 'Помилка', 'error');
+      await showAlert(tx("Помилка при збереженні персонажа"), tx("Помилка"), 'error');
     } finally {
       setSaving(false);
     }
@@ -422,19 +428,19 @@ export default function CharacterCreate() {
 
   const copySteamId = async () => {
     navigator.clipboard.writeText(formData.steam_id);
-    await showAlert('Steam ID скопійовано!', 'Успіх', 'success');
+    await showAlert(tx("Steam ID скопійовано!"), tx("Успіх"), 'success');
   };
 
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-300 mb-4">Завантаження Steam</p>
+          <p className="text-gray-300 mb-4">{tx("Завантаження Steam")}</p>
           <a
             href="/"
             className="bg-red-600 hover:bg-red-500 px-6 py-2 rounded font-semibold transition"
           >
-            На головну
+            {t('goHome')}
           </a>
         </div>
       </div>
@@ -444,7 +450,7 @@ export default function CharacterCreate() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <p className="text-gray-300">Завантаження...</p>
+        <p className="text-gray-300">{t('loading')}</p>
       </div>
     );
   }
@@ -453,22 +459,21 @@ export default function CharacterCreate() {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center bg-gray-800 p-8 rounded-lg border border-gray-700 max-w-md">
-          <h2 className="text-2xl font-bold mb-4 text-red-500">Потрібна здача правил</h2>
+          <h2 className="text-2xl font-bold mb-4 text-red-500">{tx("Потрібна здача правил")}</h2>
           <p className="text-gray-300 mb-6">
-            Перед створенням персонажа необхідно здати тест на знання правил сервера. Після схвалення адміністрацією ви зможете створити персонажа.
-          </p>
+            {tx("Перед створенням персонажа необхідно здати тест на знання правил сервера. Після схвалення адміністрацією ви зможете створити персонажа.")}</p>
           <div className="flex gap-4 justify-center">
             <a
               href="/rules-test"
               className="bg-red-600 hover:bg-red-500 px-6 py-2 rounded font-semibold transition"
             >
-              Здати правила
+              {t('takeRulesTest')}
             </a>
             <a
               href="/cabinet"
               className="bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded font-semibold transition"
             >
-              До кабінету
+              {t('goToCabinet')}
             </a>
           </div>
         </div>
@@ -480,15 +485,14 @@ export default function CharacterCreate() {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center bg-gray-800 p-8 rounded-lg border border-gray-700 max-w-md">
-          <h2 className="text-2xl font-bold mb-4 text-red-500">Обмеження створення</h2>
+          <h2 className="text-2xl font-bold mb-4 text-red-500">{tx("Обмеження створення")}</h2>
           <p className="text-gray-300 mb-6">
-            У Вас вже є активний персонаж. Зверніться до адміністрації для його видалення.
-          </p>
+            {tx("У Вас вже є активний персонаж. Зверніться до адміністрації для його видалення.")}</p>
           <a
             href="/cabinet"
             className="bg-red-600 hover:bg-red-500 px-6 py-2 rounded font-semibold transition"
           >
-            До кабінету
+            {t('goToCabinet')}
           </a>
         </div>
       </div>
@@ -500,7 +504,7 @@ export default function CharacterCreate() {
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100">
       <header className="border-b border-gray-700 bg-black bg-opacity-98 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <a href="/" className="inline-flex items-center gap-3 hover:opacity-80 transition">
               <img src={logoIcon} alt="Eternal ZONE" className="w-10 h-10 object-contain" />
               <span className="text-xl font-bold font-stalker">Eternal ZONE</span>
@@ -509,16 +513,17 @@ export default function CharacterCreate() {
               href="/cabinet"
               className="text-sm text-gray-400 hover:text-white transition"
             >
-              Назад до кабінету
+              {t('backToCabinet')}
             </a>
+            <LanguageSwitcher />
           </div>
         </div>
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">{isEditMode ? 'Редагування персонажа' : 'Створення персонажа'}</h1>
-          <p className="text-gray-400">Крок {step} з 7</p>
+          <h1 className="text-3xl font-bold mb-2">{isEditMode ? tx("Редагування персонажа") : tx("Створення персонажа")}</h1>
+          <p className="text-gray-400">{tx("Крок ")}{step} {tx(" з 7")}</p>
         </div>
 
         <div className="mb-8">
@@ -537,10 +542,10 @@ export default function CharacterCreate() {
         <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700">
           {step === 1 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold mb-4">Основні дані персонажа</h2>
+              <h2 className="text-2xl font-semibold mb-4">{tx("Основні дані персонажа")}</h2>
 
               <div>
-                <label className="block text-sm font-medium mb-2">СтімID64 *</label>
+                <label className="block text-sm font-medium mb-2">{tx("СтімID64 *")}</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -561,21 +566,20 @@ export default function CharacterCreate() {
                 <label className="block text-sm font-medium mb-2">
                   Discord ID *
                   <span className="text-xs text-gray-400 block mt-1">
-                    Автоматично заповнюється з вашого профілю після реєстрації
-                  </span>
+                    {tx("Автоматично заповнюється з вашого профілю після реєстрації")}</span>
                 </label>
                 <input
                   type="text"
                   value={formData.discord_id}
                   disabled
                   className="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2 text-gray-400 cursor-not-allowed"
-                  placeholder="Не заповнено"
+                  placeholder={tx("Не заповнено")}
                 />
                 {!formData.discord_id && (
                   <div className="mt-4 space-y-3">
                     <div className="bg-gray-900 p-3 rounded border border-gray-700">
-                      <p className="text-xs text-gray-400 mb-2">Де знайти свій Discord ID:</p>
-                      <img src="/discordid.png" alt="Як знайти Discord ID" className="w-full rounded" />
+                      <p className="text-xs text-gray-400 mb-2">{tx("Де знайти свій Discord ID:")}</p>
+                      <img src="/discordid.png" alt={tx("Як знайти Discord ID")} className="w-full rounded" />
                     </div>
                     <a
                       href="https://discord.gg/eternalzone"
@@ -583,7 +587,7 @@ export default function CharacterCreate() {
                       rel="noopener noreferrer"
                       className="block text-center bg-red-600 hover:bg-red-500 px-4 py-2 rounded font-semibold transition"
                     >
-                      Приєднатись до Discord
+                      {t('joinDiscord')}
                     </a>
                   </div>
                 )}
@@ -591,46 +595,43 @@ export default function CharacterCreate() {
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Ім'я *</label>
+                  <label className="block text-sm font-medium mb-2">{tx("Ім'я *")}</label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => updateField('name', e.target.value)}
                     className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                    placeholder="Олександр"
+                    placeholder={tx("Олександр")}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Прізвище *</label>
+                  <label className="block text-sm font-medium mb-2">{tx("Прізвище *")}</label>
                   <input
                     type="text"
                     value={formData.surname}
                     onChange={(e) => updateField('surname', e.target.value)}
                     className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                    placeholder="Коваленко"
+                    placeholder={tx("Коваленко")}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">По батькові</label>
+                  <label className="block text-sm font-medium mb-2">{tx("По батькові")}</label>
                   <input
                     type="text"
                     value={formData.patronymic}
                     onChange={(e) => updateField('patronymic', e.target.value)}
                     className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                    placeholder="Іванович"
+                    placeholder={tx("Іванович")}
                   />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Псевдонім / Кличка *
-                  <span className="text-xs text-gray-400 block mt-1">
-                    Має бути унікальним, латиницею, без додаткових знаків. Приклад: "Holod" або
-                    "MykolaHolod"
-                  </span>
+                  {tx("Псевдонім / Кличка *")}<span className="text-xs text-gray-400 block mt-1">
+                    {tx("Має бути унікальним, латиницею, без додаткових знаків. Приклад: \"Holod\" або \"MykolaHolod\"")}</span>
                 </label>
                 <input
                   type="text"
@@ -643,19 +644,19 @@ export default function CharacterCreate() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Стать *</label>
+                  <label className="block text-sm font-medium mb-2">{tx("Стать *")}</label>
                   <select
                     value={formData.gender}
                     onChange={(e) => updateField('gender', e.target.value as 'male' | 'female')}
                     className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                   >
-                    <option value="male">Чоловіча</option>
-                    <option value="female">Жіноча</option>
+                    <option value="male">{tx("Чоловіча")}</option>
+                    <option value="female">{tx("Жіноча")}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Вік (16-70) *</label>
+                  <label className="block text-sm font-medium mb-2">{tx("Вік (16-70) *")}</label>
                   <select
                     value={formData.age}
                     onChange={(e) => updateField('age', parseInt(e.target.value))}
@@ -674,10 +675,10 @@ export default function CharacterCreate() {
 
           {step === 2 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold mb-4">Зовнішність</h2>
+              <h2 className="text-2xl font-semibold mb-4">{tx("Зовнішність")}</h2>
 
               <div>
-                <label className="block text-sm font-medium mb-4">Модель обличчя *</label>
+                <label className="block text-sm font-medium mb-4">{tx("Модель обличчя *")}</label>
                 <FaceModelSelector
                   selectedModel={formData.face_model}
                   onSelect={(modelName) => updateField('face_model', modelName)}
@@ -688,32 +689,32 @@ export default function CharacterCreate() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Колір волосся *</label>
+                  <label className="block text-sm font-medium mb-2">{tx("Колір волосся *")}</label>
                   <select
                     value={formData.hair_color}
                     onChange={(e) => updateField('hair_color', e.target.value)}
                     className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                   >
-                    <option value="">Оберіть колір</option>
+                    <option value="">{tx("Оберіть колір")}</option>
                     {HAIR_COLORS.map((color) => (
                       <option key={color} value={color}>
-                        {color}
+                        {tx(color)}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Колір очей *</label>
+                  <label className="block text-sm font-medium mb-2">{tx("Колір очей *")}</label>
                   <select
                     value={formData.eye_color}
                     onChange={(e) => updateField('eye_color', e.target.value)}
                     className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                   >
-                    <option value="">Оберіть колір</option>
+                    <option value="">{tx("Оберіть колір")}</option>
                     {EYE_COLORS.map((color) => (
                       <option key={color} value={color}>
-                        {color}
+                        {tx(color)}
                       </option>
                     ))}
                   </select>
@@ -722,17 +723,15 @@ export default function CharacterCreate() {
 
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Додаткові особливості на обличчі
-                  <span className="text-xs text-gray-400 block mt-1">
-                    Шрами, татуювання, пошкодження тощо
-                  </span>
+                  {tx("Додаткові особливості на обличчі")}<span className="text-xs text-gray-400 block mt-1">
+                    {tx("Шрами, татуювання, пошкодження тощо")}</span>
                 </label>
                 <textarea
                   value={formData.special_features}
                   onChange={(e) => updateField('special_features', e.target.value)}
                   rows={3}
                   className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-                  placeholder="Опишіть особливі прикмети..."
+                  placeholder={tx("Опишіть особливі прикмети...")}
                 />
               </div>
             </div>
@@ -740,11 +739,11 @@ export default function CharacterCreate() {
 
           {step === 3 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold mb-4">Фізичні параметри</h2>
+              <h2 className="text-2xl font-semibold mb-4">{tx("Фізичні параметри")}</h2>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Зріст (см) *</label>
+                  <label className="block text-sm font-medium mb-2">{tx("Зріст (см) *")}</label>
                   <select
                     value={formData.height}
                     onChange={(e) => updateField('height', parseInt(e.target.value))}
@@ -752,14 +751,13 @@ export default function CharacterCreate() {
                   >
                     {generateHeightOptions().map((height) => (
                       <option key={height} value={height}>
-                        {height} см
-                      </option>
+                        {height} {tx(" см")}</option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Вага (кг) *</label>
+                  <label className="block text-sm font-medium mb-2">{tx("Вага (кг) *")}</label>
                   <select
                     value={formData.weight}
                     onChange={(e) => updateField('weight', parseInt(e.target.value))}
@@ -767,24 +765,23 @@ export default function CharacterCreate() {
                   >
                     {generateWeightOptions().map((weight) => (
                       <option key={weight} value={weight}>
-                        {weight} кг
-                      </option>
+                        {weight} {tx(" кг")}</option>
                     ))}
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Статура *</label>
+                <label className="block text-sm font-medium mb-2">{tx("Статура *")}</label>
                 <select
                   value={formData.body_type}
                   onChange={(e) => updateField('body_type', e.target.value)}
                   className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                 >
-                  <option value="">Оберіть статуру</option>
+                  <option value="">{tx("Оберіть статуру")}</option>
                   {BODY_TYPES.map((type) => (
                     <option key={type} value={type}>
-                      {type}
+                      {tx(type)}
                     </option>
                   ))}
                 </select>
@@ -792,14 +789,13 @@ export default function CharacterCreate() {
 
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Особливі фізичні прикмети
-                </label>
+                  {tx("Особливі фізичні прикмети")}</label>
                 <textarea
                   value={formData.physical_features}
                   onChange={(e) => updateField('physical_features', e.target.value)}
                   rows={3}
                   className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-                  placeholder="Додаткові фізичні характеристики..."
+                  placeholder={tx("Додаткові фізичні характеристики...")}
                 />
               </div>
             </div>
@@ -807,14 +803,12 @@ export default function CharacterCreate() {
 
           {step === 4 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold mb-4">Характер і поведінка</h2>
+              <h2 className="text-2xl font-semibold mb-4">{tx("Характер і поведінка")}</h2>
 
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Основні риси характеру (максимум 3 з кожної категорії) *
-                  <span className="text-xs text-gray-400 block mt-1">
-                    Обрано: {formData.character_traits.length} (мін. 3)
-                  </span>
+                  {tx("Основні риси характеру (максимум 3 з кожної категорії) *")}<span className="text-xs text-gray-400 block mt-1">
+                    {tx("Обрано: ")}{formData.character_traits.length} {tx(" (мін. 3)")}</span>
                 </label>
                 <div className="bg-gray-900 border border-gray-700 rounded p-4 max-h-96 overflow-y-auto space-y-4">
                   {(Object.keys(CHARACTER_TRAITS) as TraitCategory[]).map((category) => {
@@ -824,7 +818,7 @@ export default function CharacterCreate() {
                     return (
                       <div key={category}>
                         <h3 className="text-sm font-semibold text-red-400 mb-2 uppercase tracking-wide flex justify-between items-center">
-                          <span>{TRAIT_CATEGORIES[category]}</span>
+                          <span>{tx(TRAIT_CATEGORIES[category])}</span>
                           <span className="text-xs text-gray-400 normal-case">
                             {selectedInCategory.length}/3
                           </span>
@@ -849,7 +843,7 @@ export default function CharacterCreate() {
                               }`}
                               disabled={isDisabled}
                             >
-                              {trait}
+                              {tx(trait)}
                             </button>
                           );
                         })}
@@ -861,26 +855,25 @@ export default function CharacterCreate() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Фобії / Слабкості</label>
+                <label className="block text-sm font-medium mb-2">{tx("Фобії / Слабкості")}</label>
                 <textarea
                   value={formData.phobias}
                   onChange={(e) => updateField('phobias', e.target.value)}
                   rows={3}
                   className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-                  placeholder="Страхи та слабкості персонажа..."
+                  placeholder={tx("Страхи та слабкості персонажа...")}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Життєві цінності / Переконання *
-                </label>
+                  {tx("Життєві цінності / Переконання *")}</label>
                 <textarea
                   value={formData.character_values}
                   onChange={(e) => updateField('character_values', e.target.value)}
                   rows={4}
                   className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-                  placeholder="У що вірить персонаж, що для нього важливо..."
+                  placeholder={tx("У що вірить персонаж, що для нього важливо...")}
                 />
               </div>
             </div>
@@ -888,19 +881,19 @@ export default function CharacterCreate() {
 
           {step === 5 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold mb-4">Фракційна приналежність</h2>
+              <h2 className="text-2xl font-semibold mb-4">{tx("Фракційна приналежність")}</h2>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Фракція *</label>
+                <label className="block text-sm font-medium mb-2">{tx("Фракція *")}</label>
                 <select
                   value={formData.faction}
                   onChange={(e) => updateField('faction', e.target.value)}
                   className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                 >
-                  <option value="">Оберіть фракцію</option>
+                  <option value="">{tx("Оберіть фракцію")}</option>
                   {FACTIONS.map((faction) => (
                     <option key={faction} value={faction}>
-                      {faction}
+                      {tx(faction)}
                     </option>
                   ))}
                 </select>
@@ -909,45 +902,41 @@ export default function CharacterCreate() {
               {formData.faction === 'Учений' && (
                 <div className="space-y-4 bg-gray-900 p-4 rounded border border-gray-700">
                   <p className="text-sm text-yellow-400">
-                    Доступ після схвалення квенти адміністратором
-                  </p>
+                    {tx("Доступ після схвалення квенти адміністратором")}</p>
 
                   <div>
                     <label className="block text-sm font-medium mb-2">
-                      Освіта / спеціальність *
-                    </label>
+                      {tx("Освіта / спеціальність *")}</label>
                     <input
                       type="text"
                       value={formData.education}
                       onChange={(e) => updateField('education', e.target.value)}
                       className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                      placeholder="Наприклад: Біологія, Фізика..."
+                      placeholder={tx("Наприклад: Біологія, Фізика...")}
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium mb-2">
-                      Науковий профіль / напрямок *
-                    </label>
+                      {tx("Науковий профіль / напрямок *")}</label>
                     <input
                       type="text"
                       value={formData.scientific_profile}
                       onChange={(e) => updateField('scientific_profile', e.target.value)}
                       className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                      placeholder="Напрямок наукової діяльності..."
+                      placeholder={tx("Напрямок наукової діяльності...")}
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium mb-2">
-                      Мотивація дослідження Зони *
-                    </label>
+                      {tx("Мотивація дослідження Зони *")}</label>
                     <textarea
                       value={formData.research_motivation}
                       onChange={(e) => updateField('research_motivation', e.target.value)}
                       rows={4}
                       className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-                      placeholder="Чому хочете досліджувати Зону..."
+                      placeholder={tx("Чому хочете досліджувати Зону...")}
                     />
                   </div>
                 </div>
@@ -956,48 +945,45 @@ export default function CharacterCreate() {
               {formData.faction === 'Військовий' && (
                 <div className="space-y-4 bg-gray-900 p-4 rounded border border-gray-700">
                   <p className="text-sm text-yellow-400">
-                    Доступ після перевірки анкети адміністратором
-                  </p>
+                    {tx("Доступ після перевірки анкети адміністратором")}</p>
 
                   <div>
                     <label className="block text-sm font-medium mb-2">
-                      Попередній військовий досвід *
-                    </label>
+                      {tx("Попередній військовий досвід *")}</label>
                     <select
                       value={formData.military_experience}
                       onChange={(e) => updateField('military_experience', e.target.value)}
                       className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                     >
-                      <option value="">Оберіть...</option>
+                      <option value="">{tx("Оберіть...")}</option>
                       {MILITARY_EXPERIENCE.map((exp) => (
                         <option key={exp} value={exp}>
-                          {exp}
+                          {tx(exp)}
                         </option>
                       ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Звання (якщо було)</label>
+                    <label className="block text-sm font-medium mb-2">{tx("Звання (якщо було)")}</label>
                     <input
                       type="text"
                       value={formData.military_rank}
                       onChange={(e) => updateField('military_rank', e.target.value)}
                       className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                      placeholder="Наприклад: Капітан, Сержант..."
+                      placeholder={tx("Наприклад: Капітан, Сержант...")}
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium mb-2">
-                      Причина вступу до військових сил у Зоні *
-                    </label>
+                      {tx("Причина вступу до військових сил у Зоні *")}</label>
                     <textarea
                       value={formData.military_join_reason}
                       onChange={(e) => updateField('military_join_reason', e.target.value)}
                       rows={4}
                       className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-                      placeholder="Чому хочете служити у Зоні..."
+                      placeholder={tx("Чому хочете служити у Зоні...")}
                     />
                   </div>
                 </div>
@@ -1007,10 +993,10 @@ export default function CharacterCreate() {
 
           {step === 6 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold mb-4">Квента (Біографія)</h2>
+              <h2 className="text-2xl font-semibold mb-4">{tx("Квента (Біографія)")}</h2>
 
               <div className="bg-gray-900 p-4 rounded border border-gray-700">
-                <label className="block text-sm font-medium mb-3">Оберіть тип анкети *</label>
+                <label className="block text-sm font-medium mb-3">{tx("Оберіть тип анкети *")}</label>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                   <div className="space-y-2 sm:flex-1">
                     <label className="flex items-start gap-3 cursor-pointer">
@@ -1022,10 +1008,9 @@ export default function CharacterCreate() {
                         className="mt-1"
                       />
                       <div>
-                        <div className="font-medium">Коротка анкета (до 500 символів)</div>
+                        <div className="font-medium">{tx("Коротка анкета (до 500 символів)")}</div>
                         <div className="text-xs text-gray-400">
-                          Основні відомості про персонажа без детальної історії
-                        </div>
+                          {tx("Основні відомості про персонажа без детальної історії")}</div>
                       </div>
                     </label>
                     <label className="flex items-start gap-3 cursor-pointer">
@@ -1037,26 +1022,23 @@ export default function CharacterCreate() {
                         className="mt-1"
                       />
                       <div>
-                        <div className="font-medium">Повна квента (більше 500 символів)</div>
+                        <div className="font-medium">{tx("Повна квента (більше 500 символів)")}</div>
                         <div className="text-xs text-gray-400">
-                          Детальна біографія та історія персонажа
-                        </div>
+                          {tx("Детальна біографія та історія персонажа")}</div>
                       </div>
                     </label>
                   </div>
                   {questType === 'full' && (
                     <p role="alert" className="text-lg sm:text-xl font-bold text-red-500 sm:flex-1">
-                      НЕ ОБИРАЙТЕ КВЕНТУ ЯКЩО НЕ РОЗУМІЄТЕ ДЛЯ ЧОГО ВОНА!!!
-                    </p>
+                      {tx("НЕ ОБИРАЙТЕ КВЕНТУ ЯКЩО НЕ РОЗУМІЄТЕ ДЛЯ ЧОГО ВОНА!!!")}</p>
                   )}
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Передісторія *
-                  <span className="text-xs text-gray-400 block mt-1">
-                    {questType === 'short' ? 'Максимум 500 символів' : 'Мінімум 500 символів'}
+                  {tx("Передісторія *")}<span className="text-xs text-gray-400 block mt-1">
+                    {questType === 'short' ? tx("Максимум 500 символів") : tx("Мінімум 500 символів")}
                   </span>
                 </label>
                 <textarea
@@ -1065,22 +1047,22 @@ export default function CharacterCreate() {
                   rows={12}
                   maxLength={questType === 'short' ? 500 : undefined}
                   className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-                  placeholder="Розкажіть історію вашого персонажа: звідки він, яке його минуле, як він виріс, що пережив..."
+                  placeholder={tx("Розкажіть історію вашого персонажа: звідки він, яке його минуле, як він виріс, що пережив...")}
                 />
                 <p className="text-sm text-gray-400 mt-2">
-                  Символів: {formData.backstory.length}
+                  {tx("Символів: ")}{formData.backstory.length}
                   {questType === 'short' && formData.backstory.length > 500 && (
-                    <span className="text-red-500 ml-2">(перевищено ліміт 500)</span>
+                    <span className="text-red-500 ml-2">{tx("(перевищено ліміт 500)")}</span>
                   )}
                   {questType === 'full' && formData.backstory.length < 500 && (
-                    <span className="text-yellow-500 ml-2">(потрібно мінімум 500)</span>
+                    <span className="text-yellow-500 ml-2">{tx("(потрібно мінімум 500)")}</span>
                   )}
                 </p>
               </div>
 
               <div>
                 <label htmlFor="zone-entry-reason" className="block text-sm font-medium mb-2">
-                  {questType === 'short' ? 'Причина походу в Зону' : 'Мотивація приходу в Зону'} *
+                  {questType === 'short' ? tx("Причина походу в Зону") : tx("Мотивація приходу в Зону")} *
                 </label>
                 {questType === 'short' ? (
                   <>
@@ -1092,19 +1074,19 @@ export default function CharacterCreate() {
                       aria-describedby={formData.zone_motivation ? 'zone-entry-description' : undefined}
                       className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                     >
-                      <option value="">Оберіть причину походу в Зону</option>
+                      <option value="">{tx("Оберіть причину походу в Зону")}</option>
                       {formData.zone_motivation && !selectedZoneReason && (
-                        <option value={formData.zone_motivation}>Раніше збережена причина</option>
+                        <option value={formData.zone_motivation}>{tx("Раніше збережена причина")}</option>
                       )}
                       {ZONE_ENTRY_REASONS.map((reason, index) => (
                         <option key={reason.title} value={`${reason.title}: ${reason.description}`}>
-                          {index + 1}. {reason.title}
+                          {index + 1}. {tx(reason.title)}
                         </option>
                       ))}
                     </select>
                     {formData.zone_motivation && (
                       <p id="zone-entry-description" className="text-sm text-gray-400 mt-2 whitespace-pre-wrap">
-                        {selectedZoneReason?.description || formData.zone_motivation}
+                        {selectedZoneReason ? tx(selectedZoneReason.description) : formData.zone_motivation}
                       </p>
                     )}
                   </>
@@ -1115,19 +1097,19 @@ export default function CharacterCreate() {
                     onChange={(e) => updateField('zone_motivation', e.target.value)}
                     rows={5}
                     className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-                    placeholder="Чому ваш персонаж прийшов до Зони? Що він шукає?"
+                    placeholder={tx("Чому ваш персонаж прийшов до Зони? Що він шукає?")}
                   />
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Цілі персонажа</label>
+                <label className="block text-sm font-medium mb-2">{tx("Цілі персонажа")}</label>
                 <textarea
                   value={formData.character_goals}
                   onChange={(e) => updateField('character_goals', e.target.value)}
                   rows={4}
                   className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-                  placeholder="Які цілі має персонаж у Зоні?"
+                  placeholder={tx("Які цілі має персонаж у Зоні?")}
                 />
               </div>
             </div>
@@ -1135,49 +1117,44 @@ export default function CharacterCreate() {
 
           {step === 7 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold mb-4">Перевірка та підтвердження</h2>
+              <h2 className="text-2xl font-semibold mb-4">{tx("Перевірка та підтвердження")}</h2>
 
               <div className="bg-gray-900 p-4 rounded border border-gray-700">
-                <h3 className="font-semibold mb-3">Перевірте ваші дані:</h3>
+                <h3 className="font-semibold mb-3">{tx("Перевірте ваші дані:")}</h3>
                 <div className="space-y-2 text-sm">
                   <p>
-                    <strong>Ім'я:</strong> {formData.name} {formData.surname}
+                    <strong>{tx("Ім'я:")}</strong> {formData.name} {formData.surname}
                   </p>
                   <p>
-                    <strong>Кличка:</strong> {formData.nickname}
+                    <strong>{tx("Кличка:")}</strong> {formData.nickname}
                   </p>
                   <p>
                     <strong>Discord ID:</strong> {formData.discord_id}
                   </p>
                   <p>
-                    <strong>Вік:</strong> {formData.age} років
+                    <strong>{tx("Вік:")}</strong> {formData.age} {tx(" років")}</p>
+                  <p>
+                    <strong>{tx("Стать:")}</strong> {formData.gender === 'male' ? tx("Чоловік") : tx("Жінка")}
                   </p>
                   <p>
-                    <strong>Стать:</strong> {formData.gender === 'male' ? 'Чоловік' : 'Жінка'}
+                    <strong>{tx("Зріст/Вага:")}</strong> {formData.height} {tx(" см / ")}{formData.weight} {tx(" кг")}</p>
+                  <p>
+                    <strong>{tx("Фракція:")}</strong> {tx(formData.faction)}
                   </p>
                   <p>
-                    <strong>Зріст/Вага:</strong> {formData.height} см / {formData.weight} кг
+                    <strong>{tx("Риси характеру:")}</strong> {formData.character_traits.map((trait) => tx(trait)).join(', ')}
                   </p>
                   <p>
-                    <strong>Фракція:</strong> {formData.faction}
-                  </p>
+                    <strong>{tx("Біографія:")}</strong> {formData.backstory.length} {tx(" символів")}</p>
                   <p>
-                    <strong>Риси характеру:</strong> {formData.character_traits.join(', ')}
-                  </p>
-                  <p>
-                    <strong>Біографія:</strong> {formData.backstory.length} символів
-                  </p>
-                  <p>
-                    <strong>{questType === 'short' ? 'Причина походу в Зону:' : 'Мотивація приходу в Зону:'}</strong> {formData.zone_motivation}
+                    <strong>{questType === 'short' ? tx("Причина походу в Зону:") : tx("Мотивація приходу в Зону:")}</strong> {translateZoneReason(formData.zone_motivation, tx)}
                   </p>
                 </div>
               </div>
 
               <div className="bg-yellow-900 bg-opacity-30 border border-yellow-700 p-4 rounded">
                 <p className="text-sm text-yellow-300">
-                  На цьому етапі анкета зберігається як чернетка. Відправити її на розгляд
-                  можна буде зі списку персонажів у кабінеті.
-                </p>
+                  {tx("На цьому етапі анкета зберігається як чернетка. Відправити її на розгляд можна буде зі списку персонажів у кабінеті.")}</p>
               </div>
             </div>
           )}
@@ -1190,7 +1167,7 @@ export default function CharacterCreate() {
                   className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition"
                 >
                   <ChevronLeft className="w-5 h-5" />
-                  Назад
+                  {t('back')}
                 </button>
               )}
             </div>
@@ -1202,7 +1179,7 @@ export default function CharacterCreate() {
                 className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition disabled:opacity-50"
               >
                 <Save className="w-5 h-5" />
-                {step === 7 ? 'Зберегти чернетку' : 'Зберегти'}
+                {step === 7 ? t('saveDraft') : t('save')}
               </button>
 
               {step < 7 ? (
@@ -1211,7 +1188,7 @@ export default function CharacterCreate() {
                   disabled={!canProceed() || checkingNickname}
                   className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 px-4 py-2 rounded transition disabled:opacity-50"
                 >
-                  {checkingNickname ? 'Перевірка...' : 'Далі'}
+                  {checkingNickname ? t('checking') : t('next')}
                   <ChevronRight className="w-5 h-5" />
                 </button>
               ) : null}

@@ -1,3 +1,6 @@
+import { useTranslation } from '../hooks/useTranslation';
+import { useLanguage } from '../contexts/language';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
@@ -5,6 +8,8 @@ import { Lock, User } from 'lucide-react';
 import logoIcon from '../assets/a_7bf503427402fe411e336e01e8f6f15a.webp';
 
 export default function AdminLogin() {
+  const tx = useTranslation();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { login } = useAdminAuth();
   const [username, setUsername] = useState('');
@@ -22,7 +27,7 @@ export default function AdminLogin() {
     if (result.success) {
       navigate('/admin');
     } else {
-      setError(result.error || 'Помилка входу');
+      setError(result.error || "Помилка входу");
     }
 
     setLoading(false);
@@ -32,17 +37,20 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100 flex items-center justify-center">
       <div className="w-full max-w-md px-4">
         <div className="bg-gray-800 bg-opacity-98 p-8 rounded-lg border border-gray-700">
+          <div className="mb-6 flex justify-end">
+            <LanguageSwitcher />
+          </div>
           <div className="flex items-center justify-center mb-8">
             <img src={logoIcon} alt="Eternal ZONE" className="w-12 h-12 object-contain mr-3" />
             <div>
-              <h1 className="text-2xl font-bold font-stalker">Адмін-панель</h1>
-              <p className="text-sm text-gray-400">Eternal ZONE Management</p>
+              <h1 className="text-2xl font-bold font-stalker">{t('adminPanel')}</h1>
+              <p className="text-sm text-gray-400">{tx("Керування Eternal ZONE")}</p>
             </div>
           </div>
 
           {error && (
             <div className="mb-6 p-3 bg-red-900 bg-opacity-30 border border-red-700 rounded text-red-300 text-sm">
-              {error}
+              {tx(error)}
             </div>
           )}
 
@@ -50,8 +58,7 @@ export default function AdminLogin() {
             <div>
               <label className="block text-sm font-medium mb-2">
                 <User className="w-4 h-4 inline mr-2" />
-                Логін
-              </label>
+                {tx("Логін")}</label>
               <input
                 type="text"
                 value={username}
@@ -66,8 +73,7 @@ export default function AdminLogin() {
             <div>
               <label className="block text-sm font-medium mb-2">
                 <Lock className="w-4 h-4 inline mr-2" />
-                Пароль
-              </label>
+                {tx("Пароль")}</label>
               <input
                 type="password"
                 value={password}
@@ -84,23 +90,22 @@ export default function AdminLogin() {
               disabled={loading}
               className="w-full bg-red-600 hover:bg-red-500 py-3 rounded font-semibold transition disabled:opacity-50"
             >
-              {loading ? 'Вхід...' : 'Увійти'}
+              {loading ? t('loggingIn') : t('login')}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <a href="/" className="text-sm text-gray-400 hover:text-white transition">
-              На головну сторінку
+              {t('homePage')}
             </a>
           </div>
 
           <div className="mt-8 p-4 bg-gray-900 rounded border border-gray-700">
             <p className="text-xs text-gray-400 mb-2">
-              <strong>Для тестування:</strong>
+              <strong>{tx("Для тестування:")}</strong>
             </p>
             <p className="text-xs text-gray-500">
-              Створіть адміна в базі даних через SQL:
-            </p>
+              {tx("Створіть адміна в базі даних через SQL:")}</p>
             <code className="block mt-2 text-xs bg-black p-2 rounded text-green-400">
               INSERT INTO admins (username, password_hash, role, is_active)
               <br />

@@ -1,6 +1,7 @@
 import express from 'express';
 import { query } from '../config/database.js';
 import { authenticateAdmin } from '../middleware/auth.js';
+import { translationFields } from '../utils/content-translations.js';
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ router.get('/', async (req, res) => {
     );
     res.json(videos);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
@@ -22,17 +23,18 @@ router.get('/all', authenticateAdmin, async (req, res) => {
     );
     res.json(videos);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
 router.post('/', authenticateAdmin, async (req, res) => {
   try {
     const { title, url, thumbnail_url, order_index, is_published } = req.body;
+    const translated = translationFields(req.body, { title_en: 255 });
 
     await query(
-      'INSERT INTO media_videos (id, title, url, thumbnail_url, order_index, is_published) VALUES (UUID(), ?, ?, ?, ?, ?)',
-      [title, url, thumbnail_url, order_index || 0, is_published !== false]
+      'INSERT INTO media_videos (id, title, title_en, url, thumbnail_url, order_index, is_published) VALUES (UUID(), ?, ?, ?, ?, ?, ?)',
+      [title, translated.title_en ?? null, url, thumbnail_url, order_index || 0, is_published !== false]
     );
 
     const [video] = await query(
@@ -41,15 +43,21 @@ router.post('/', authenticateAdmin, async (req, res) => {
 
     res.status(201).json(video);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
 router.patch('/:id', authenticateAdmin, async (req, res) => {
   try {
     const { title, url, thumbnail_url, order_index, is_published } = req.body;
+    const translated = translationFields(req.body, { title_en: 255 });
     const updates = [];
     const values = [];
+
+    if (translated.title_en !== undefined) {
+      updates.push('title_en = ?');
+      values.push(translated.title_en);
+    }
 
     if (title !== undefined) {
       updates.push('title = ?');
@@ -94,7 +102,7 @@ router.patch('/:id', authenticateAdmin, async (req, res) => {
 
     res.json(video);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
@@ -103,7 +111,7 @@ router.delete('/:id', authenticateAdmin, async (req, res) => {
     await query('DELETE FROM media_videos WHERE id = ?', [req.params.id]);
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 

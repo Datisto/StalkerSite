@@ -1,3 +1,4 @@
+import { useTranslation } from '../hooks/useTranslation';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -10,6 +11,7 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
+  const tx = useTranslation();
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -49,7 +51,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
       />
       <div className={`relative bg-gray-900 rounded-lg border border-gray-700 shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-auto`}>
         <div className="sticky top-0 bg-gray-900 border-b border-gray-700 px-6 py-4 flex items-center justify-between z-10">
-          <h2 className="text-xl font-bold text-white">{title}</h2>
+          <h2 className="text-xl font-bold text-white">{tx(title)}</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white transition"
@@ -74,6 +76,7 @@ interface AlertModalProps {
 }
 
 export function AlertModal({ isOpen, onClose, title, message, type = 'info' }: AlertModalProps) {
+  const tx = useTranslation();
   const typeColors = {
     info: 'border-blue-600 bg-blue-950',
     success: 'border-green-600 bg-green-950',
@@ -89,17 +92,16 @@ export function AlertModal({ isOpen, onClose, title, message, type = 'info' }: A
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} title={tx(title)} size="sm">
       <div className={`p-4 rounded border ${typeColors[type]} mb-6`}>
-        <p className="text-gray-100 whitespace-pre-wrap">{message}</p>
+        <p className="text-gray-100 whitespace-pre-wrap">{tx(message)}</p>
       </div>
       <div className="flex justify-end">
         <button
           onClick={onClose}
           className={`px-6 py-2 rounded font-semibold transition ${buttonColors[type]}`}
         >
-          Зрозуміло
-        </button>
+          {tx("Зрозуміло")}</button>
       </div>
     </Modal>
   );
@@ -126,6 +128,7 @@ export function ConfirmModal({
   cancelText = 'Скасувати',
   type = 'warning'
 }: ConfirmModalProps) {
+  const tx = useTranslation();
   const typeColors = {
     danger: 'border-red-600 bg-red-950',
     warning: 'border-yellow-600 bg-yellow-950',
@@ -144,22 +147,22 @@ export function ConfirmModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} title={tx(title)} size="sm">
       <div className={`p-4 rounded border ${typeColors[type]} mb-6`}>
-        <p className="text-gray-100 whitespace-pre-wrap">{message}</p>
+        <p className="text-gray-100 whitespace-pre-wrap">{tx(message)}</p>
       </div>
       <div className="flex justify-end gap-3">
         <button
           onClick={onClose}
           className="px-6 py-2 rounded font-semibold bg-gray-700 hover:bg-gray-600 transition"
         >
-          {cancelText}
+          {tx(cancelText)}
         </button>
         <button
           onClick={handleConfirm}
           className={`px-6 py-2 rounded font-semibold transition ${confirmButtonColors[type]}`}
         >
-          {confirmText}
+          {tx(confirmText)}
         </button>
       </div>
     </Modal>
@@ -187,6 +190,7 @@ export function PromptModal({
   defaultValue = '',
   multiline = false
 }: PromptModalProps) {
+  const tx = useTranslation();
   const [value, setValue] = useState(defaultValue);
 
   useEffect(() => {
@@ -204,14 +208,14 @@ export function PromptModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} title={tx(title)} size="sm">
       <form onSubmit={handleSubmit}>
-        <p className="text-gray-300 mb-4">{message}</p>
+        <p className="text-gray-300 mb-4">{tx(message)}</p>
         {multiline ? (
           <textarea
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder={placeholder}
+            placeholder={tx(placeholder)}
             className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 text-white focus:border-red-500 focus:outline-none min-h-[120px]"
             autoFocus
           />
@@ -220,7 +224,7 @@ export function PromptModal({
             type="text"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder={placeholder}
+            placeholder={tx(placeholder)}
             className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 text-white focus:border-red-500 focus:outline-none"
             autoFocus
           />
@@ -231,15 +235,13 @@ export function PromptModal({
             onClick={onClose}
             className="px-6 py-2 rounded font-semibold bg-gray-700 hover:bg-gray-600 transition"
           >
-            Скасувати
-          </button>
+            {tx("Скасувати")}</button>
           <button
             type="submit"
             disabled={!value.trim()}
             className="px-6 py-2 rounded font-semibold bg-red-600 hover:bg-red-500 disabled:bg-gray-700 disabled:cursor-not-allowed transition"
           >
-            Підтвердити
-          </button>
+            {tx("Підтвердити")}</button>
         </div>
       </form>
     </Modal>

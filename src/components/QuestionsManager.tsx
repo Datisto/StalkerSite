@@ -1,24 +1,31 @@
+import { useTranslation } from '../hooks/useTranslation';
 import { useState, useEffect } from 'react';
 import { apiClient } from '../lib/api-client';
 import { Plus, Edit, Trash2, Save, X, ToggleLeft, ToggleRight } from 'lucide-react';
 import { showAlert, showConfirm } from '../utils/modals';
+import BilingualTextField from './BilingualTextField';
 
 interface Question {
   id: string;
   question_text: string;
+  question_text_en?: string | null;
   category: string;
+  category_en?: string | null;
   is_active: boolean;
   created_at: string;
 }
 
 export default function QuestionsManager() {
+  const tx = useTranslation();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState<Partial<Question>>({
     question_text: '',
+    question_text_en: '',
     category: '',
+    category_en: '',
     is_active: true,
   });
 
@@ -29,11 +36,11 @@ export default function QuestionsManager() {
   async function loadQuestions() {
     setLoading(true);
     try {
-      const data = await apiClient.questions.list();
+      const data = await apiClient.questions.manage();
       setQuestions(data || []);
     } catch (error) {
       console.error('Error loading questions:', error);
-      await showAlert('Помилка завантаження питань', 'Помилка', 'error');
+      await showAlert(tx("Помилка завантаження питань"), tx("Помилка"), 'error');
     } finally {
       setLoading(false);
     }
@@ -41,44 +48,46 @@ export default function QuestionsManager() {
 
   async function saveQuestion() {
     try {
-      if (!formData.question_text) {
-        await showAlert('Введіть текст питання', 'Помилка', 'warning');
+      if (!formData.question_text?.trim()) {
+        await showAlert(tx("Введіть текст питання"), tx("Помилка"), 'warning');
         return;
       }
 
       const questionData = {
         question_text: formData.question_text,
+        question_text_en: formData.question_text_en ?? null,
         category: formData.category || 'Загальні',
+        category_en: formData.category_en ?? null,
         is_active: formData.is_active !== false,
       };
 
       if (editingQuestion) {
         await apiClient.questions.update(editingQuestion.id, questionData);
-        await showAlert('Питання оновлено', 'Успіх', 'success');
+        await showAlert(tx("Питання оновлено"), tx("Успіх"), 'success');
       } else {
         await apiClient.questions.create(questionData);
-        await showAlert('Питання додано', 'Успіх', 'success');
+        await showAlert(tx("Питання додано"), tx("Успіх"), 'success');
       }
 
       resetForm();
       await loadQuestions();
     } catch (error) {
       console.error('Error saving question:', error);
-      await showAlert('Помилка збереження питання', 'Помилка', 'error');
+      await showAlert(tx("Помилка збереження питання"), tx("Помилка"), 'error');
     }
   }
 
   async function deleteQuestion(id: string) {
-    const confirmed = await showConfirm('Видалити це питання?', 'Підтвердження', { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' });
+    const confirmed = await showConfirm(tx("Видалити це питання?"), tx("Підтвердження"), { type: 'danger', confirmText: tx("Видалити"), cancelText: tx("Скасувати") });
     if (!confirmed) return;
 
     try {
       await apiClient.questions.delete(id);
-      await showAlert('Питання видалено', 'Успіх', 'success');
+      await showAlert(tx("Питання видалено"), tx("Успіх"), 'success');
       await loadQuestions();
     } catch (error) {
       console.error('Error deleting question:', error);
-      await showAlert('Помилка видалення питання', 'Помилка', 'error');
+      await showAlert(tx("Помилка видалення питання"), tx("Помилка"), 'error');
     }
   }
 
@@ -88,7 +97,7 @@ export default function QuestionsManager() {
       await loadQuestions();
     } catch (error) {
       console.error('Error toggling question:', error);
-      await showAlert('Помилка зміни статусу', 'Помилка', 'error');
+      await showAlert(tx("Помилка зміни статусу"), tx("Помилка"), 'error');
     }
   }
 
@@ -96,7 +105,9 @@ export default function QuestionsManager() {
     setEditingQuestion(question);
     setFormData({
       question_text: question.question_text,
+      question_text_en: question.question_text_en ?? '',
       category: question.category,
+      category_en: question.category_en ?? '',
       is_active: question.is_active,
     });
     setShowAddForm(true);
@@ -105,7 +116,9 @@ export default function QuestionsManager() {
   function resetForm() {
     setFormData({
       question_text: '',
+      question_text_en: '',
       category: '',
+      category_en: '',
       is_active: true,
     });
     setEditingQuestion(null);
@@ -116,7 +129,7 @@ export default function QuestionsManager() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-400">Завантаження...</p>
+        <p className="text-gray-400">{tx("Завантаження...")}</p>
       </div>
     );
   }
@@ -125,23 +138,22 @@ export default function QuestionsManager() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Банк питань</h2>
-          <p className="text-gray-400 text-sm mt-1">Всього: {questions.length} питань</p>
+          <h2 className="text-2xl font-bold">{tx("Банк питань")}</h2>
+          <p className="text-gray-400 text-sm mt-1">{tx("Всього: ")}{questions.length} {tx(" питань")}</p>
         </div>
         <button
           onClick={() => setShowAddForm(true)}
           className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 px-4 py-2 rounded transition"
         >
           <Plus className="w-5 h-5" />
-          Додати питання
-        </button>
+          {tx("Додати питання")}</button>
       </div>
 
       {showAddForm && (
         <div className="bg-gray-900 p-6 rounded-lg border border-gray-700">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-semibold">
-              {editingQuestion ? 'Редагувати питання' : 'Нове питання'}
+              {editingQuestion ? tx("Редагувати питання") : tx("Нове питання")}
             </h3>
             <button onClick={resetForm} className="text-gray-400 hover:text-white">
               <X className="w-6 h-6" />
@@ -149,32 +161,27 @@ export default function QuestionsManager() {
           </div>
 
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Текст питання *</label>
-              <textarea
-                value={formData.question_text || ''}
-                onChange={(e) => setFormData({ ...formData, question_text: e.target.value })}
-                rows={3}
-                className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-                placeholder="Введіть питання..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Категорія</label>
-              <input
-                type="text"
-                value={formData.category || ''}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                placeholder="Наприклад: Основні правила"
-              />
-            </div>
+            <p className="text-sm text-gray-400">{tx("Українська — основна мова. Якщо англійського перекладу немає, гравець побачить український текст.")}</p>
+            <BilingualTextField
+              label={tx("Текст питання")}
+              value={formData.question_text || ''}
+              englishValue={formData.question_text_en}
+              onChange={(value) => setFormData({ ...formData, question_text: value })}
+              onEnglishChange={(value) => setFormData({ ...formData, question_text_en: value })}
+              multiline
+              required
+            />
+            <BilingualTextField
+              label={tx("Категорія")}
+              value={formData.category || ''}
+              englishValue={formData.category_en}
+              onChange={(value) => setFormData({ ...formData, category: value })}
+              onEnglishChange={(value) => setFormData({ ...formData, category_en: value })}
+            />
 
             <div className="bg-blue-900 bg-opacity-30 border border-blue-700 p-3 rounded">
               <p className="text-blue-200 text-sm">
-                <strong>Увага:</strong> Це питання з відкритою відповіддю. Гравець напише свою відповідь, а адміністрація перевірить її вручну.
-              </p>
+                <strong>{tx("Увага:")}</strong> {tx(" Це питання з відкритою відповіддю. Гравець напише свою відповідь, а адміністрація перевірить її вручну.")}</p>
             </div>
 
             <div className="flex items-center gap-2">
@@ -186,8 +193,7 @@ export default function QuestionsManager() {
                 className="w-4 h-4"
               />
               <label htmlFor="is_active" className="text-sm">
-                Активне (використовується в тесті)
-              </label>
+                {tx("Активне (використовується в тесті)")}</label>
             </div>
 
             <div className="flex gap-2">
@@ -196,14 +202,13 @@ export default function QuestionsManager() {
                 className="flex-1 inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 py-2 rounded transition"
               >
                 <Save className="w-5 h-5" />
-                {editingQuestion ? 'Оновити' : 'Зберегти'}
+                {editingQuestion ? tx("Оновити") : tx("Зберегти")}
               </button>
               <button
                 onClick={resetForm}
                 className="flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded transition"
               >
-                Скасувати
-              </button>
+                {tx("Скасувати")}</button>
             </div>
           </div>
         </div>
@@ -212,7 +217,7 @@ export default function QuestionsManager() {
       <div className="space-y-3">
         {questions.length === 0 ? (
           <div className="text-center py-12 bg-gray-800 bg-opacity-60 rounded-lg border border-gray-700">
-            <p className="text-gray-400">Питань ще немає</p>
+            <p className="text-gray-400">{tx("Питань ще немає")}</p>
           </div>
         ) : (
           questions.map((question) => (
@@ -225,9 +230,10 @@ export default function QuestionsManager() {
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1">
                   <p className="font-semibold mb-2">{question.question_text}</p>
+                  <p className="mb-2 text-sm text-gray-400" lang="en">EN: {question.question_text_en || tx("Переклад відсутній")}</p>
                   <div className="flex gap-2 mt-2 text-xs">
                     <span className="bg-gray-800 px-2 py-1 rounded">{question.category}</span>
-                    <span className="bg-blue-800 px-2 py-1 rounded">Відкрита відповідь</span>
+                    <span className="bg-blue-800 px-2 py-1 rounded">{tx("Відкрита відповідь")}</span>
                   </div>
                 </div>
 
@@ -235,7 +241,7 @@ export default function QuestionsManager() {
                   <button
                     onClick={() => toggleActive(question.id, question.is_active)}
                     className="text-gray-400 hover:text-white transition"
-                    title={question.is_active ? 'Деактивувати' : 'Активувати'}
+                    title={question.is_active ? tx("Деактивувати") : tx("Активувати")}
                   >
                     {question.is_active ? (
                       <ToggleRight className="w-6 h-6 text-green-500" />

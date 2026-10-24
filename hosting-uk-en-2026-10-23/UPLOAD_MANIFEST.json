@@ -1,0 +1,375 @@
+{
+  "release": "UA / EN 2026-10-23",
+  "kind": "update-existing-site",
+  "deployment_order": [
+    "01_database.sql",
+    "02_backend.zip",
+    "restart_existing_node_app",
+    "03_frontend.zip"
+  ],
+  "api_base": "/api",
+  "files": [
+    {
+      "archive": "02_backend.zip",
+      "path": "src/routes/admin.js",
+      "source": "server/src/routes/admin.js",
+      "sha256": "e8e9685dc001191ac3898bb16fda66ecde8ddc6bae0f23ccaec88eff59802c76",
+      "bytes": 11863
+    },
+    {
+      "archive": "02_backend.zip",
+      "path": "src/routes/characters.js",
+      "source": "server/src/routes/characters.js",
+      "sha256": "f997690ae31fc3e74f5dad01a82755cf0088f5d660821c8db8277cfe64fc3729",
+      "bytes": 8478
+    },
+    {
+      "archive": "02_backend.zip",
+      "path": "src/routes/face-models.js",
+      "source": "server/src/routes/face-models.js",
+      "sha256": "5ba97058ccd712b4a1fe0d1f5596481de490fcfa1269bd72da961fdfd04c4bbe",
+      "bytes": 3249
+    },
+    {
+      "archive": "02_backend.zip",
+      "path": "src/routes/faq.js",
+      "source": "server/src/routes/faq.js",
+      "sha256": "6064480ea76134c6a07985332b87c538042285711ce320e4a96bc138bf644ea3",
+      "bytes": 6386
+    },
+    {
+      "archive": "02_backend.zip",
+      "path": "src/routes/media-videos.js",
+      "source": "server/src/routes/media-videos.js",
+      "sha256": "3c361e32586c4e8d1931058f76c02ff0be9bd0fb8bc9e837b9e0dcac20ffc683",
+      "bytes": 3384
+    },
+    {
+      "archive": "02_backend.zip",
+      "path": "src/routes/questions.js",
+      "source": "server/src/routes/questions.js",
+      "sha256": "a89d3a4191cc358b3087cd498991fab1534d131ffe77cd5f0ec28499a92d04ab",
+      "bytes": 3858
+    },
+    {
+      "archive": "02_backend.zip",
+      "path": "src/routes/rules.js",
+      "source": "server/src/routes/rules.js",
+      "sha256": "13252ce04c53c207c04cdb8dd7d99c58b5bd1e1a7c14a7f229f325c728c1dd12",
+      "bytes": 6621
+    },
+    {
+      "archive": "02_backend.zip",
+      "path": "src/routes/test-submissions.js",
+      "source": "server/src/routes/test-submissions.js",
+      "sha256": "2b3af7ea2947af9067046b264ca9ecc9f482736c750b4b5afd13ffc70db4f029",
+      "bytes": 2078
+    },
+    {
+      "archive": "02_backend.zip",
+      "path": "src/utils/content-translations.js",
+      "source": "server/src/utils/content-translations.js",
+      "sha256": "179863d5645e3db1229916a90056c2a9a4b6bca98592a2b1d4c7b0d41bc6e11c",
+      "bytes": 728
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "_redirects",
+      "source": "dist/_redirects",
+      "sha256": "9346d58ddbefd4e621b175ff643da52146ba4697d3ccaeb6313298a096006c1c",
+      "bytes": 219
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "android-icon-144x144.png",
+      "source": "dist/android-icon-144x144.png",
+      "sha256": "8f483b9c95cbd071c996a5b2c67a043b4586538a5e83ffa0e0d3ce01440c1b62",
+      "bytes": 35757
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "android-icon-192x192.png",
+      "source": "dist/android-icon-192x192.png",
+      "sha256": "2f4cfa8df6566bb1630a446db3cc85d5a89bf352e4922d3b11431c65ee16322d",
+      "bytes": 61484
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "android-icon-36x36.png",
+      "source": "dist/android-icon-36x36.png",
+      "sha256": "060c3079273885b42db31e113093cf4f67d7d5f80e1032461244b329fa5fdf89",
+      "bytes": 3744
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "android-icon-48x48.png",
+      "source": "dist/android-icon-48x48.png",
+      "sha256": "892165e12e54ce1d03d6ce32da9eea5ec8183472d3d4af93d617b21a3ed4433f",
+      "bytes": 5790
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "android-icon-72x72.png",
+      "source": "dist/android-icon-72x72.png",
+      "sha256": "5bfb35f8aec49bb497cf700f569ac95119ca5c51be2d56477da6278d762c4654",
+      "bytes": 11127
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "android-icon-96x96.png",
+      "source": "dist/android-icon-96x96.png",
+      "sha256": "f5dfbd9967fb9dbe7fc83552704bc9db1e9903573782af22504f2f0e6fd8c520",
+      "bytes": 17930
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "apple-icon-114x114.png",
+      "source": "dist/apple-icon-114x114.png",
+      "sha256": "f0b98cc6d6239ac1a22c879ec6f5da62f648c399a15d9692a2721b28bfc549d5",
+      "bytes": 24041
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "apple-icon-120x120.png",
+      "source": "dist/apple-icon-120x120.png",
+      "sha256": "c5725b82a3ac9748c07e982c0d811d4b815644b3c9f0202d07a09708cc71e0bb",
+      "bytes": 26258
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "apple-icon-144x144.png",
+      "source": "dist/apple-icon-144x144.png",
+      "sha256": "6b4771711f77aabc60e7123315d181955697ec18356ca23a1b6e5b017a83ec0e",
+      "bytes": 35757
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "apple-icon-152x152.png",
+      "source": "dist/apple-icon-152x152.png",
+      "sha256": "14cb08ee60841d11103ff4f79ad561ce8a4d288b7b905bb4c96e1737b1ee865d",
+      "bytes": 39325
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "apple-icon-180x180.png",
+      "source": "dist/apple-icon-180x180.png",
+      "sha256": "0cfa38f375df5ec7753655b47c89eaa275cac74582dba0f38091ed8192191208",
+      "bytes": 52657
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "apple-icon-57x57.png",
+      "source": "dist/apple-icon-57x57.png",
+      "sha256": "f127ee12a513bb48d85da60415f2bf6423f54111ad4a187afcb1fa8d1cc6b7d8",
+      "bytes": 7550
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "apple-icon-60x60.png",
+      "source": "dist/apple-icon-60x60.png",
+      "sha256": "6371e52bbcaaa63e6cddf9aaec6d1a2c9fa7e20b9d019068641491644df995e0",
+      "bytes": 8241
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "apple-icon-72x72.png",
+      "source": "dist/apple-icon-72x72.png",
+      "sha256": "5bfb35f8aec49bb497cf700f569ac95119ca5c51be2d56477da6278d762c4654",
+      "bytes": 11127
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "apple-icon-76x76.png",
+      "source": "dist/apple-icon-76x76.png",
+      "sha256": "a0c55c761139a23c78a4022c38d89de646f8e5f7302f0f92199a5348980567cf",
+      "bytes": 12167
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "apple-icon-precomposed.png",
+      "source": "dist/apple-icon-precomposed.png",
+      "sha256": "c068a04c392d94b95fb31fd201e05494d84866bcd838e1d49103b206aac01307",
+      "bytes": 62026
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "apple-icon.png",
+      "source": "dist/apple-icon.png",
+      "sha256": "c068a04c392d94b95fb31fd201e05494d84866bcd838e1d49103b206aac01307",
+      "bytes": 62026
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "assets/a_7bf503427402fe411e336e01e8f6f15a-DBcGMDJW.webp",
+      "source": "dist/assets/a_7bf503427402fe411e336e01e8f6f15a-DBcGMDJW.webp",
+      "sha256": "5a529f345fc2f884a0bbdcc8d3a18099c086a59464c8c0960fbd93821ebe1246",
+      "bytes": 146868
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "assets/index-DA43swEU.js",
+      "source": "dist/assets/index-DA43swEU.js",
+      "sha256": "0e72a3d21e473809bb68c7269bd5b0958ad900eaf245a72261e8742b9601e560",
+      "bytes": 500352
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "assets/index-EJShdDsJ.css",
+      "source": "dist/assets/index-EJShdDsJ.css",
+      "sha256": "5daab704ce0ab79bdd044145fc5f0afe8745f2fbf8f07705de3ec136b2aa94a3",
+      "bytes": 26682
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "browserconfig.xml",
+      "source": "dist/browserconfig.xml",
+      "sha256": "66704463cd361050b26b2a315b125047d8eed60df8cc275abbb0383e70d0d0e9",
+      "bytes": 282
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "discordid.png",
+      "source": "dist/discordid.png",
+      "sha256": "1531c5a253a8db3a2e507ddc9163f0ef46c4fb2ad1ebc218ebb3427d1018a3af",
+      "bytes": 26427
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "favicon-16x16.png",
+      "source": "dist/favicon-16x16.png",
+      "sha256": "62d5d2b5803ddcfc7fe3360134381d44a0771b3b8c1c3448370d24259fc7f7ca",
+      "bytes": 1494
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "favicon-32x32.png",
+      "source": "dist/favicon-32x32.png",
+      "sha256": "c555aa91dc4cae5482877e0a26e59865288233f2e115135fea0046202aab23e0",
+      "bytes": 3158
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "favicon-96x96.png",
+      "source": "dist/favicon-96x96.png",
+      "sha256": "46be566dd271ad541e52a3e60c563040c401bf6fe195d630e82729b7663e3953",
+      "bytes": 17930
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "favicon.ico",
+      "source": "dist/favicon.ico",
+      "sha256": "58980adc08a74584eb446d40b8c53467d75a79eaa1bb96567974aa63b52ddf32",
+      "bytes": 1150
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "favicon.png",
+      "source": "dist/favicon.png",
+      "sha256": "19c22f8391ad29e5ac7e365924b818545e6e8f791964649b60f356f8c0d890d5",
+      "bytes": 293166
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "image.png",
+      "source": "dist/image.png",
+      "sha256": "710dc0f89b5ee6824e293a8686a3fcd4e34600c24ca4e71937e4ac7fe0c5f476",
+      "bytes": 40491
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "index.html",
+      "source": "dist/index.html",
+      "sha256": "013e8c8ef9d2379750aacbc74da0fc967febb348bf7af2192bad1eec1e979528",
+      "bytes": 1923
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "manifest.json",
+      "source": "dist/manifest.json",
+      "sha256": "ae6280a98642cc45d5f79c8fdc081aff05689e1d470ec3241ea6dfef33558b58",
+      "bytes": 760
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "ms-icon-144x144.png",
+      "source": "dist/ms-icon-144x144.png",
+      "sha256": "6b4771711f77aabc60e7123315d181955697ec18356ca23a1b6e5b017a83ec0e",
+      "bytes": 35757
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "ms-icon-150x150.png",
+      "source": "dist/ms-icon-150x150.png",
+      "sha256": "233acb6b76513191b750eb165887d6ac967e413864637e07d8d56136192e95a8",
+      "bytes": 38328
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "ms-icon-310x310.png",
+      "source": "dist/ms-icon-310x310.png",
+      "sha256": "a41bf3b38a4d80cdf78a58e45d33c28a2e6b6ffbaacf292d9773f85d37d4b5f4",
+      "bytes": 122218
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "ms-icon-70x70.png",
+      "source": "dist/ms-icon-70x70.png",
+      "sha256": "aab3fdcde0eb5a1c5ef304298359ed31c803006737d55400da79515cba84028f",
+      "bytes": 10606
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "preview .png",
+      "source": "dist/preview .png",
+      "sha256": "b110f455d1db4d23d4f0bf6d30e9a33f576267dcc93f2f631bb26e8d3c395811",
+      "bytes": 393325
+    },
+    {
+      "archive": "03_frontend.zip",
+      "path": "preview.png",
+      "source": "dist/preview.png",
+      "sha256": "9781b01d484583e88f75456f26295bae5a7a4eb2c970823ff51871b4f21da3ee",
+      "bytes": 20
+    }
+  ],
+  "sql_sha256": "f101a486ea5fe0024ad734f676d583224bdda705145d2038e6be991961c54f83",
+  "database_target": "dayzstal_eternalzone",
+  "database_engine_required": "MariaDB 11.8.x",
+  "production_database_executed": false,
+  "local_database_tested": true,
+  "sql_safety_report": "SQL_SAFETY_REPORT.json",
+  "sql_safety_scenarios_passed": 14,
+  "package_artifacts": [
+    {
+      "name": "01_database.sql",
+      "sha256": "f101a486ea5fe0024ad734f676d583224bdda705145d2038e6be991961c54f83",
+      "bytes": 16913
+    },
+    {
+      "name": "02_backend.zip",
+      "sha256": "3bfe2cb34774305f87d7c0c8bea47f5611df5f65b2b1d70ffebb01fb56715020",
+      "bytes": 12134
+    },
+    {
+      "name": "03_frontend.zip",
+      "sha256": "d66060050fdf68ec941cd2d37e1e1aaad253e031755126a6187d349b23d73e48",
+      "bytes": 1704348
+    },
+    {
+      "name": "DEPLOYMENT.txt",
+      "sha256": "7d85bf98695b2e9cd4d52017d80abcfda7f1ef3c509b5d389e3fa107d3486b01",
+      "bytes": 12474
+    },
+    {
+      "name": "SQL_SAFETY_REPORT.json",
+      "sha256": "1709d9a45ecfb58655d95740b5b6679448e3715dd484e4e818b9f5668fef6055",
+      "bytes": 2467
+    }
+  ],
+  "ui_translated": true,
+  "ui_translation_scenarios_passed": 6,
+  "api_scenarios_passed": 12,
+  "typescript_passed": true,
+  "eslint_errors": 0,
+  "eslint_warnings": 9
+}

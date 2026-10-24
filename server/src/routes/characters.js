@@ -57,7 +57,7 @@ router.get('/check-nickname', async (req, res) => {
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
     const [character] = await query(
-      'SELECT * FROM characters WHERE id = ? LIMIT 1',
+      'SELECT c.*, (SELECT fm.name_en FROM face_models fm WHERE fm.name = c.face_model LIMIT 1) AS face_model_en FROM characters c WHERE c.id = ? LIMIT 1',
       [req.params.id]
     );
 

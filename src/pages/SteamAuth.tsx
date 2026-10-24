@@ -1,8 +1,12 @@
+import { useTranslation } from '../hooks/useTranslation';
+import { useLanguage } from '../contexts/language';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../lib/api-client';
 
 export default function SteamAuth() {
+  const tx = useTranslation();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -12,7 +16,7 @@ export default function SteamAuth() {
       const urlParams = new URLSearchParams(window.location.search);
 
       if (!urlParams.has('openid.claimed_id')) {
-        setError('Не вдалося отримати Steam ID');
+        setError(tx("Не вдалося отримати Steam ID"));
         setLoading(false);
         return;
       }
@@ -21,7 +25,7 @@ export default function SteamAuth() {
 
       if (response.error) {
         if (response.error === 'Account is banned') {
-          setError(`Ваш акаунт заблоковано. Причина: ${response.reason || 'Не вказано'}`);
+          setError(tx("Ваш акаунт заблоковано. Причина: {0}", [response.reason || tx("Не вказано")]));
         } else {
           setError(response.error);
         }
@@ -32,10 +36,10 @@ export default function SteamAuth() {
       navigate('/cabinet');
     } catch (error) {
       console.error('Steam auth error:', error);
-      setError(`Помилка авторизації: ${error instanceof Error ? error.message : 'Невідома помилка'}`);
+      setError(tx("Помилка авторизації: {0}", [error instanceof Error ? tx(error.message) : tx("Невідома помилка")]));
       setLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, tx]);
 
   useEffect(() => {
     handleSteamCallback();
@@ -46,7 +50,7 @@ export default function SteamAuth() {
       <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Авторизація через Steam...</p>
+          <p className="text-gray-400">{tx("Авторизація через Steam...")}</p>
         </div>
       </div>
     );
@@ -56,13 +60,13 @@ export default function SteamAuth() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100 flex items-center justify-center">
         <div className="bg-gray-800 bg-opacity-60 p-8 rounded-lg border border-gray-700 max-w-md">
-          <h2 className="text-2xl font-bold mb-4 text-red-500">Помилка</h2>
-          <p className="text-gray-300 mb-6">{error}</p>
+          <h2 className="text-2xl font-bold mb-4 text-red-500">{tx("Помилка")}</h2>
+          <p className="text-gray-300 mb-6">{tx(error)}</p>
           <a
             href="/"
             className="inline-block bg-red-600 hover:bg-red-500 px-6 py-3 rounded transition w-full text-center"
           >
-            На головну
+            {t('goHome')}
           </a>
         </div>
       </div>

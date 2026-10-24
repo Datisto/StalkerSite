@@ -1,3 +1,6 @@
+import { useTranslation } from '../hooks/useTranslation';
+import LanguageSwitcher from '../components/LanguageSwitcher';
+import { useLanguage } from '../contexts/language';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,6 +15,8 @@ interface CharacterStory {
 }
 
 export default function EditCharacterStory() {
+  const tx = useTranslation();
+  const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -38,7 +43,7 @@ export default function EditCharacterStory() {
 
       if (!data) {
         console.log('EditCharacterStory: Character not found');
-        await showAlert('Персонаж не знайдено', 'Помилка', 'error');
+        await showAlert(tx("Персонаж не знайдено"), tx("Помилка"), 'error');
         navigate('/cabinet');
         return;
       }
@@ -48,13 +53,13 @@ export default function EditCharacterStory() {
       if (user && data.steam_id !== user.steam_id) {
         console.warn('EditCharacterStory: Steam ID mismatch!');
         console.warn('Expected:', user.steam_id, 'Got:', data.steam_id);
-        await showAlert('Ви не маєте доступу до цього персонажа', 'Помилка', 'error');
+        await showAlert(tx("Ви не маєте доступу до цього персонажа"), tx("Помилка"), 'error');
         navigate('/cabinet');
         return;
       }
 
       if (data.status === 'approved') {
-        await showAlert('Редагування квенти заблоковано після затвердження адміністрацією', 'Попередження', 'warning');
+        await showAlert(tx("Редагування квенти заблоковано після затвердження адміністрацією"), tx("Попередження"), 'warning');
         navigate('/cabinet');
         return;
       }
@@ -66,7 +71,7 @@ export default function EditCharacterStory() {
       });
     } catch (error) {
       console.error('Error loading character:', error);
-      await showAlert('Помилка завантаження персонажа', 'Помилка', 'error');
+      await showAlert(tx("Помилка завантаження персонажа"), tx("Помилка"), 'error');
       navigate('/cabinet');
     } finally {
       setLoading(false);
@@ -75,12 +80,12 @@ export default function EditCharacterStory() {
 
   async function saveStory() {
     if (!formData.backstory || formData.backstory.length < 500) {
-      await showAlert('Біографія повинна містити мінімум 500 символів', 'Помилка', 'warning');
+      await showAlert(tx("Біографія повинна містити мінімум 500 символів"), tx("Помилка"), 'warning');
       return;
     }
 
     if (!formData.zone_motivation) {
-      await showAlert('Заповніть мотивацію приходу в Зону', 'Помилка', 'warning');
+      await showAlert(tx("Заповніть мотивацію приходу в Зону"), tx("Помилка"), 'warning');
       return;
     }
 
@@ -92,11 +97,11 @@ export default function EditCharacterStory() {
         character_goals: formData.character_goals,
       });
 
-      await showAlert('Квенту оновлено', 'Успіх', 'success');
+      await showAlert(tx("Квенту оновлено"), tx("Успіх"), 'success');
       navigate(`/character/${id}`);
     } catch (error) {
       console.error('Error saving story:', error);
-      await showAlert('Помилка збереження', 'Помилка', 'error');
+      await showAlert(tx("Помилка збереження"), tx("Помилка"), 'error');
     } finally {
       setSaving(false);
     }
@@ -105,7 +110,7 @@ export default function EditCharacterStory() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <p className="text-gray-300">Завантаження...</p>
+        <p className="text-gray-300">{t('loading')}</p>
       </div>
     );
   }
@@ -114,75 +119,71 @@ export default function EditCharacterStory() {
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100">
       <header className="border-b border-gray-700 bg-black bg-opacity-60 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <button
               onClick={() => navigate(`/character/${id}`)}
               className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition"
             >
               <ArrowLeft className="w-5 h-5" />
-              Назад до персонажа
+              {t('backToCharacter')}
             </button>
+            <LanguageSwitcher />
           </div>
         </div>
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Редагування квенти</h1>
+          <h1 className="text-3xl font-bold mb-2">{tx("Редагування квенти")}</h1>
           <p className="text-gray-400">
-            Ви можете редагувати тільки біографію персонажа. Фізичні параметри змінити не можна.
-          </p>
+            {tx("Ви можете редагувати тільки біографію персонажа. Фізичні параметри змінити не можна.")}</p>
         </div>
 
         <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700 space-y-6">
           <div>
             <label className="block text-sm font-medium mb-2">
-              Передісторія *
-              <span className="text-xs text-gray-400 block mt-1">Мінімум 500 символів</span>
+              {tx("Передісторія *")}<span className="text-xs text-gray-400 block mt-1">{tx("Мінімум 500 символів")}</span>
             </label>
             <textarea
               value={formData.backstory}
               onChange={(e) => setFormData({ ...formData, backstory: e.target.value })}
               rows={12}
               className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-              placeholder="Розкажіть історію вашого персонажа..."
+              placeholder={tx("Розкажіть історію вашого персонажа...")}
             />
             <p className="text-sm text-gray-400 mt-2">
-              Символів: {formData.backstory.length}
+              {tx("Символів: ")}{formData.backstory.length}
               {formData.backstory.length < 500 && (
-                <span className="text-yellow-500 ml-2">(потрібно мінімум 500)</span>
+                <span className="text-yellow-500 ml-2">{tx("(потрібно мінімум 500)")}</span>
               )}
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Мотивація приходу в Зону *</label>
+            <label className="block text-sm font-medium mb-2">{tx("Мотивація приходу в Зону *")}</label>
             <textarea
               value={formData.zone_motivation}
               onChange={(e) => setFormData({ ...formData, zone_motivation: e.target.value })}
               rows={5}
               className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-              placeholder="Чому ваш персонаж прийшов до Зони?"
+              placeholder={tx("Чому ваш персонаж прийшов до Зони?")}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Цілі персонажа</label>
+            <label className="block text-sm font-medium mb-2">{tx("Цілі персонажа")}</label>
             <textarea
               value={formData.character_goals}
               onChange={(e) => setFormData({ ...formData, character_goals: e.target.value })}
               rows={4}
               className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-              placeholder="Які цілі має персонаж у Зоні?"
+              placeholder={tx("Які цілі має персонаж у Зоні?")}
             />
           </div>
 
           <div className="bg-yellow-900 bg-opacity-30 border border-yellow-700 p-4 rounded">
             <p className="text-sm text-yellow-300">
-              <strong>Увага:</strong> Ви можете редагувати тільки біографічну частину. Зміни в
-              зовнішності, фізичних параметрах та інших даних можливі тільки через звернення до
-              адміністрації.
-            </p>
+              <strong>{tx("Увага:")}</strong> {tx(" Ви можете редагувати тільки біографічну частину. Зміни в зовнішності, фізичних параметрах та інших даних можливі тільки через звернення до адміністрації.")}</p>
           </div>
 
           <div className="flex gap-2">
@@ -192,13 +193,13 @@ export default function EditCharacterStory() {
               className="flex-1 inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 py-3 rounded font-semibold transition disabled:opacity-50"
             >
               <Save className="w-5 h-5" />
-              {saving ? 'Збереження...' : 'Зберегти зміни'}
+              {saving ? t('saving') : t('saveChanges')}
             </button>
             <button
               onClick={() => navigate(`/character/${id}`)}
               className="flex-1 bg-gray-700 hover:bg-gray-600 py-3 rounded font-semibold transition"
             >
-              Скасувати
+              {t('cancel')}
             </button>
           </div>
         </div>

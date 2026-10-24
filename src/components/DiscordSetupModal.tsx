@@ -1,3 +1,4 @@
+import { useTranslation } from '../hooks/useTranslation';
 import { useState, useEffect } from 'react';
 import { Hash } from 'lucide-react';
 
@@ -9,6 +10,7 @@ interface DiscordSetupModalProps {
 }
 
 export function DiscordSetupModal({ isOpen, onSubmit, loading = false, error }: DiscordSetupModalProps) {
+  const tx = useTranslation();
   const [discordUsername, setDiscordUsername] = useState('');
   const [validationError, setValidationError] = useState('');
 
@@ -26,23 +28,23 @@ export function DiscordSetupModal({ isOpen, onSubmit, loading = false, error }: 
 
   const validateUsername = (username: string): boolean => {
     if (!username || username.trim().length === 0) {
-      setValidationError('Discord ID обов\'язковий');
+      setValidationError("Discord ID обов'язковий");
       return false;
     }
 
     if (username.trim().length < 2) {
-      setValidationError('Discord ID має містити мінімум 2 символи');
+      setValidationError("Discord ID має містити мінімум 2 символи");
       return false;
     }
 
     if (username.trim().length > 32) {
-      setValidationError('Discord ID має містити максимум 32 символи');
+      setValidationError("Discord ID має містити максимум 32 символи");
       return false;
     }
 
     const validPattern = /^[a-z0-9._]+$/;
     if (!validPattern.test(username.trim().toLowerCase())) {
-      setValidationError('Discord ID може містити лише літери, цифри, крапки та підкреслення');
+      setValidationError("Discord ID може містити лише літери, цифри, крапки та підкреслення");
       return false;
     }
 
@@ -77,22 +79,19 @@ export function DiscordSetupModal({ isOpen, onSubmit, loading = false, error }: 
         <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
           <h2 className="text-2xl font-bold text-white flex items-center gap-2">
             <Hash className="w-6 h-6" />
-            Налаштування Discord ID
-          </h2>
+            {tx("Налаштування Discord ID")}</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6">
           <div className="bg-gray-800 bg-opacity-60 border border-gray-700 rounded-lg p-4 mb-6">
             <p className="text-gray-300 mb-3">
-              Для завершення реєстрації потрібно вказати ваш Discord ID (username).
-            </p>
+              {tx("Для завершення реєстрації потрібно вказати ваш Discord ID (username).")}</p>
             <p className="text-sm text-gray-400 mb-2">
-              Де знайти Discord ID:
-            </p>
+              {tx("Де знайти Discord ID:")}</p>
             <ul className="text-sm text-gray-400 list-disc list-inside space-y-1">
-              <li>Відкрийте додаток Discord</li>
-              <li>Ваш Discord ID знаходиться під вашим ім'ям користувача</li>
-              <li>Наприклад: <span className="text-red-400 font-mono">username</span> або <span className="text-red-400 font-mono">user.name</span></li>
+              <li>{tx("Відкрийте додаток Discord")}</li>
+              <li>{tx("Ваш Discord ID знаходиться під вашим ім'ям користувача")}</li>
+              <li>{tx("Наприклад: ")}<span className="text-red-400 font-mono">username</span> {tx(" або ")}<span className="text-red-400 font-mono">user.name</span></li>
             </ul>
           </div>
 
@@ -106,7 +105,7 @@ export function DiscordSetupModal({ isOpen, onSubmit, loading = false, error }: 
                 type="text"
                 value={discordUsername}
                 onChange={handleChange}
-                placeholder="наприклад: yourname"
+                placeholder={tx("наприклад: yourname")}
                 disabled={loading}
                 className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-3 text-white focus:border-red-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 autoFocus
@@ -114,17 +113,16 @@ export function DiscordSetupModal({ isOpen, onSubmit, loading = false, error }: 
               />
             </div>
             {validationError && (
-              <p className="mt-2 text-sm text-red-400">{validationError}</p>
+              <p className="mt-2 text-sm text-red-400">{tx(validationError)}</p>
             )}
             {error && (
-              <p className="mt-2 text-sm text-red-400">{error}</p>
+              <p className="mt-2 text-sm text-red-400">{tx(error)}</p>
             )}
           </div>
 
           <div className="bg-yellow-950 border border-yellow-700 rounded-lg p-4 mb-6">
             <p className="text-sm text-yellow-200">
-              <strong>Важливо:</strong> Вкажіть правильний Discord ID, щоб адміністрація могла зв'язатися з вами.
-            </p>
+              <strong>{tx("Важливо:")}</strong> {tx(" Вкажіть правильний Discord ID, щоб адміністрація могла зв'язатися з вами.")}</p>
           </div>
 
           <div className="flex justify-end">
@@ -136,17 +134,15 @@ export function DiscordSetupModal({ isOpen, onSubmit, loading = false, error }: 
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Збереження...
-                </>
+                  {tx("Збереження...")}</>
               ) : (
-                'Зберегти та продовжити'
+                tx("Зберегти та продовжити")
               )}
             </button>
           </div>
 
           <p className="text-xs text-gray-500 text-center mt-4">
-            Без Discord ID ви не зможете користуватися кабінетом
-          </p>
+            {tx("Без Discord ID ви не зможете користуватися кабінетом")}</p>
         </form>
       </div>
     </div>

@@ -1,0 +1,202 @@
+import express from 'express';
+import { query } from '../config/database.js';
+import { authenticateAdmin } from '../middleware/auth.js';
+import { translationFields } from '../utils/content-translations.js';
+
+const router = express.Router();
+
+let faqCache = { items: [], categories: [], lastUpdate: 0 };
+const CACHE_TTL = 5 * 60 * 1000;
+
+router.get('/manage', authenticateAdmin, async (req, res) => {
+  try {
+    const items = await query('SELECT * FROM faq_items ORDER BY category_id, order_index ASC');
+    res.json(items.map((item) => ({ ...item, is_visible: item.is_published })));
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
+
+async function refreshFaqCache() {
+  const now = Date.now();
+  if (now - faqCache.lastUpdate > CACHE_TTL) {
+    faqCache.categories = await query('SELECT * FROM faq_categories ORDER BY order_index ASC');
+    faqCache.items = await query('SELECT * FROM faq_items WHERE is_published = TRUE ORDER BY category_id, order_index ASC');
+    faqCache.lastUpdate = now;
+  }
+}
+
+router.get('/categories', async (req, res) => {
+  try {
+    await refreshFaqCache();
+    const categories = faqCache.categories.map((cat) => ({
+      ...cat,
+      title: cat.name,
+      title_en: cat.name_en ?? null,
+      slug: cat.name.toLowerCase().replace(/\s+/g, '-'),
+    }));
+    res.json(categories);
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
+
+router.get('/', async (req, res) => {
+  try {
+    await refreshFaqCache();
+    const items = faqCache.items.map((item) => ({
+      ...item,
+      is_visible: item.is_published,
+    }));
+    res.json(items);
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
+
+router.post('/categories', authenticateAdmin, async (req, res) => {
+  try {
+    const { name, title, order_index } = req.body;
+    const categoryName = title || name;
+    const translated = translationFields(req.body, { title_en: 255 });
+
+    await query(
+      'INSERT INTO faq_categories (id, name, name_en, order_index) VALUES (UUID(), ?, ?, ?)',
+      [categoryName, translated.title_en ?? null, order_index || 0]
+    );
+
+    faqCache.lastUpdate = 0;
+    res.status(201).json({ success: true });
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
+
+router.patch('/categories/:id', authenticateAdmin, async (req, res) => {
+  try {
+    const { name, title, order_index } = req.body;
+    const translated = translationFields(req.body, { title_en: 255 });
+    const updates = [];
+    const values = [];
+
+    if (translated.title_en !== undefined) {
+      updates.push('name_en = ?');
+      values.push(translated.title_en);
+    }
+
+    if (title !== undefined || name !== undefined) {
+      updates.push('name = ?');
+      values.push(title || name);
+    }
+
+    if (order_index !== undefined) {
+      updates.push('order_index = ?');
+      values.push(order_index);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    values.push(req.params.id);
+
+    await query(
+      `UPDATE faq_categories SET ${updates.join(', ')} WHERE id = ?`,
+      values
+    );
+
+    faqCache.lastUpdate = 0;
+    res.json({ success: true });
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
+
+router.delete('/categories/:id', authenticateAdmin, async (req, res) => {
+  try {
+    await query('DELETE FROM faq_categories WHERE id = ?', [req.params.id]);
+    faqCache.lastUpdate = 0;
+    res.json({ success: true });
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
+
+router.post('/', authenticateAdmin, async (req, res) => {
+  try {
+    const { category_id, question, answer, order_index, is_published, is_visible } = req.body;
+    const published = is_visible !== undefined ? is_visible : is_published !== false;
+    const translated = translationFields(req.body, { question_en: null, answer_en: null });
+
+    await query(
+      'INSERT INTO faq_items (id, category_id, question, question_en, answer, answer_en, order_index, is_published) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?)',
+      [category_id, question, translated.question_en ?? null, answer, translated.answer_en ?? null, order_index || 0, published]
+    );
+
+    faqCache.lastUpdate = 0;
+    res.status(201).json({ success: true });
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
+
+router.patch('/:id', authenticateAdmin, async (req, res) => {
+  try {
+    const { question, answer, order_index, is_published, is_visible } = req.body;
+    const translated = translationFields(req.body, { question_en: null, answer_en: null });
+    const updates = [];
+    const values = [];
+
+    for (const [field, value] of Object.entries(translated)) {
+      updates.push(`${field} = ?`);
+      values.push(value);
+    }
+
+    if (question !== undefined) {
+      updates.push('question = ?');
+      values.push(question);
+    }
+
+    if (answer !== undefined) {
+      updates.push('answer = ?');
+      values.push(answer);
+    }
+
+    if (order_index !== undefined) {
+      updates.push('order_index = ?');
+      values.push(order_index);
+    }
+
+    if (is_visible !== undefined || is_published !== undefined) {
+      updates.push('is_published = ?');
+      values.push(is_visible !== undefined ? is_visible : is_published);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    values.push(req.params.id);
+
+    await query(
+      `UPDATE faq_items SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      values
+    );
+
+    faqCache.lastUpdate = 0;
+    res.json({ success: true });
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
+
+router.delete('/:id', authenticateAdmin, async (req, res) => {
+  try {
+    await query('DELETE FROM faq_items WHERE id = ?', [req.params.id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
+
+export default router;

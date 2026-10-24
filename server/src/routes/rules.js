@@ -1,6 +1,7 @@
 import express from 'express';
 import { query } from '../config/database.js';
 import { authenticateAdmin, optionalAuth } from '../middleware/auth.js';
+import { translationFields } from '../utils/content-translations.js';
 
 const router = express.Router();
 
@@ -45,11 +46,12 @@ router.get('/categories', async (req, res) => {
     const categories = rulesCache.categories.map((cat) => ({
       ...cat,
       title: cat.name,
+      title_en: cat.name_en ?? null,
       slug: cat.name.toLowerCase().replace(/\s+/g, '-'),
     }));
     res.json(categories);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
@@ -58,7 +60,7 @@ router.get('/', async (req, res) => {
     await refreshRulesCache();
     res.json(rulesCache.rules);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
@@ -66,22 +68,24 @@ router.post('/categories', authenticateAdmin, async (req, res) => {
   try {
     const { name, title, order_index } = req.body;
     const categoryName = title || name;
+    const translated = translationFields(req.body, { title_en: 255 });
 
     await query(
-      'INSERT INTO rules_categories (id, name, order_index) VALUES (UUID(), ?, ?)',
-      [categoryName, order_index || 0]
+      'INSERT INTO rules_categories (id, name, name_en, order_index) VALUES (UUID(), ?, ?, ?)',
+      [categoryName, translated.title_en ?? null, order_index || 0]
     );
 
     rulesCache.lastUpdate = 0;
     res.status(201).json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
 router.patch('/categories/:id', authenticateAdmin, async (req, res) => {
   try {
     const { name, title, order_index } = req.body;
+    const translated = translationFields(req.body, { title_en: 255 });
     const updates = [];
     const values = [];
 
@@ -93,6 +97,11 @@ router.patch('/categories/:id', authenticateAdmin, async (req, res) => {
     if (order_index !== undefined) {
       updates.push('order_index = ?');
       values.push(order_index);
+    }
+
+    if (translated.title_en !== undefined) {
+      updates.push('name_en = ?');
+      values.push(translated.title_en);
     }
 
     if (updates.length === 0) {
@@ -109,7 +118,7 @@ router.patch('/categories/:id', authenticateAdmin, async (req, res) => {
     rulesCache.lastUpdate = 0;
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
@@ -119,29 +128,31 @@ router.delete('/categories/:id', authenticateAdmin, async (req, res) => {
     rulesCache.lastUpdate = 0;
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
 router.post('/', authenticateAdmin, async (req, res) => {
   try {
     const { category_id, parent_id, number, title, content, order_index, is_published } = req.body;
+    const translated = translationFields(req.body, { title_en: 255, content_en: null });
 
     await query(
-      'INSERT INTO rules (id, category_id, parent_id, number, title, content, order_index, is_published) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?)',
-      [category_id, parent_id || null, number || null, title, content, order_index || 0, is_published !== false]
+      'INSERT INTO rules (id, category_id, parent_id, number, title, title_en, content, content_en, order_index, is_published) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [category_id, parent_id || null, number || null, title, translated.title_en ?? null, content, translated.content_en ?? null, order_index || 0, is_published !== false]
     );
 
     rulesCache.lastUpdate = 0;
     res.status(201).json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
 router.patch('/:id', authenticateAdmin, async (req, res) => {
   try {
     const { parent_id, number, title, content, order_index, is_published } = req.body;
+    const translated = translationFields(req.body, { title_en: 255, content_en: null });
     const updates = [];
     const values = [];
 
@@ -163,6 +174,11 @@ router.patch('/:id', authenticateAdmin, async (req, res) => {
     if (content !== undefined) {
       updates.push('content = ?');
       values.push(content);
+    }
+
+    for (const [field, value] of Object.entries(translated)) {
+      updates.push(`${field} = ?`);
+      values.push(value);
     }
 
     if (order_index !== undefined) {
@@ -189,7 +205,7 @@ router.patch('/:id', authenticateAdmin, async (req, res) => {
     rulesCache.lastUpdate = 0;
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
@@ -198,7 +214,7 @@ router.delete('/:id', authenticateAdmin, async (req, res) => {
     await query('DELETE FROM rules WHERE id = ?', [req.params.id]);
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 

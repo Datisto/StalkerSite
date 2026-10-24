@@ -32,6 +32,7 @@ interface CharacterRecord {
   gender: 'male' | 'female';
   faction: string;
   face_model?: string;
+  face_model_en?: string | null;
   hair_color?: string;
   eye_color?: string;
   beard_style?: string | null;
@@ -83,6 +84,7 @@ interface AdminUserRecord {
 interface TestSubmissionRecord {
   id: string;
   steam_id: string;
+  language?: 'uk' | 'en';
   discord_id?: string | null;
   approved?: boolean | null;
   reviewed_at?: string | null;
@@ -92,6 +94,7 @@ interface TestSubmissionRecord {
 interface RuleCategoryRecord {
   id: string;
   title: string;
+  title_en?: string | null;
   slug: string;
   order_index: number;
 }
@@ -102,7 +105,9 @@ interface RuleRecord {
   parent_id?: string | null;
   number: string;
   title: string;
+  title_en?: string | null;
   content: string;
+  content_en?: string | null;
   order_index: number;
   [key: string]: unknown;
 }
@@ -110,7 +115,9 @@ interface RuleRecord {
 interface QuestionRecord {
   id: string;
   question_text: string;
+  question_text_en?: string | null;
   category: string;
+  category_en?: string | null;
   is_active: boolean;
   created_at: string;
   [key: string]: unknown;
@@ -119,6 +126,7 @@ interface QuestionRecord {
 interface FAQCategoryRecord {
   id: string;
   title: string;
+  title_en?: string | null;
   slug: string;
   order_index: number;
 }
@@ -127,7 +135,9 @@ interface FAQRecord {
   id: string;
   category_id: string;
   question: string;
+  question_en?: string | null;
   answer: string;
+  answer_en?: string | null;
   order_index: number;
   is_visible: boolean;
   [key: string]: unknown;
@@ -136,6 +146,8 @@ interface FAQRecord {
 interface FaceModelRecord {
   id: string;
   name: string;
+  name_en?: string | null;
+  is_active: boolean;
   image_url: string;
   is_unique: boolean;
   display_order: number;
@@ -299,6 +311,7 @@ class APIClient {
 
   questions = {
     list: () => this.get<QuestionRecord[]>('/questions'),
+    manage: () => this.get<QuestionRecord[]>('/questions/manage'),
     create: (data: ApiPayload) => this.post<QuestionRecord>('/questions', data),
     update: (id: string, data: ApiPayload) => this.patch<QuestionRecord>(`/questions/${id}`, data),
     delete: (id: string) => this.delete<{ success: boolean }>(`/questions/${id}`),
@@ -321,12 +334,14 @@ class APIClient {
       delete: (id: string) => this.delete<{ success: boolean }>(`/faq/categories/${id}`),
     },
     list: () => this.get<FAQRecord[]>('/faq'),
+    manage: () => this.get<FAQRecord[]>('/faq/manage'),
     create: (data: ApiPayload) => this.post<FAQRecord>('/faq', data),
     update: (id: string, data: ApiPayload) => this.patch<FAQRecord>(`/faq/${id}`, data),
     delete: (id: string) => this.delete<{ success: boolean }>(`/faq/${id}`),
   };
 
   faceModels = {
+    manage: () => this.get<FaceModelRecord[]>('/face-models/all'),
     list: (gender?: string) => {
       const query = gender ? `?gender=${gender}` : '';
       return this.get<FaceModelRecord[]>(`/face-models${query}`);

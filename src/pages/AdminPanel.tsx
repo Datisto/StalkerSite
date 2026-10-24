@@ -1,8 +1,14 @@
+import { translateCharacterStatus, translateZoneReason } from '../i18n/character';
+import { useTranslation } from '../hooks/useTranslation';
+import LanguageSwitcher from '../components/LanguageSwitcher';
+import { useLanguage } from '../contexts/language';
 import { useEffect, useState } from 'react';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
 import QuestionsManager from '../components/QuestionsManager';
 import RulesManager from '../components/RulesManager';
 import FAQManager from '../components/FAQManager';
+import FaceModelsManager from '../components/FaceModelsManager';
+import BilingualTextField from '../components/BilingualTextField';
 import { showAlert, showConfirm, showPrompt } from '../utils/modals';
 import {
   Users,
@@ -79,6 +85,7 @@ interface User {
 interface MediaVideo {
   id: string;
   title: string;
+  title_en?: string | null;
   url: string;
   thumbnail_url: string;
   order_index: number;
@@ -90,6 +97,7 @@ interface TestSubmission {
   id: string;
   user_id: string | null;
   steam_id: string;
+  language?: 'uk' | 'en';
   steam_nickname: string | null;
   discord_id: string | null;
   created_at: string;
@@ -102,8 +110,10 @@ interface TestSubmission {
 }
 
 export default function AdminPanel() {
+  const tx = useTranslation();
+  const { t, language } = useLanguage();
   const { admin, logout } = useAdminAuth();
-  const [activeTab, setActiveTab] = useState<'characters' | 'questions' | 'rules' | 'tests' | 'users' | 'media' | 'faq'>('characters');
+  const [activeTab, setActiveTab] = useState<'characters' | 'questions' | 'rules' | 'tests' | 'users' | 'media' | 'faq' | 'faces'>('characters');
   const [characters, setCharacters] = useState<Character[]>([]);
   const [filter, setFilter] = useState<'all' | 'draft' | 'pending' | 'approved' | 'rejected' | 'dead'>('pending');
   const [searchTerm, setSearchTerm] = useState('');
@@ -120,6 +130,7 @@ export default function AdminPanel() {
   const [isAddingVideo, setIsAddingVideo] = useState(false);
   const [videoFormData, setVideoFormData] = useState({
     title: '',
+    title_en: '',
     url: '',
     thumbnail_url: '',
     order_index: 0,
@@ -200,10 +211,10 @@ export default function AdminPanel() {
 
       await loadCharacters();
       setSelectedCharacter(null);
-      await showAlert(`Персонаж ${status === 'approved' ? 'схвалено' : 'відхилено'}`, 'Успіх', 'success');
+      await showAlert(tx("Персонаж {0}", [status === 'approved' ? tx("схвалено") : tx("відхилено")]), tx("Успіх"), 'success');
     } catch (error) {
       console.error('Error updating character:', error);
-      await showAlert('Помилка при оновленні персонажа', 'Помилка', 'error');
+      await showAlert(tx("Помилка при оновленні персонажа"), tx("Помилка"), 'error');
     }
   }
 
@@ -233,13 +244,13 @@ export default function AdminPanel() {
         throw new Error(message);
       }
 
-      await showAlert('Зміни збережено', 'Успіх', 'success');
+      await showAlert(tx("Зміни збережено"), tx("Успіх"), 'success');
       setEditMode(false);
       await loadCharacters();
       setSelectedCharacter(null);
     } catch (error) {
       console.error('Error saving character:', error);
-      await showAlert(`Помилка при збереженні: ${error instanceof Error ? error.message : 'Невідома помилка'}`, 'Помилка', 'error');
+      await showAlert(tx("Помилка при збереженні: {0}", [error instanceof Error ? tx(error.message) : tx("Невідома помилка")]), tx("Помилка"), 'error');
     }
   }
 
@@ -272,10 +283,10 @@ export default function AdminPanel() {
       setApprovingCharacter(null);
       setSelectedCharacter(null);
       await loadCharacters();
-      await showAlert('Персонаж схвалено', 'Успіх', 'success');
+      await showAlert(tx("Персонаж схвалено"), tx("Успіх"), 'success');
     } catch (error) {
       console.error('Error approving character:', error);
-      await showAlert('Помилка при схваленні персонажа', 'Помилка', 'error');
+      await showAlert(tx("Помилка при схваленні персонажа"), tx("Помилка"), 'error');
     } finally {
       setApproveSubmitting(false);
     }
@@ -349,13 +360,13 @@ export default function AdminPanel() {
         }
       }
 
-      await showAlert(approved ? 'Тест схвалено!' : 'Тест відхилено', 'Успіх', 'success');
+      await showAlert(approved ? tx("Тест схвалено!") : tx("Тест відхилено"), tx("Успіх"), 'success');
       await loadTests();
       setSelectedTest(null);
       setQuestionGrades([]);
     } catch (error) {
       console.error('Error saving test review:', error);
-      await showAlert(`Помилка при збереженні: ${error instanceof Error ? error.message : 'Невідома помилка'}`, 'Помилка', 'error');
+      await showAlert(tx("Помилка при збереженні: {0}", [error instanceof Error ? tx(error.message) : tx("Невідома помилка")]), tx("Помилка"), 'error');
     }
   }
 
@@ -376,9 +387,9 @@ export default function AdminPanel() {
 
   async function deleteTestSubmission(testId: string) {
     const confirmed = await showConfirm(
-      'Ви впевнені, що хочете видалити цю здачу правил?',
-      'Підтвердження',
-      { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' }
+      tx("Ви впевнені, що хочете видалити цю здачу правил?"),
+      tx("Підтвердження"),
+      { type: 'danger', confirmText: tx("Видалити"), cancelText: tx("Скасувати") }
     );
     if (!confirmed) return;
 
@@ -392,12 +403,12 @@ export default function AdminPanel() {
 
       if (!response.ok) throw new Error('Failed to delete test submission');
 
-      await showAlert('Здачу правил видалено', 'Успіх', 'success');
+      await showAlert(tx("Здачу правил видалено"), tx("Успіх"), 'success');
       await loadTests();
       setSelectedTest(null);
     } catch (error) {
       console.error('Error deleting test submission:', error);
-      await showAlert('Помилка при видаленні', 'Помилка', 'error');
+      await showAlert(tx("Помилка при видаленні"), tx("Помилка"), 'error');
     }
   }
 
@@ -422,9 +433,9 @@ export default function AdminPanel() {
 
   async function resetUserRules(userId: string) {
     const confirmed = await showConfirm(
-      'Ви впевнені, що хочете скинути здачу правил для цього користувача? Він повинен буде здати правила заново.',
-      'Підтвердження',
-      { type: 'warning', confirmText: 'Скинути', cancelText: 'Скасувати' }
+      tx("Ви впевнені, що хочете скинути здачу правил для цього користувача? Він повинен буде здати правила заново."),
+      tx("Підтвердження"),
+      { type: 'warning', confirmText: tx("Скинути"), cancelText: tx("Скасувати") }
     );
     if (!confirmed) return;
 
@@ -440,19 +451,19 @@ export default function AdminPanel() {
 
       if (!response.ok) throw new Error('Failed to reset user rules');
 
-      await showAlert('Здачу правил скинуто. Користувач має здати правила заново.', 'Успіх', 'success');
+      await showAlert(tx("Здачу правил скинуто. Користувач має здати правила заново."), tx("Успіх"), 'success');
       await loadUsers();
     } catch (error) {
       console.error('Error resetting user rules:', error);
-      await showAlert('Помилка при скиданні правил', 'Помилка', 'error');
+      await showAlert(tx("Помилка при скиданні правил"), tx("Помилка"), 'error');
     }
   }
 
   async function deleteCharacter(characterId: string) {
     const confirmed = await showConfirm(
-      'Ви впевнені, що хочете видалити цього персонажа? Цю дію неможливо скасувати.',
-      'Підтвердження',
-      { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' }
+      tx("Ви впевнені, що хочете видалити цього персонажа? Цю дію неможливо скасувати."),
+      tx("Підтвердження"),
+      { type: 'danger', confirmText: tx("Видалити"), cancelText: tx("Скасувати") }
     );
     if (!confirmed) return;
 
@@ -469,10 +480,10 @@ export default function AdminPanel() {
       setSelectedCharacter(null);
       setEditMode(false);
       await loadCharacters();
-      await showAlert('Персонажа видалено', 'Успіх', 'success');
+      await showAlert(tx("Персонажа видалено"), tx("Успіх"), 'success');
     } catch (error) {
       console.error('Error deleting character:', error);
-      await showAlert('Помилка при видаленні персонажа', 'Помилка', 'error');
+      await showAlert(tx("Помилка при видаленні персонажа"), tx("Помилка"), 'error');
     }
   }
 
@@ -508,7 +519,7 @@ export default function AdminPanel() {
         });
 
         if (!response.ok) throw new Error('Failed to update video');
-        await showAlert('Відео оновлено', 'Успіх', 'success');
+        await showAlert(tx("Відео оновлено"), tx("Успіх"), 'success');
       } else {
         const response = await fetch('/api/media-videos', {
           method: 'POST',
@@ -520,22 +531,22 @@ export default function AdminPanel() {
         });
 
         if (!response.ok) throw new Error('Failed to create video');
-        await showAlert('Відео додано', 'Успіх', 'success');
+        await showAlert(tx("Відео додано"), tx("Успіх"), 'success');
       }
 
       resetVideoForm();
       await loadMediaVideos();
     } catch (error) {
       console.error('Error saving video:', error);
-      await showAlert('Помилка при збереженні відео', 'Помилка', 'error');
+      await showAlert(tx("Помилка при збереженні відео"), tx("Помилка"), 'error');
     }
   }
 
   async function deleteMediaVideo(videoId: string) {
     const confirmed = await showConfirm(
-      'Ви впевнені, що хочете видалити це відео?',
-      'Підтвердження',
-      { type: 'danger', confirmText: 'Видалити', cancelText: 'Скасувати' }
+      tx("Ви впевнені, що хочете видалити це відео?"),
+      tx("Підтвердження"),
+      { type: 'danger', confirmText: tx("Видалити"), cancelText: tx("Скасувати") }
     );
     if (!confirmed) return;
 
@@ -548,17 +559,17 @@ export default function AdminPanel() {
       });
 
       if (!response.ok) throw new Error('Failed to delete video');
-      await showAlert('Відео видалено', 'Успіх', 'success');
+      await showAlert(tx("Відео видалено"), tx("Успіх"), 'success');
       await loadMediaVideos();
     } catch (error) {
       console.error('Error deleting video:', error);
-      await showAlert('Помилка при видаленні відео', 'Помилка', 'error');
+      await showAlert(tx("Помилка при видаленні відео"), tx("Помилка"), 'error');
     }
   }
 
   async function editUserDiscord(userId: string, currentDiscord: string) {
     const newDiscord = await showPrompt(
-      'Редагувати Discord username користувача:',
+      tx("Редагувати Discord username користувача:"),
       'Discord Username',
       { defaultValue: currentDiscord, placeholder: 'username#0000' }
     );
@@ -576,20 +587,20 @@ export default function AdminPanel() {
       });
 
       if (!response.ok) throw new Error('Failed to update discord username');
-      await showAlert('Discord username оновлено', 'Успіх', 'success');
+      await showAlert(tx("Discord username оновлено"), tx("Успіх"), 'success');
       await loadUsers();
     } catch (error) {
       console.error('Error updating discord username:', error);
-      await showAlert('Помилка оновлення Discord username', 'Помилка', 'error');
+      await showAlert(tx("Помилка оновлення Discord username"), tx("Помилка"), 'error');
     }
   }
 
   async function banUser(userId: string, currentBanStatus: boolean) {
     if (currentBanStatus) {
       const confirmed = await showConfirm(
-        'Розблокувати цього користувача?',
-        'Підтвердження розблокування',
-        { type: 'info', confirmText: 'Розблокувати', cancelText: 'Скасувати' }
+        tx("Розблокувати цього користувача?"),
+        tx("Підтвердження розблокування"),
+        { type: 'info', confirmText: tx("Розблокувати"), cancelText: tx("Скасувати") }
       );
       if (!confirmed) return;
 
@@ -604,17 +615,17 @@ export default function AdminPanel() {
         });
 
         if (!response.ok) throw new Error('Failed to unban user');
-        await showAlert('Користувача розблоковано', 'Успіх', 'success');
+        await showAlert(tx("Користувача розблоковано"), tx("Успіх"), 'success');
         await loadUsers();
       } catch (error) {
         console.error('Error unbanning user:', error);
-        await showAlert('Помилка при розблокуванні користувача', 'Помилка', 'error');
+        await showAlert(tx("Помилка при розблокуванні користувача"), tx("Помилка"), 'error');
       }
     } else {
       const reason = await showPrompt(
-        'Введіть причину блокування користувача:',
-        'Причина блокування',
-        { multiline: true, placeholder: 'Причина...' }
+        tx("Введіть причину блокування користувача:"),
+        tx("Причина блокування"),
+        { multiline: true, placeholder: tx("Причина...") }
       );
       if (!reason) return;
 
@@ -632,11 +643,11 @@ export default function AdminPanel() {
         });
 
         if (!response.ok) throw new Error('Failed to ban user');
-        await showAlert('Користувача заблоковано', 'Успіх', 'success');
+        await showAlert(tx("Користувача заблоковано"), tx("Успіх"), 'success');
         await loadUsers();
       } catch (error) {
         console.error('Error banning user:', error);
-        await showAlert('Помилка при блокуванні користувача', 'Помилка', 'error');
+        await showAlert(tx("Помилка при блокуванні користувача"), tx("Помилка"), 'error');
       }
     }
   }
@@ -645,6 +656,7 @@ export default function AdminPanel() {
     setEditingVideo(video);
     setVideoFormData({
       title: video.title,
+      title_en: video.title_en ?? '',
       url: video.url,
       thumbnail_url: video.thumbnail_url,
       order_index: video.order_index,
@@ -658,6 +670,7 @@ export default function AdminPanel() {
     setIsAddingVideo(false);
     setVideoFormData({
       title: '',
+      title_en: '',
       url: '',
       thumbnail_url: '',
       order_index: 0,
@@ -676,34 +689,35 @@ export default function AdminPanel() {
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-gray-100">
       <header className="border-b border-gray-700 bg-black bg-opacity-98 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <img src={logoIcon} alt="Eternal ZONE" className="w-10 h-10 object-contain" />
               <div>
-                <h1 className="text-xl font-bold font-stalker">Адмін-панель</h1>
+                <h1 className="text-xl font-bold font-stalker">{t('adminPanel')}</h1>
                 <p className="text-xs text-gray-400">
-                  {admin?.username} ({admin?.role})
+                  {admin?.username} ({tx(admin?.role === 'super_admin' ? 'Головний адміністратор' : admin?.role === 'moderator' ? 'Модератор' : 'Контент-менеджер')})
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-4">
               <a href="/" className="text-sm text-gray-400 hover:text-white transition">
-                На головну
+                {t('goHome')}
               </a>
               <button
                 onClick={logout}
                 className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition"
               >
                 <LogOut className="w-4 h-4" />
-                Вийти
+                {t('logout')}
               </button>
             </div>
+            <LanguageSwitcher />
           </div>
         </div>
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-6 flex gap-2">
+        <div className="mb-6 flex flex-wrap gap-2">
           <button
             onClick={() => setActiveTab('characters')}
             className={`inline-flex items-center gap-2 px-4 py-2 rounded transition ${
@@ -713,7 +727,7 @@ export default function AdminPanel() {
             }`}
           >
             <Users className="w-5 h-5" />
-            Персонажі
+            {t('characters')}
           </button>
           <button
             onClick={() => setActiveTab('questions')}
@@ -724,7 +738,7 @@ export default function AdminPanel() {
             }`}
           >
             <FileText className="w-5 h-5" />
-            Банк питань
+            {t('questionBank')}
           </button>
           <button
             onClick={() => setActiveTab('tests')}
@@ -735,7 +749,7 @@ export default function AdminPanel() {
             }`}
           >
             <BookOpen className="w-5 h-5" />
-            Здача правил
+            {t('rulesTest')}
           </button>
           <button
             onClick={() => setActiveTab('rules')}
@@ -746,7 +760,7 @@ export default function AdminPanel() {
             }`}
           >
             <BookOpen className="w-5 h-5" />
-            Правила
+            {t('rules')}
           </button>
           <button
             onClick={() => setActiveTab('users')}
@@ -757,7 +771,7 @@ export default function AdminPanel() {
             }`}
           >
             <Users className="w-5 h-5" />
-            Користувачі
+            {t('users')}
           </button>
           <button
             onClick={() => setActiveTab('faq')}
@@ -768,7 +782,7 @@ export default function AdminPanel() {
             }`}
           >
             <HelpCircle className="w-5 h-5" />
-            FAQ
+            {t('faq')}
           </button>
           <button
             onClick={() => setActiveTab('media')}
@@ -779,7 +793,14 @@ export default function AdminPanel() {
             }`}
           >
             <Video className="w-5 h-5" />
-            Медіа
+            {t('media')}
+          </button>
+          <button
+            onClick={() => setActiveTab('faces')}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded transition ${activeTab === 'faces' ? 'bg-red-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+          >
+            <Users className="w-5 h-5" />
+            {t('faceModels')}
           </button>
         </div>
 
@@ -789,7 +810,7 @@ export default function AdminPanel() {
               <div className="bg-gray-800 bg-opacity-60 p-4 rounded-lg border border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-400">Чернетки</p>
+                    <p className="text-sm text-gray-400">{tx("Чернетки")}</p>
                     <p className="text-2xl font-bold text-gray-400">
                       {characters.filter((c) => c.status === 'draft').length}
                     </p>
@@ -801,7 +822,7 @@ export default function AdminPanel() {
               <div className="bg-gray-800 bg-opacity-60 p-4 rounded-lg border border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-400">На розгляді</p>
+                    <p className="text-sm text-gray-400">{tx("На розгляді")}</p>
                     <p className="text-2xl font-bold text-yellow-500">
                       {characters.filter((c) => c.status === 'pending').length}
                     </p>
@@ -813,7 +834,7 @@ export default function AdminPanel() {
               <div className="bg-gray-800 bg-opacity-60 p-4 rounded-lg border border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-400">Схвалено</p>
+                    <p className="text-sm text-gray-400">{tx("Схвалено")}</p>
                     <p className="text-2xl font-bold text-green-500">
                       {characters.filter((c) => c.status === 'approved').length}
                     </p>
@@ -825,7 +846,7 @@ export default function AdminPanel() {
               <div className="bg-gray-800 bg-opacity-60 p-4 rounded-lg border border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-400">Відхилено</p>
+                    <p className="text-sm text-gray-400">{tx("Відхилено")}</p>
                     <p className="text-2xl font-bold text-red-500">
                       {characters.filter((c) => c.status === 'rejected').length}
                     </p>
@@ -837,7 +858,7 @@ export default function AdminPanel() {
               <div className="bg-gray-800 bg-opacity-60 p-4 rounded-lg border border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-400">Мертві</p>
+                    <p className="text-sm text-gray-400">{tx("Мертві")}</p>
                     <p className="text-2xl font-bold text-gray-400">
                       {characters.filter((c) => c.status === 'dead').length}
                     </p>
@@ -849,7 +870,7 @@ export default function AdminPanel() {
               <div className="bg-gray-800 bg-opacity-60 p-4 rounded-lg border border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-400">Всього</p>
+                    <p className="text-sm text-gray-400">{tx("Всього")}</p>
                     <p className="text-2xl font-bold text-blue-500">
                       {new Set(characters.map((c) => c.user_id)).size}
                     </p>
@@ -865,7 +886,7 @@ export default function AdminPanel() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Пошук персонажів..."
+                    placeholder={tx("Пошук персонажів...")}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full bg-gray-900 border border-gray-700 rounded pl-10 pr-4 py-2 focus:outline-none focus:border-red-500"
@@ -883,12 +904,12 @@ export default function AdminPanel() {
                           : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                       }`}
                     >
-                      {f === 'all' && 'Всі'}
-                      {f === 'draft' && 'Чернетки'}
-                      {f === 'pending' && 'На розгляді'}
-                      {f === 'approved' && 'Схвалені'}
-                      {f === 'rejected' && 'Відхилені'}
-                      {f === 'dead' && 'Мертві'}
+                      {f === 'all' && t('all')}
+                      {f === 'draft' && t('drafts')}
+                      {f === 'pending' && t('pending')}
+                      {f === 'approved' && t('approved')}
+                      {f === 'rejected' && t('rejected')}
+                      {f === 'dead' && t('dead')}
                     </button>
                   ))}
                 </div>
@@ -896,11 +917,11 @@ export default function AdminPanel() {
 
               {loading ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-400">Завантаження...</p>
+                  <p className="text-gray-400">{tx("Завантаження...")}</p>
                 </div>
               ) : filteredCharacters.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-400">Персонажі не знайдено</p>
+                  <p className="text-gray-400">{tx("Персонажі не знайдено")}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -918,14 +939,14 @@ export default function AdminPanel() {
                             )}
                           </h3>
                           <p className="text-sm text-gray-400">
-                            {character.age} років • {character.gender === 'male' ? 'Чоловік' : 'Жінка'} •{' '}
-                            {character.faction}
+                            {character.age} {tx(" років • ")}{character.gender === 'male' ? tx("Чоловік") : tx("Жінка")} •{' '}
+                            {tx(character.faction)}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
-                            Discord: {character.discord_id || 'не вказано'}
+                            Discord: {character.discord_id || tx("не вказано")}
                           </p>
                           <p className="text-xs text-yellow-400 mt-1">
-                            Steam ID: {character.steam_id || 'не вказано'}
+                            Steam ID: {character.steam_id || tx("не вказано")}
                           </p>
                         </div>
 
@@ -944,8 +965,7 @@ export default function AdminPanel() {
                             className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition"
                           >
                             <Eye className="w-4 h-4" />
-                            Переглянути
-                          </button>
+                            {tx("Переглянути")}</button>
                           {character.status === 'pending' && (
                             <>
                               <button
@@ -953,14 +973,13 @@ export default function AdminPanel() {
                                 className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 px-4 py-2 rounded transition"
                               >
                                 <CheckCircle className="w-4 h-4" />
-                                Схвалити
-                              </button>
+                                {tx("Схвалити")}</button>
                               <button
                                 onClick={async () => {
                                   const reason = await showPrompt(
-                                    'Введіть причину відхилення:',
-                                    'Причина відхилення',
-                                    { multiline: true, placeholder: 'Причина...' }
+                                    tx("Введіть причину відхилення:"),
+                                    tx("Причина відхилення"),
+                                    { multiline: true, placeholder: tx("Причина...") }
                                   );
                                   if (reason) {
                                     updateCharacterStatus(character.id, 'rejected', reason);
@@ -969,17 +988,16 @@ export default function AdminPanel() {
                                 className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 px-4 py-2 rounded transition"
                               >
                                 <XCircle className="w-4 h-4" />
-                                Відхилити
-                              </button>
+                                {tx("Відхилити")}</button>
                             </>
                           )}
                           {(character.status === 'approved' || character.status === 'active') && (
                             <button
                               onClick={async () => {
                                 const confirmed = await showConfirm(
-                                  `Позначити персонажа "${character.nickname}" як мертвого? Це дозволить гравцю створити нового персонажа та зробить позивний доступним.`,
-                                  'Підтвердження смерті персонажа',
-                                  { type: 'warning', confirmText: 'Позначити мертвим', cancelText: 'Скасувати' }
+                                  tx("Позначити персонажа \"{0}\" як мертвого? Це дозволить гравцю створити нового персонажа та зробить позивний доступним.", [character.nickname]),
+                                  tx("Підтвердження смерті персонажа"),
+                                  { type: 'warning', confirmText: tx("Позначити мертвим"), cancelText: tx("Скасувати") }
                                 );
                                 if (confirmed) {
                                   updateCharacterStatus(character.id, 'dead');
@@ -988,8 +1006,7 @@ export default function AdminPanel() {
                               className="inline-flex items-center gap-2 bg-black hover:bg-gray-900 border border-gray-600 px-4 py-2 rounded transition"
                             >
                               <Skull className="w-4 h-4" />
-                              Позначити мертвим
-                            </button>
+                              {tx("Позначити мертвим")}</button>
                           )}
                         </div>
                       </div>
@@ -1009,11 +1026,11 @@ export default function AdminPanel() {
 
         {activeTab === 'tests' && (
           <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700">
-            <h2 className="text-2xl font-bold mb-6">Здача правил</h2>
+            <h2 className="text-2xl font-bold mb-6">{tx("Здача правил")}</h2>
             {loading ? (
-              <p className="text-gray-400">Завантаження...</p>
+              <p className="text-gray-400">{tx("Завантаження...")}</p>
             ) : tests.length === 0 ? (
-              <p className="text-gray-400">Немає жодної здачі</p>
+              <p className="text-gray-400">{tx("Немає жодної здачі")}</p>
             ) : (
               <div className="space-y-4">
                 {tests.map((test) => (
@@ -1025,23 +1042,24 @@ export default function AdminPanel() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-semibold">
-                          {test.steam_nickname || 'Невідомий користувач'}
+                          {test.steam_nickname || tx("Невідомий користувач")}
                         </p>
                         <p className="text-sm text-gray-400">Steam ID: {test.steam_id}</p>
                         <p className="text-sm text-gray-400">Discord ID: {test.discord_id}</p>
+                        <p className="text-sm text-gray-400">{t('testLanguage')}: {test.language === 'en' ? 'EN' : 'UA'}</p>
                         <p className="text-xs text-gray-500">
-                          {new Date(test.created_at).toLocaleString('uk-UA')}
+                          {new Date(test.created_at).toLocaleString(language === 'en' ? 'en-GB' : 'uk-UA')}
                         </p>
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         {test.reviewed_at ? (
                           test.approved ? (
-                            <span className="px-3 py-1 bg-green-600 rounded text-sm">Схвалено</span>
+                            <span className="px-3 py-1 bg-green-600 rounded text-sm">{tx("Схвалено")}</span>
                           ) : (
-                            <span className="px-3 py-1 bg-red-600 rounded text-sm">Відхилено</span>
+                            <span className="px-3 py-1 bg-red-600 rounded text-sm">{tx("Відхилено")}</span>
                           )
                         ) : (
-                          <span className="px-3 py-1 bg-yellow-600 rounded text-sm">На розгляді</span>
+                          <span className="px-3 py-1 bg-yellow-600 rounded text-sm">{tx("На розгляді")}</span>
                         )}
                       </div>
                     </div>
@@ -1058,6 +1076,8 @@ export default function AdminPanel() {
           </div>
         )}
 
+        {activeTab === 'faces' && <FaceModelsManager />}
+
         {activeTab === 'faq' && (
           <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700">
             <FAQManager />
@@ -1067,24 +1087,24 @@ export default function AdminPanel() {
         {activeTab === 'users' && (
           <div className="bg-gray-800 bg-opacity-60 rounded-lg border border-gray-700 overflow-hidden">
             <div className="p-6">
-              <h2 className="text-2xl font-bold mb-6">Користувачі</h2>
+              <h2 className="text-2xl font-bold mb-6">{tx("Користувачі")}</h2>
 
               {loading ? (
-                <p className="text-gray-400 text-center py-8">Завантаження...</p>
+                <p className="text-gray-400 text-center py-8">{tx("Завантаження...")}</p>
               ) : users.length === 0 ? (
-                <p className="text-gray-400 text-center py-8">Користувачі відсутні</p>
+                <p className="text-gray-400 text-center py-8">{tx("Користувачі відсутні")}</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-gray-700">
-                        <th className="text-left py-3 px-4">Steam Nickname</th>
+                        <th className="text-left py-3 px-4">{tx("Ім’я у Steam")}</th>
                         <th className="text-left py-3 px-4">Steam ID</th>
                         <th className="text-left py-3 px-4">Discord</th>
-                        <th className="text-left py-3 px-4">Правила</th>
-                        <th className="text-left py-3 px-4">Статус</th>
-                        <th className="text-left py-3 px-4">Дата реєстрації</th>
-                        <th className="text-left py-3 px-4">Дії</th>
+                        <th className="text-left py-3 px-4">{tx("Правила")}</th>
+                        <th className="text-left py-3 px-4">{tx("Статус")}</th>
+                        <th className="text-left py-3 px-4">{tx("Дата реєстрації")}</th>
+                        <th className="text-left py-3 px-4">{tx("Дії")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1097,12 +1117,12 @@ export default function AdminPanel() {
                               {user.discord_username ? (
                                 <span>{user.discord_username}</span>
                               ) : (
-                                <span className="text-gray-500">Не вказано</span>
+                                <span className="text-gray-500">{tx("Не вказано")}</span>
                               )}
                               <button
                                 onClick={() => editUserDiscord(user.id, user.discord_username || '')}
                                 className="p-1 hover:bg-gray-700 rounded"
-                                title="Редагувати Discord username"
+                                title={tx("Редагувати Discord username")}
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
@@ -1112,30 +1132,26 @@ export default function AdminPanel() {
                             {user.rules_passed ? (
                               <span className="inline-flex items-center gap-1 text-green-400 font-semibold">
                                 <CheckCircle className="w-4 h-4" />
-                                Здано
-                              </span>
+                                {tx("Здано")}</span>
                             ) : (
                               <span className="inline-flex items-center gap-1 text-red-400">
                                 <XCircle className="w-4 h-4" />
-                                Не здано
-                              </span>
+                                {tx("Не здано")}</span>
                             )}
                           </td>
                           <td className="py-3 px-4">
                             {user.is_banned ? (
                               <span className="inline-flex items-center gap-1 text-red-500 font-semibold">
                                 <Ban className="w-4 h-4" />
-                                Заблоковано
-                              </span>
+                                {tx("Заблоковано")}</span>
                             ) : (
                               <span className="inline-flex items-center gap-1 text-green-400">
                                 <UserCheck className="w-4 h-4" />
-                                Активний
-                              </span>
+                                {tx("Активний")}</span>
                             )}
                           </td>
                           <td className="py-3 px-4 text-sm text-gray-400">
-                            {new Date(user.created_at).toLocaleDateString('uk-UA')}
+                            {new Date(user.created_at).toLocaleDateString(language === 'en' ? 'en-GB' : 'uk-UA')}
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
@@ -1145,8 +1161,7 @@ export default function AdminPanel() {
                                   className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-500 px-3 py-1 rounded text-sm transition"
                                 >
                                   <BookOpen className="w-4 h-4" />
-                                  На перездачу
-                                </button>
+                                  {tx("На перездачу")}</button>
                               )}
                               <button
                                 onClick={() => banUser(user.id, user.is_banned)}
@@ -1159,13 +1174,11 @@ export default function AdminPanel() {
                                 {user.is_banned ? (
                                   <>
                                     <UserCheck className="w-4 h-4" />
-                                    Розблокувати
-                                  </>
+                                    {tx("Розблокувати")}</>
                                 ) : (
                                   <>
                                     <Ban className="w-4 h-4" />
-                                    Заблокувати
-                                  </>
+                                    {tx("Заблокувати")}</>
                                 )}
                               </button>
                             </div>
@@ -1183,20 +1196,19 @@ export default function AdminPanel() {
         {activeTab === 'media' && (
           <div className="bg-gray-800 bg-opacity-60 p-6 rounded-lg border border-gray-700">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">Медіа відео</h2>
+              <h2 className="text-2xl font-bold">{tx("Медіа відео")}</h2>
               <button
                 onClick={() => setIsAddingVideo(true)}
                 className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-500 px-4 py-2 rounded transition"
               >
                 <Plus className="w-5 h-5" />
-                Додати відео
-              </button>
+                {tx("Додати відео")}</button>
             </div>
 
             {loading ? (
-              <p className="text-gray-400 text-center py-8">Завантаження...</p>
+              <p className="text-gray-400 text-center py-8">{tx("Завантаження...")}</p>
             ) : mediaVideos.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">Відео відсутні</p>
+              <p className="text-gray-400 text-center py-8">{tx("Відео відсутні")}</p>
             ) : (
               <div className="space-y-4">
                 {mediaVideos.map((video) => (
@@ -1209,10 +1221,10 @@ export default function AdminPanel() {
                         <h3 className="font-semibold text-lg mb-1">{video.title}</h3>
                         <div className="flex items-center gap-4 text-sm mt-2">
                           <span className="text-gray-500">
-                            Порядок: <span className="text-white">{video.order_index}</span>
+                            {tx("Порядок: ")}<span className="text-white">{video.order_index}</span>
                           </span>
                           <span className={video.is_published ? 'text-green-400' : 'text-red-400'}>
-                            {video.is_published ? 'Опубліковано' : 'Приховано'}
+                            {video.is_published ? tx("Опубліковано") : tx("Приховано")}
                           </span>
                         </div>
                         <p className="text-xs text-gray-500 mt-2">URL: {video.url}</p>
@@ -1223,15 +1235,13 @@ export default function AdminPanel() {
                           className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded transition"
                         >
                           <Edit className="w-4 h-4" />
-                          Редагувати
-                        </button>
+                          {tx("Редагувати")}</button>
                         <button
                           onClick={() => deleteMediaVideo(video.id)}
                           className="inline-flex items-center gap-2 bg-red-900 hover:bg-red-800 px-3 py-2 rounded transition"
                         >
                           <Trash2 className="w-4 h-4" />
-                          Видалити
-                        </button>
+                          {tx("Видалити")}</button>
                       </div>
                     </div>
                   </div>
@@ -1263,15 +1273,13 @@ export default function AdminPanel() {
                         className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded transition"
                       >
                         <Edit className="w-4 h-4" />
-                        Редагувати
-                      </button>
+                        {tx("Редагувати")}</button>
                       <button
                         onClick={() => deleteCharacter(selectedCharacter.id)}
                         className="inline-flex items-center gap-2 bg-red-900 hover:bg-red-800 px-4 py-2 rounded transition"
                       >
                         <Trash2 className="w-4 h-4" />
-                        Видалити
-                      </button>
+                        {tx("Видалити")}</button>
                     </>
                   )}
                   <button
@@ -1290,7 +1298,7 @@ export default function AdminPanel() {
                 <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-4">
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Ім'я</label>
+                      <label className="block text-sm font-medium mb-2">{tx("Ім'я")}</label>
                       <input
                         type="text"
                         value={editData.name || ''}
@@ -1299,7 +1307,7 @@ export default function AdminPanel() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">Прізвище</label>
+                      <label className="block text-sm font-medium mb-2">{tx("Прізвище")}</label>
                       <input
                         type="text"
                         value={editData.surname || ''}
@@ -1308,7 +1316,7 @@ export default function AdminPanel() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">По батькові</label>
+                      <label className="block text-sm font-medium mb-2">{tx("По батькові")}</label>
                       <input
                         type="text"
                         value={editData.patronymic || ''}
@@ -1320,7 +1328,7 @@ export default function AdminPanel() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Кличка</label>
+                      <label className="block text-sm font-medium mb-2">{tx("Кличка")}</label>
                       <input
                         type="text"
                         value={editData.nickname || ''}
@@ -1341,7 +1349,7 @@ export default function AdminPanel() {
 
                   <div className="grid grid-cols-4 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Вік</label>
+                      <label className="block text-sm font-medium mb-2">{tx("Вік")}</label>
                       <input
                         type="number"
                         value={editData.age || ''}
@@ -1350,18 +1358,18 @@ export default function AdminPanel() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">Стать</label>
+                      <label className="block text-sm font-medium mb-2">{tx("Стать")}</label>
                       <select
                         value={editData.gender || ''}
                         onChange={(e) => setEditData({ ...editData, gender: e.target.value as Character['gender'] })}
                         className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                       >
-                        <option value="male">Чоловік</option>
-                        <option value="female">Жінка</option>
+                        <option value="male">{tx("Чоловік")}</option>
+                        <option value="female">{tx("Жінка")}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">Зріст (см)</label>
+                      <label className="block text-sm font-medium mb-2">{tx("Зріст (см)")}</label>
                       <input
                         type="number"
                         value={editData.height || ''}
@@ -1370,7 +1378,7 @@ export default function AdminPanel() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">Вага (кг)</label>
+                      <label className="block text-sm font-medium mb-2">{tx("Вага (кг)")}</label>
                       <input
                         type="number"
                         value={editData.weight || ''}
@@ -1382,7 +1390,7 @@ export default function AdminPanel() {
 
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Тип тіла</label>
+                      <label className="block text-sm font-medium mb-2">{tx("Тип тіла")}</label>
                       <input
                         type="text"
                         value={editData.body_type || ''}
@@ -1391,7 +1399,7 @@ export default function AdminPanel() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">Колір волосся</label>
+                      <label className="block text-sm font-medium mb-2">{tx("Колір волосся")}</label>
                       <input
                         type="text"
                         value={editData.hair_color || ''}
@@ -1400,7 +1408,7 @@ export default function AdminPanel() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">Колір очей</label>
+                      <label className="block text-sm font-medium mb-2">{tx("Колір очей")}</label>
                       <input
                         type="text"
                         value={editData.eye_color || ''}
@@ -1412,20 +1420,20 @@ export default function AdminPanel() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Фракція</label>
+                      <label className="block text-sm font-medium mb-2">{tx("Фракція")}</label>
                       <select
                         value={editData.faction || ''}
                         onChange={(e) => setEditData({ ...editData, faction: e.target.value })}
                         className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                       >
-                        <option value="">Виберіть фракцію</option>
-                        <option value="Військовий">Військовий</option>
-                        <option value="Учений">Учений</option>
-                        <option value="Сталкер">Сталкер</option>
+                        <option value="">{tx("Виберіть фракцію")}</option>
+                        <option value="Військовий">{tx("Військовий")}</option>
+                        <option value="Учений">{tx("Учений")}</option>
+                        <option value="Сталкер">{tx("Сталкер")}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">Модель обличчя</label>
+                      <label className="block text-sm font-medium mb-2">{tx("Модель обличчя")}</label>
                       <input
                         type="text"
                         value={editData.face_model || ''}
@@ -1436,7 +1444,7 @@ export default function AdminPanel() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Особливості обличчя</label>
+                    <label className="block text-sm font-medium mb-2">{tx("Особливості обличчя")}</label>
                     <textarea
                       value={editData.special_features || ''}
                       onChange={(e) => setEditData({ ...editData, special_features: e.target.value })}
@@ -1446,7 +1454,7 @@ export default function AdminPanel() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Фізичні прикмети</label>
+                    <label className="block text-sm font-medium mb-2">{tx("Фізичні прикмети")}</label>
                     <textarea
                       value={editData.physical_features || ''}
                       onChange={(e) => setEditData({ ...editData, physical_features: e.target.value })}
@@ -1456,18 +1464,18 @@ export default function AdminPanel() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Риси характеру</label>
+                    <label className="block text-sm font-medium mb-2">{tx("Риси характеру")}</label>
                     <textarea
                       value={Array.isArray(editData.character_traits) ? editData.character_traits.join(', ') : ''}
                       onChange={(e) => setEditData({ ...editData, character_traits: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })}
                       rows={3}
                       className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500 resize-none"
-                      placeholder="Розділіть комами"
+                      placeholder={tx("Розділіть комами")}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Фобії / Слабкості</label>
+                    <label className="block text-sm font-medium mb-2">{tx("Фобії / Слабкості")}</label>
                     <textarea
                       value={editData.phobias || ''}
                       onChange={(e) => setEditData({ ...editData, phobias: e.target.value })}
@@ -1477,7 +1485,7 @@ export default function AdminPanel() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Життєві цінності</label>
+                    <label className="block text-sm font-medium mb-2">{tx("Життєві цінності")}</label>
                     <textarea
                       value={editData.character_values || ''}
                       onChange={(e) => setEditData({ ...editData, character_values: e.target.value })}
@@ -1487,7 +1495,7 @@ export default function AdminPanel() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Біографія</label>
+                    <label className="block text-sm font-medium mb-2">{tx("Біографія")}</label>
                     <textarea
                       value={editData.backstory || ''}
                       onChange={(e) => setEditData({ ...editData, backstory: e.target.value })}
@@ -1497,7 +1505,7 @@ export default function AdminPanel() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Мотивація приходу в Зону</label>
+                    <label className="block text-sm font-medium mb-2">{tx("Мотивація приходу в Зону")}</label>
                     <textarea
                       value={editData.zone_motivation || ''}
                       onChange={(e) => setEditData({ ...editData, zone_motivation: e.target.value })}
@@ -1507,7 +1515,7 @@ export default function AdminPanel() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Цілі персонажа</label>
+                    <label className="block text-sm font-medium mb-2">{tx("Цілі персонажа")}</label>
                     <textarea
                       value={editData.character_goals || ''}
                       onChange={(e) => setEditData({ ...editData, character_goals: e.target.value })}
@@ -1522,14 +1530,12 @@ export default function AdminPanel() {
                       className="flex-1 inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 py-3 rounded font-semibold transition"
                     >
                       <Save className="w-5 h-5" />
-                      Зберегти зміни
-                    </button>
+                      {tx("Зберегти зміни")}</button>
                     <button
                       onClick={() => setEditMode(false)}
                       className="flex-1 bg-gray-700 hover:bg-gray-600 py-3 rounded font-semibold transition"
                     >
-                      Скасувати
-                    </button>
+                      {tx("Скасувати")}</button>
                   </div>
                 </div>
               ) : (
@@ -1537,59 +1543,59 @@ export default function AdminPanel() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-400">Discord ID</p>
-                      <p className="font-semibold">{selectedCharacter.discord_id || 'Не вказано'}</p>
+                      <p className="font-semibold">{selectedCharacter.discord_id || tx("Не вказано")}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-400">Steam ID</p>
                       <p className="font-semibold font-mono text-sm">{selectedCharacter.steam_id}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-400">Вік</p>
-                      <p className="font-semibold">{selectedCharacter.age} років</p>
+                      <p className="text-sm text-gray-400">{tx("Вік")}</p>
+                      <p className="font-semibold">{selectedCharacter.age} {tx(" років")}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-400">Стать</p>
+                      <p className="text-sm text-gray-400">{tx("Стать")}</p>
                       <p className="font-semibold">
-                        {selectedCharacter.gender === 'male' ? 'Чоловік' : 'Жінка'}
+                        {selectedCharacter.gender === 'male' ? tx("Чоловік") : tx("Жінка")}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-400">Зріст</p>
-                      <p className="font-semibold">{selectedCharacter.height || 'Не вказано'} см</p>
+                      <p className="text-sm text-gray-400">{tx("Зріст")}</p>
+                      <p className="font-semibold">{selectedCharacter.height || tx("Не вказано")} {tx(" см")}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-400">Вага</p>
-                      <p className="font-semibold">{selectedCharacter.weight || 'Не вказано'} кг</p>
+                      <p className="text-sm text-gray-400">{tx("Вага")}</p>
+                      <p className="font-semibold">{selectedCharacter.weight || tx("Не вказано")} {tx(" кг")}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-400">Тип тіла</p>
-                      <p className="font-semibold">{selectedCharacter.body_type || 'Не вказано'}</p>
+                      <p className="text-sm text-gray-400">{tx("Тип тіла")}</p>
+                      <p className="font-semibold">{tx(selectedCharacter.body_type || "Не вказано")}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-400">Фракція</p>
-                      <p className="font-semibold">{selectedCharacter.faction}</p>
+                      <p className="text-sm text-gray-400">{tx("Фракція")}</p>
+                      <p className="font-semibold">{tx(selectedCharacter.faction)}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-400">Статус</p>
-                      <p className="font-semibold">{selectedCharacter.status}</p>
+                      <p className="text-sm text-gray-400">{tx("Статус")}</p>
+                      <p className="font-semibold">{translateCharacterStatus(selectedCharacter.status, tx)}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-400">Модель обличчя</p>
-                      <p className="font-semibold">{selectedCharacter.face_model || 'Не вказано'}</p>
+                      <p className="text-sm text-gray-400">{tx("Модель обличчя")}</p>
+                      <p className="font-semibold">{selectedCharacter.face_model || tx("Не вказано")}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-400">Колір волосся</p>
-                      <p className="font-semibold">{selectedCharacter.hair_color || 'Не вказано'}</p>
+                      <p className="text-sm text-gray-400">{tx("Колір волосся")}</p>
+                      <p className="font-semibold">{tx(selectedCharacter.hair_color || "Не вказано")}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-400">Колір очей</p>
-                      <p className="font-semibold">{selectedCharacter.eye_color || 'Не вказано'}</p>
+                      <p className="text-sm text-gray-400">{tx("Колір очей")}</p>
+                      <p className="font-semibold">{tx(selectedCharacter.eye_color || "Не вказано")}</p>
                     </div>
                   </div>
 
                   {selectedCharacter.special_features && (
                     <div>
-                      <p className="text-sm text-gray-400 mb-2">Особливості обличчя</p>
+                      <p className="text-sm text-gray-400 mb-2">{tx("Особливості обличчя")}</p>
                       <div className="bg-gray-900 p-3 rounded border border-gray-700">
                         <p>{selectedCharacter.special_features}</p>
                       </div>
@@ -1598,7 +1604,7 @@ export default function AdminPanel() {
 
                   {selectedCharacter.physical_features && (
                     <div>
-                      <p className="text-sm text-gray-400 mb-2">Фізичні прикмети</p>
+                      <p className="text-sm text-gray-400 mb-2">{tx("Фізичні прикмети")}</p>
                       <div className="bg-gray-900 p-3 rounded border border-gray-700">
                         <p>{selectedCharacter.physical_features}</p>
                       </div>
@@ -1608,14 +1614,14 @@ export default function AdminPanel() {
                   {selectedCharacter.character_traits &&
                     selectedCharacter.character_traits.length > 0 && (
                       <div>
-                        <p className="text-sm text-gray-400 mb-2">Риси характеру</p>
+                        <p className="text-sm text-gray-400 mb-2">{tx("Риси характеру")}</p>
                         <div className="flex flex-wrap gap-2">
                           {selectedCharacter.character_traits.map((trait) => (
                             <span
                               key={trait}
                               className="bg-red-900 bg-opacity-30 px-3 py-1 rounded text-sm"
                             >
-                              {trait}
+                              {tx(trait)}
                             </span>
                           ))}
                         </div>
@@ -1624,7 +1630,7 @@ export default function AdminPanel() {
 
                   {selectedCharacter.phobias && (
                     <div>
-                      <p className="text-sm text-gray-400 mb-2">Фобії / Слабкості</p>
+                      <p className="text-sm text-gray-400 mb-2">{tx("Фобії / Слабкості")}</p>
                       <div className="bg-gray-900 p-3 rounded border border-gray-700">
                         <p>{selectedCharacter.phobias}</p>
                       </div>
@@ -1633,7 +1639,7 @@ export default function AdminPanel() {
 
                   {selectedCharacter.character_values && (
                     <div>
-                      <p className="text-sm text-gray-400 mb-2">Життєві цінності</p>
+                      <p className="text-sm text-gray-400 mb-2">{tx("Життєві цінності")}</p>
                       <div className="bg-gray-900 p-3 rounded border border-gray-700">
                         <p>{selectedCharacter.character_values}</p>
                       </div>
@@ -1644,7 +1650,7 @@ export default function AdminPanel() {
                     <>
                       {selectedCharacter.education && (
                         <div>
-                          <p className="text-sm text-gray-400 mb-2">Освіта</p>
+                          <p className="text-sm text-gray-400 mb-2">{tx("Освіта")}</p>
                           <div className="bg-gray-900 p-3 rounded border border-gray-700">
                             <p>{selectedCharacter.education}</p>
                           </div>
@@ -1652,7 +1658,7 @@ export default function AdminPanel() {
                       )}
                       {selectedCharacter.scientific_profile && (
                         <div>
-                          <p className="text-sm text-gray-400 mb-2">Науковий профіль</p>
+                          <p className="text-sm text-gray-400 mb-2">{tx("Науковий профіль")}</p>
                           <div className="bg-gray-900 p-3 rounded border border-gray-700">
                             <p>{selectedCharacter.scientific_profile}</p>
                           </div>
@@ -1660,7 +1666,7 @@ export default function AdminPanel() {
                       )}
                       {selectedCharacter.research_motivation && (
                         <div>
-                          <p className="text-sm text-gray-400 mb-2">Мотивація досліджень</p>
+                          <p className="text-sm text-gray-400 mb-2">{tx("Мотивація досліджень")}</p>
                           <div className="bg-gray-900 p-3 rounded border border-gray-700">
                             <p>{selectedCharacter.research_motivation}</p>
                           </div>
@@ -1673,15 +1679,15 @@ export default function AdminPanel() {
                     <>
                       {selectedCharacter.military_experience && (
                         <div>
-                          <p className="text-sm text-gray-400 mb-2">Військовий досвід</p>
+                          <p className="text-sm text-gray-400 mb-2">{tx("Військовий досвід")}</p>
                           <div className="bg-gray-900 p-3 rounded border border-gray-700">
-                            <p>{selectedCharacter.military_experience}</p>
+                            <p>{tx(selectedCharacter.military_experience)}</p>
                           </div>
                         </div>
                       )}
                       {selectedCharacter.military_rank && (
                         <div>
-                          <p className="text-sm text-gray-400 mb-2">Військове звання</p>
+                          <p className="text-sm text-gray-400 mb-2">{tx("Військове звання")}</p>
                           <div className="bg-gray-900 p-3 rounded border border-gray-700">
                             <p>{selectedCharacter.military_rank}</p>
                           </div>
@@ -1689,7 +1695,7 @@ export default function AdminPanel() {
                       )}
                       {selectedCharacter.military_join_reason && (
                         <div>
-                          <p className="text-sm text-gray-400 mb-2">Причина вступу до військових</p>
+                          <p className="text-sm text-gray-400 mb-2">{tx("Причина вступу до військових")}</p>
                           <div className="bg-gray-900 p-3 rounded border border-gray-700">
                             <p>{selectedCharacter.military_join_reason}</p>
                           </div>
@@ -1700,7 +1706,7 @@ export default function AdminPanel() {
 
                   {selectedCharacter.backstory && (
                     <div>
-                      <p className="text-sm text-gray-400 mb-2">Біографія ({selectedCharacter.backstory.length} символів)</p>
+                      <p className="text-sm text-gray-400 mb-2">{tx("Біографія (")}{selectedCharacter.backstory.length} {tx(" символів)")}</p>
                       <div className="bg-gray-900 p-4 rounded border border-gray-700">
                         <p className="whitespace-pre-wrap break-words leading-relaxed">{selectedCharacter.backstory}</p>
                       </div>
@@ -1709,16 +1715,16 @@ export default function AdminPanel() {
 
                   {selectedCharacter.zone_motivation && (
                     <div>
-                      <p className="text-sm text-gray-400 mb-2">Мотивація приходу в Зону</p>
+                      <p className="text-sm text-gray-400 mb-2">{tx("Мотивація приходу в Зону")}</p>
                       <div className="bg-gray-900 p-4 rounded border border-gray-700">
-                        <p className="whitespace-pre-wrap">{selectedCharacter.zone_motivation}</p>
+                        <p className="whitespace-pre-wrap">{translateZoneReason(selectedCharacter.zone_motivation, tx)}</p>
                       </div>
                     </div>
                   )}
 
                   {selectedCharacter.character_goals && (
                     <div>
-                      <p className="text-sm text-gray-400 mb-2">Цілі персонажа</p>
+                      <p className="text-sm text-gray-400 mb-2">{tx("Цілі персонажа")}</p>
                       <div className="bg-gray-900 p-4 rounded border border-gray-700">
                         <p className="whitespace-pre-wrap">{selectedCharacter.character_goals}</p>
                       </div>
@@ -1731,14 +1737,13 @@ export default function AdminPanel() {
                         onClick={() => openApproveModal(selectedCharacter)}
                         className="flex-1 bg-green-600 hover:bg-green-500 py-3 rounded font-semibold transition"
                       >
-                        Схвалити персонажа
-                      </button>
+                        {tx("Схвалити персонажа")}</button>
                       <button
                         onClick={async () => {
                           const reason = await showPrompt(
-                            'Введіть причину відхилення:',
-                            'Причина відхилення',
-                            { multiline: true, placeholder: 'Причина...' }
+                            tx("Введіть причину відхилення:"),
+                            tx("Причина відхилення"),
+                            { multiline: true, placeholder: tx("Причина...") }
                           );
                           if (reason) {
                             updateCharacterStatus(selectedCharacter.id, 'rejected', reason);
@@ -1746,8 +1751,7 @@ export default function AdminPanel() {
                         }}
                         className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded font-semibold transition"
                       >
-                        Відхилити персонажа
-                      </button>
+                        {tx("Відхилити персонажа")}</button>
                     </div>
                   )}
                 </div>
@@ -1763,7 +1767,7 @@ export default function AdminPanel() {
             <div className="p-6">
               <div className="flex justify-between items-start mb-6">
                 <h2 className="text-2xl font-bold">
-                  {editingVideo ? 'Редагувати відео' : 'Додати відео'}
+                  {editingVideo ? tx("Редагувати відео") : tx("Додати відео")}
                 </h2>
                 <button
                   onClick={resetVideoForm}
@@ -1774,19 +1778,16 @@ export default function AdminPanel() {
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Назва відео</label>
-                  <input
-                    type="text"
-                    value={videoFormData.title}
-                    onChange={(e) => setVideoFormData({ ...videoFormData, title: e.target.value })}
-                    className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
-                    placeholder="Введіть назву відео"
-                  />
-                </div>
+                <BilingualTextField
+                  label={tx("Назва відео")}
+                  value={videoFormData.title}
+                  englishValue={videoFormData.title_en}
+                  onChange={(value) => setVideoFormData({ ...videoFormData, title: value })}
+                  onEnglishChange={(value) => setVideoFormData({ ...videoFormData, title_en: value })}
+                />
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">URL відео</label>
+                  <label className="block text-sm font-medium mb-2">{tx("URL відео")}</label>
                   <input
                     type="text"
                     value={videoFormData.url}
@@ -1797,7 +1798,7 @@ export default function AdminPanel() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">URL мініатюри (необов'язково)</label>
+                  <label className="block text-sm font-medium mb-2">{tx("URL мініатюри (необов'язково)")}</label>
                   <input
                     type="text"
                     value={videoFormData.thumbnail_url}
@@ -1808,7 +1809,7 @@ export default function AdminPanel() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Порядок відображення</label>
+                  <label className="block text-sm font-medium mb-2">{tx("Порядок відображення")}</label>
                   <input
                     type="number"
                     value={videoFormData.order_index}
@@ -1827,8 +1828,7 @@ export default function AdminPanel() {
                     className="w-4 h-4"
                   />
                   <label htmlFor="is_published" className="text-sm">
-                    Опублікувати на сайті
-                  </label>
+                    {tx("Опублікувати на сайті")}</label>
                 </div>
 
                 <div className="flex gap-2 pt-4">
@@ -1836,14 +1836,13 @@ export default function AdminPanel() {
                     onClick={saveMediaVideo}
                     className="flex-1 bg-green-600 hover:bg-green-500 py-3 rounded font-semibold transition"
                   >
-                    {editingVideo ? 'Зберегти зміни' : 'Додати відео'}
+                    {editingVideo ? tx("Зберегти зміни") : tx("Додати відео")}
                   </button>
                   <button
                     onClick={resetVideoForm}
                     className="flex-1 bg-gray-700 hover:bg-gray-600 py-3 rounded font-semibold transition"
                   >
-                    Скасувати
-                  </button>
+                    {tx("Скасувати")}</button>
                 </div>
               </div>
             </div>
@@ -1857,11 +1856,12 @@ export default function AdminPanel() {
             <div className="p-6">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold mb-2">Здача правил</h2>
+                  <h2 className="text-2xl font-bold mb-2">{tx("Здача правил")}</h2>
                   <p className="text-gray-400">Steam ID: {selectedTest.steam_id}</p>
                   <p className="text-gray-400">Discord ID: {selectedTest.discord_id}</p>
+                  <p className="text-gray-400">{t('testLanguage')}: {selectedTest.language === 'en' ? 'EN' : 'UA'}</p>
                   <p className="text-sm text-gray-500">
-                    Відправлено: {new Date(selectedTest.created_at).toLocaleString('uk-UA')}
+                    {tx("Відправлено: ")}{new Date(selectedTest.created_at).toLocaleString(language === 'en' ? 'en-GB' : 'uk-UA')}
                   </p>
                 </div>
                 <button
@@ -1875,11 +1875,10 @@ export default function AdminPanel() {
               {!selectedTest.reviewed_at && (
                 <div className="mb-6 bg-blue-900 bg-opacity-30 border border-blue-700 p-4 rounded">
                   <p className="text-blue-200 font-semibold mb-2">
-                    Правильно: {questionGrades.filter(g => g === true).length}/{questionGrades.length}
+                    {tx("Правильно: ")}{questionGrades.filter(g => g === true).length}/{questionGrades.length}
                   </p>
                   <p className="text-blue-300 text-sm">
-                    Натисніть на питання щоб позначити його як правильне/неправильне
-                  </p>
+                    {tx("Натисніть на питання щоб позначити його як правильне/неправильне")}</p>
                 </div>
               )}
 
@@ -1897,7 +1896,7 @@ export default function AdminPanel() {
                     }`}
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <p className="font-semibold">Питання {index + 1}:</p>
+                      <p className="font-semibold">{tx("Питання ")}{index + 1}:</p>
                       {!selectedTest.reviewed_at && (
                         <span className={`text-lg font-bold ${questionGrades[index] ? 'text-green-400' : 'text-red-400'}`}>
                           {questionGrades[index] ? '✓' : '✗'}
@@ -1910,9 +1909,9 @@ export default function AdminPanel() {
                       )}
                     </div>
                     <p className="text-gray-300 mb-4">{question}</p>
-                    <p className="text-sm text-gray-400 mb-2">Відповідь:</p>
+                    <p className="text-sm text-gray-400 mb-2">{tx("Відповідь:")}</p>
                     <div className="bg-black bg-opacity-30 p-3 rounded">
-                      <p className="whitespace-pre-wrap">{selectedTest.answers?.[index] || 'Немає відповіді'}</p>
+                      <p className="whitespace-pre-wrap">{selectedTest.answers?.[index] || tx("Немає відповіді")}</p>
                     </div>
                   </div>
                 ))}
@@ -1924,14 +1923,13 @@ export default function AdminPanel() {
                     onClick={() => saveTestReview(selectedTest.id, true)}
                     className="flex-1 bg-green-600 hover:bg-green-500 py-3 rounded font-semibold transition"
                   >
-                    Схвалити
-                  </button>
+                    {tx("Схвалити")}</button>
                   <button
                     onClick={async () => {
                       const notes = await showPrompt(
-                        'Введіть примітки (необов\'язково):',
-                        'Примітки',
-                        { multiline: true, placeholder: 'Примітки...', defaultValue: '' }
+                        tx("Введіть примітки (необов'язково):"),
+                        tx("Примітки"),
+                        { multiline: true, placeholder: tx("Примітки..."), defaultValue: '' }
                       );
                       if (notes !== null) {
                         saveTestReview(selectedTest.id, false, notes || undefined);
@@ -1939,8 +1937,7 @@ export default function AdminPanel() {
                     }}
                     className="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded font-semibold transition"
                   >
-                    Відхилити
-                  </button>
+                    {tx("Відхилити")}</button>
                 </div>
               )}
 
@@ -1948,9 +1945,9 @@ export default function AdminPanel() {
                 <div className="pt-6 mt-6 border-t border-gray-700">
                   <p className="text-center mb-4">
                     {selectedTest.approved ? (
-                      <span className="text-green-400 font-semibold">✓ Тест схвалено</span>
+                      <span className="text-green-400 font-semibold">{tx("✓ Тест схвалено")}</span>
                     ) : (
-                      <span className="text-red-400 font-semibold">✗ Тест відхилено</span>
+                      <span className="text-red-400 font-semibold">{tx("✗ Тест відхилено")}</span>
                     )}
                   </p>
                   <button
@@ -1958,11 +1955,10 @@ export default function AdminPanel() {
                     className="w-full bg-red-900 hover:bg-red-800 py-3 rounded font-semibold transition flex items-center justify-center gap-2"
                   >
                     <Trash2 className="w-5 h-5" />
-                    Видалити здачу
-                  </button>
+                    {tx("Видалити здачу")}</button>
                   {selectedTest.feedback && (
                     <p className="text-gray-400 text-sm text-center mt-2">
-                      Примітки: {selectedTest.feedback}
+                      {tx("Примітки: ")}{selectedTest.feedback}
                     </p>
                   )}
                 </div>
@@ -1977,7 +1973,7 @@ export default function AdminPanel() {
           <div className="bg-gray-800 rounded-lg max-w-md w-full">
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
-                <h2 className="text-xl font-bold">Схвалення персонажа</h2>
+                <h2 className="text-xl font-bold">{tx("Схвалення персонажа")}</h2>
                 <button
                   onClick={() => setApprovingCharacter(null)}
                   disabled={approveSubmitting}
@@ -1992,39 +1988,39 @@ export default function AdminPanel() {
               </p>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Спавн-сет (Фракція)</label>
+                  <label className="block text-sm font-medium mb-2">{tx("Спавн-сет (Фракція)")}</label>
                   <select
                     value={approveForm.spawnset}
                     onChange={(e) => setApproveForm({ ...approveForm, spawnset: parseInt(e.target.value) })}
                     className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                   >
-                    <option value={1}>Новачок</option>
-                    <option value={2}>Сталкер</option>
-                    <option value={5}>Воля</option>
-                    <option value={6}>Обовязок</option>
-                    <option value={7}>Нейтрали</option>
-                    <option value={8}>Бандити</option>
-                    <option value={9}>Науковець</option>
-                    <option value={10}>Військові</option>
+                    <option value={1}>{tx("Новачок")}</option>
+                    <option value={2}>{tx("Сталкер")}</option>
+                    <option value={5}>{tx("Воля")}</option>
+                    <option value={6}>{tx("Обовязок")}</option>
+                    <option value={7}>{tx("Нейтрали")}</option>
+                    <option value={8}>{tx("Бандити")}</option>
+                    <option value={9}>{tx("Науковець")}</option>
+                    <option value={10}>{tx("Військові")}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Професія</label>
+                  <label className="block text-sm font-medium mb-2">{tx("Професія")}</label>
                   <select
                     value={approveForm.profid}
                     onChange={(e) => setApproveForm({ ...approveForm, profid: parseInt(e.target.value) })}
                     className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-2 focus:outline-none focus:border-red-500"
                   >
-                    <option value={0}>PROFESSION_NONE</option>
-                    <option value={1}>PROFESSION_GUNSMITH</option>
-                    <option value={2}>PROFESSION_TAILOR</option>
-                    <option value={4}>PROFESSION_ELECTROMECHANIC</option>
-                    <option value={8}>PROFESSION_MEDASSISTANT</option>
-                    <option value={16}>PROFESSION_DOCTOR</option>
+                    <option value={0}>{tx("Без професії")}</option>
+                    <option value={1}>{tx("Зброяр")}</option>
+                    <option value={2}>{tx("Кравець")}</option>
+                    <option value={4}>{tx("Електромеханік")}</option>
+                    <option value={8}>{tx("Фельдшер")}</option>
+                    <option value={16}>{tx("Лікар")}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Групи дверей (doors_groups)</label>
+                  <label className="block text-sm font-medium mb-2">{tx("Групи дверей (doors_groups)")}</label>
                   <input
                     type="text"
                     value={approveForm.doors_groups}
@@ -2039,15 +2035,14 @@ export default function AdminPanel() {
                     disabled={approveSubmitting}
                     className="flex-1 bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded font-semibold transition"
                   >
-                    {approveSubmitting ? 'Схвалення...' : 'Схвалити'}
+                    {approveSubmitting ? tx("Схвалення...") : tx("Схвалити")}
                   </button>
                   <button
                     onClick={() => setApprovingCharacter(null)}
                     disabled={approveSubmitting}
                     className="flex-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 py-3 rounded font-semibold transition"
                   >
-                    Скасувати
-                  </button>
+                    {tx("Скасувати")}</button>
                 </div>
               </div>
             </div>

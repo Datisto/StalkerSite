@@ -7,6 +7,10 @@ const router = express.Router();
 router.post('/', optionalAuth, async (req, res) => {
   try {
     const { steam_id, discord_id, questions, answers, score } = req.body;
+    const language = req.body.language ?? 'uk';
+    if (language !== 'uk' && language !== 'en') {
+      return res.status(400).json({ error: 'Unsupported test language' });
+    }
 
     const submissionData = {
       questions: questions || [],
@@ -14,8 +18,8 @@ router.post('/', optionalAuth, async (req, res) => {
     };
 
     await query(
-      'INSERT INTO rules_test_submissions (id, user_id, steam_id, discord_id, answers, score) VALUES (UUID(), ?, ?, ?, ?, ?)',
-      [req.user?.id || null, steam_id, discord_id || null, JSON.stringify(submissionData), score || null]
+      'INSERT INTO rules_test_submissions (id, user_id, steam_id, language, discord_id, answers, score) VALUES (UUID(), ?, ?, ?, ?, ?, ?)',
+      [req.user?.id || null, steam_id, language, discord_id || null, JSON.stringify(submissionData), score || null]
     );
 
     res.status(201).json({ success: true });

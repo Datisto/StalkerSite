@@ -1,8 +1,17 @@
 import express from 'express';
 import { query } from '../config/database.js';
 import { authenticateAdmin } from '../middleware/auth.js';
+import { translationFields } from '../utils/content-translations.js';
 
 const router = express.Router();
+
+router.get('/all', authenticateAdmin, async (req, res) => {
+  try {
+    res.json(await query('SELECT * FROM face_models ORDER BY name ASC'));
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
 
 router.get('/', async (req, res) => {
   try {
@@ -20,30 +29,37 @@ router.get('/', async (req, res) => {
     const models = await query(sql, params);
     res.json(models);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
 router.post('/', authenticateAdmin, async (req, res) => {
   try {
     const { name, gender, image_url, is_unique, is_active } = req.body;
+    const translated = translationFields(req.body, { name_en: 255 });
 
     await query(
-      'INSERT INTO face_models (id, name, gender, image_url, is_unique, is_active) VALUES (UUID(), ?, ?, ?, ?, ?)',
-      [name, gender, image_url, is_unique || false, is_active !== false]
+      'INSERT INTO face_models (id, name, name_en, gender, image_url, is_unique, is_active) VALUES (UUID(), ?, ?, ?, ?, ?, ?)',
+      [name, translated.name_en ?? null, gender, image_url, is_unique || false, is_active !== false]
     );
 
     res.status(201).json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
 router.patch('/:id', authenticateAdmin, async (req, res) => {
   try {
     const { name, gender, image_url, is_unique, is_active } = req.body;
+    const translated = translationFields(req.body, { name_en: 255 });
     const updates = [];
     const values = [];
+
+    if (translated.name_en !== undefined) {
+      updates.push('name_en = ?');
+      values.push(translated.name_en);
+    }
 
     if (name !== undefined) {
       updates.push('name = ?');
@@ -83,7 +99,7 @@ router.patch('/:id', authenticateAdmin, async (req, res) => {
 
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
@@ -92,7 +108,7 @@ router.delete('/:id', authenticateAdmin, async (req, res) => {
     await query('DELETE FROM face_models WHERE id = ?', [req.params.id]);
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
